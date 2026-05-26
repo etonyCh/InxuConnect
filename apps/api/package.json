@@ -22,3 +22,9 @@
     "typescript": "^5.5.3"
   }
 }
+,
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "prisma:migrate": "prisma migrate deploy"
+  }
