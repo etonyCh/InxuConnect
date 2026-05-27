@@ -69,6 +69,7 @@ export default function BookingScreen({ route, navigation, token, apiBaseUrl }: 
 
   return (
     <View style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Text style={styles.backButtonText}>&larr; Retour</Text>
@@ -78,8 +79,10 @@ export default function BookingScreen({ route, navigation, token, apiBaseUrl }: 
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll}>
-        <View style={styles.formCard}>
-          {/* Tarification */}
+        {/* Invoice Recap Card */}
+        <View style={styles.invoiceCard}>
+          <Text style={styles.invoiceTitle}>Détail de la facturation</Text>
+          
           <View style={styles.recapRow}>
             <Text style={styles.recapLabel}>Prix par nuit :</Text>
             <Text style={styles.recapValue}>{price.toLocaleString()} BIF</Text>
@@ -88,51 +91,59 @@ export default function BookingScreen({ route, navigation, token, apiBaseUrl }: 
             <Text style={styles.recapLabel}>Nombre de nuits :</Text>
             <Text style={styles.recapValue}>{nights} nuit(s)</Text>
           </View>
+          
           <View style={styles.recapDivider} />
+          
           <View style={styles.recapRow}>
             <Text style={styles.totalLabel}>TOTAL NET À PAYER :</Text>
             <Text style={styles.totalValue}>{totalPrice.toLocaleString()} BIF</Text>
           </View>
         </View>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>DATE D'ARRIVÉE (YYYY-MM-DD)</Text>
+        {/* Inputs */}
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Date d'arrivée (AAAA-MM-JJ)</Text>
           <TextInput
             style={styles.input}
             value={checkIn}
             onChangeText={setCheckIn}
             placeholder="2026-06-01"
+            placeholderTextColor="#A8A29E"
           />
         </View>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>DATE DE DÉPART (YYYY-MM-DD)</Text>
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Date de départ (AAAA-MM-JJ)</Text>
           <TextInput
             style={styles.input}
             value={checkOut}
             onChangeText={setCheckOut}
             placeholder="2026-06-05"
+            placeholderTextColor="#A8A29E"
           />
         </View>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>TÉLÉPHONE DU PORTEFEUILLE MOBILE MONEY</Text>
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Numéro Mobile Money (Lumicash/EcoCash)</Text>
           <TextInput
             style={styles.input}
             value={phone}
             onChangeText={setPhone}
             placeholder="+257 79 XXXXXX"
+            placeholderTextColor="#A8A29E"
             keyboardType="phone-pad"
           />
         </View>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>MOYEN DE PAIEMENT</Text>
+        {/* Payment Method Selector */}
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Moyen de paiement</Text>
           <View style={styles.radioRow}>
             <TouchableOpacity 
               style={[styles.radioItem, paymentMethod === 'ECOCASH' ? styles.radioActive : styles.radioInactive]}
               onPress={() => setPaymentMethod('ECOCASH')}
             >
+              <Text style={styles.paymentMethodEmoji}>📲</Text>
               <Text style={[styles.radioText, paymentMethod === 'ECOCASH' ? styles.radioTextActive : styles.radioTextInactive]}>
                 EcoCash
               </Text>
@@ -142,6 +153,7 @@ export default function BookingScreen({ route, navigation, token, apiBaseUrl }: 
               style={[styles.radioItem, paymentMethod === 'LUMICASH' ? styles.radioActive : styles.radioInactive]}
               onPress={() => setPaymentMethod('LUMICASH')}
             >
+              <Text style={styles.paymentMethodEmoji}>💸</Text>
               <Text style={[styles.radioText, paymentMethod === 'LUMICASH' ? styles.radioTextActive : styles.radioTextInactive]}>
                 Lumicash
               </Text>
@@ -150,12 +162,13 @@ export default function BookingScreen({ route, navigation, token, apiBaseUrl }: 
         </View>
       </ScrollView>
 
+      {/* Footer Confirm */}
       <View style={styles.footer}>
         <TouchableOpacity style={styles.confirmButton} onPress={handleBooking} disabled={loading}>
           {loading ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={styles.confirmButtonText}>Valider et payer avec mobile money</Text>
+            <Text style={styles.confirmButtonText}>Valider et Payer via Mobile Money</Text>
           )}
         </TouchableOpacity>
       </View>
@@ -173,8 +186,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingTop: 50,
-    paddingBottom: 16,
+    paddingTop: 55,
+    paddingBottom: 20,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderColor: '#E7E5E4',
@@ -186,72 +199,89 @@ const styles = StyleSheet.create({
   backButtonText: {
     fontSize: 12,
     color: '#065F46',
-    fontWeight: '700',
+    fontWeight: 'bold',
   },
   headerTitle: {
     fontSize: 16,
-    fontWeight: '800',
+    fontWeight: '900',
     color: '#1C1917',
   },
   scroll: {
-    padding: 16,
+    padding: 24,
+    paddingBottom: 120,
   },
-  formCard: {
+  invoiceCard: {
     backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 16,
-    marginBottom: 20,
+    borderRadius: 24,
+    padding: 20,
     borderWidth: 1,
     borderColor: '#E7E5E4',
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 1,
+  },
+  invoiceTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#44403C',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 14,
   },
   recapRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   recapLabel: {
     fontSize: 12,
     color: '#78716C',
-    fontWeight: '500',
+    fontWeight: '600',
   },
   recapValue: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '800',
     color: '#1C1917',
   },
   recapDivider: {
     height: 1,
     backgroundColor: '#F5F5F4',
-    marginVertical: 8,
+    marginVertical: 12,
   },
   totalLabel: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#44403C',
+    color: '#1C1917',
   },
   totalValue: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '900',
     color: '#065F46',
   },
-  inputGroup: {
-    marginBottom: 16,
+  formGroup: {
+    marginBottom: 18,
   },
   label: {
     fontSize: 10,
     fontWeight: '800',
     color: '#78716C',
-    marginBottom: 6,
+    marginBottom: 8,
+    textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   input: {
     backgroundColor: '#fff',
     borderWidth: 1,
     borderColor: '#E7E5E4',
-    borderRadius: 12,
-    padding: 12,
+    borderRadius: 16,
+    height: 48,
+    paddingHorizontal: 16,
     fontSize: 13,
     color: '#1C1917',
+    fontWeight: '600',
   },
   radioRow: {
     flexDirection: 'row',
@@ -259,11 +289,16 @@ const styles = StyleSheet.create({
   },
   radioItem: {
     flex: 1,
-    padding: 14,
-    borderRadius: 12,
+    height: 55,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
+    flexDirection: 'row',
+    borderWidth: 2,
+    gap: 6,
+  },
+  paymentMethodEmoji: {
+    fontSize: 16,
   },
   radioActive: {
     backgroundColor: '#ECFDF5',
@@ -275,7 +310,7 @@ const styles = StyleSheet.create({
   },
   radioText: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   radioTextActive: {
     color: '#065F46',
@@ -284,21 +319,38 @@ const styles = StyleSheet.create({
     color: '#78716C',
   },
   footer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     backgroundColor: '#fff',
-    padding: 16,
     borderTopWidth: 1,
     borderColor: '#E7E5E4',
+    paddingHorizontal: 24,
+    paddingVertical: 18,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 8,
   },
   confirmButton: {
+    width: '100%',
     backgroundColor: '#065F46',
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 16,
+    height: 52,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#065F46',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 3,
   },
   confirmButtonText: {
     color: '#fff',
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
 })

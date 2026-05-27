@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import crypto from 'crypto'
 import BookingCard from '@/components/BookingCard'
+import Footer from '@/components/Footer'
 
 // Helper pour générer un JWT temporaire signé pour le compte Hôte de test
 // Cela permet de simuler le scan du QR Code par l'hôte directement depuis l'interface voyageur
@@ -81,6 +82,8 @@ export default async function BookingsPage() {
           </div>
         )}
       </div>
+
+      <Footer />
     </main>
   )
 }

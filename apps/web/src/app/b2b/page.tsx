@@ -2,6 +2,7 @@ import Header from '@/components/Header'
 import { auth } from '@/auth'
 import { redirect } from 'next/navigation'
 import B2bDashboard from '@/components/B2bDashboard'
+import Footer from '@/components/Footer'
 
 export default async function B2bPage() {
   const session = await auth()
@@ -25,6 +26,8 @@ export default async function B2bPage() {
 
         <B2bDashboard token={token} />
       </div>
+
+      <Footer />
     </main>
   )
 }

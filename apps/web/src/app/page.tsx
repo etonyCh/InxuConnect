@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Header from '@/components/Header'
 import VoiceSearchBar from '@/components/VoiceSearchBar'
+import Footer from '@/components/Footer'
 
 async function getListings(searchParams: any) {
   const query = new URLSearchParams()
@@ -150,6 +151,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<any
           })}
         </div>
       </div>
+
+      <Footer />
     </main>
   )
 }

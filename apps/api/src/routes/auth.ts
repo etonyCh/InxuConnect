@@ -132,4 +132,79 @@ export async function authRoutes(fastify: FastifyInstance) {
       return reply.status(500).send({ error: 'Erreur lors de la validation du code' })
     }
   })
+
+  // 3. Récupérer le profil (Protégé par token)
+  fastify.get('/api/auth/profile', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    const userId = (request.user as any).id
+
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: userId }
+      })
+
+      if (!user) {
+        return reply.status(404).send({ error: 'Utilisateur introuvable' })
+      }
+
+      return {
+        success: true,
+        user: {
+          id: user.id,
+          phone: user.phone,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+          kycStatus: user.kycStatus,
+          badge: user.badge,
+          microSavingsEnabled: user.microSavingsEnabled,
+          savingsBalance: user.savingsBalance
+        }
+      }
+    } catch (error) {
+      fastify.log.error(error)
+      return reply.status(500).send({ error: 'Erreur lors de la récupération du profil' })
+    }
+  })
+
+  // 4. Mise à jour du profil (Protégé par token)
+  fastify.patch('/api/auth/profile', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    const userId = (request.user as any).id
+    const { name, phone, role, microSavingsEnabled } = request.body as {
+      name?: string
+      phone?: string
+      role?: 'GUEST' | 'HOST' | 'AGENT' | 'ADMIN'
+      microSavingsEnabled?: boolean
+    }
+
+    try {
+      const updatedUser = await prisma.user.update({
+        where: { id: userId },
+        data: {
+          name: name !== undefined ? name : undefined,
+          phone: phone !== undefined ? phone : undefined,
+          role: role !== undefined ? role : undefined,
+          microSavingsEnabled: microSavingsEnabled !== undefined ? microSavingsEnabled : undefined
+        }
+      })
+
+      return {
+        success: true,
+        message: 'Profil mis à jour avec succès',
+        user: {
+          id: updatedUser.id,
+          phone: updatedUser.phone,
+          email: updatedUser.email,
+          name: updatedUser.name,
+          role: updatedUser.role,
+          kycStatus: updatedUser.kycStatus,
+          badge: updatedUser.badge,
+          microSavingsEnabled: updatedUser.microSavingsEnabled,
+          savingsBalance: updatedUser.savingsBalance
+        }
+      }
+    } catch (error) {
+      fastify.log.error(error)
+      return reply.status(500).send({ error: 'Erreur lors de la mise à jour du profil' })
+    }
+  })
 }

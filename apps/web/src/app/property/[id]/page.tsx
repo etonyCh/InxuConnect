@@ -2,6 +2,7 @@ import Header from '@/components/Header'
 import BookingForm from '@/components/BookingForm'
 import Link from 'next/link'
 import VirtualStagingVisualizer from '@/components/VirtualStagingVisualizer'
+import Footer from '@/components/Footer'
 
 async function getListing(id: string) {
   const res = await fetch(`http://localhost:3001/api/listings/${id}`, { cache: 'no-store' })
@@ -227,6 +228,8 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
 
         </div>
       </div>
+
+      <Footer />
     </main>
   )
 }

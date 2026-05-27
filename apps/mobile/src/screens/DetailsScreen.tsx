@@ -63,7 +63,7 @@ export default function DetailsScreen({ route, navigation, apiBaseUrl }: Details
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#065F46" />
+        <ActivityIndicator size="large" color="#059669" />
         <Text style={styles.loadingText}>Chargement des détails...</Text>
       </View>
     )
@@ -80,28 +80,31 @@ export default function DetailsScreen({ route, navigation, apiBaseUrl }: Details
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        {/* Header Visual */}
+        {/* Header Cover Visual */}
         <View style={styles.visualHeader}>
           <Text style={styles.letter}>{listing.city[0]}</Text>
           <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
             <Text style={styles.backButtonText}>&larr; Retour</Text>
           </TouchableOpacity>
+          <View style={styles.floatingCityBadge}>
+            <Text style={styles.floatingCityText}>📍 {listing.city}</Text>
+          </View>
         </View>
 
         <View style={styles.content}>
           <Text style={styles.title}>{listing.title}</Text>
-          <Text style={styles.city}>📍 {listing.city} {listing.address ? `• ${listing.address}` : ''}</Text>
+          <Text style={styles.city}>{listing.bedrooms} chambres • {listing.bathrooms} sdb • Logement entier</Text>
           
           <View style={styles.divider} />
 
-          {/* Price details */}
-          <View style={styles.priceRow}>
+          {/* Pricing Card */}
+          <View style={styles.priceCard}>
             <View>
               <Text style={styles.priceLabel}>TARIF PAR NUITÉE</Text>
               <Text style={styles.priceValue}>{listing.price.toLocaleString()} BIF</Text>
             </View>
-            <View style={styles.badgeContainer}>
-              <Text style={styles.badgeText}>Logement vérifié</Text>
+            <View style={styles.verifiedBadge}>
+              <Text style={styles.verifiedText}>✓ Garanti</Text>
             </View>
           </View>
 
@@ -113,35 +116,54 @@ export default function DetailsScreen({ route, navigation, apiBaseUrl }: Details
 
           <View style={styles.divider} />
 
-          {/* Burundi Specific Amenities */}
+          {/* Burundi Specific Amenities Grid */}
           <Text style={styles.sectionTitle}>Équipements de confiance</Text>
           <View style={styles.amenityList}>
             <View style={[styles.amenityItem, hasGenerator ? styles.amenityActive : styles.amenityInactive]}>
               <Text style={styles.amenityEmoji}>🔋</Text>
-              <Text style={styles.amenityText}>Groupe Électrogène (Moteri)</Text>
+              <View style={styles.amenityDetails}>
+                <Text style={styles.amenityText}>Groupe Électrogène (Moteri)</Text>
+                <Text style={styles.amenitySubtext}>{hasGenerator ? 'Disponible en cas de coupure' : 'Non disponible'}</Text>
+              </View>
             </View>
+            
             <View style={[styles.amenityItem, hasWaterTank ? styles.amenityActive : styles.amenityInactive]}>
               <Text style={styles.amenityEmoji}>💧</Text>
-              <Text style={styles.amenityText}>Citerne d'eau (Ikigega)</Text>
+              <View style={styles.amenityDetails}>
+                <Text style={styles.amenityText}>Citerne d'eau (Ikigega)</Text>
+                <Text style={styles.amenitySubtext}>{hasWaterTank ? 'Réserve d\'eau installée' : 'Non disponible'}</Text>
+              </View>
             </View>
+
             <View style={[styles.amenityItem, hasStarlink ? styles.amenityActive : styles.amenityInactive]}>
               <Text style={styles.amenityEmoji}>📲</Text>
-              <Text style={styles.amenityText}>Connexion Starlink</Text>
+              <View style={styles.amenityDetails}>
+                <Text style={styles.amenityText}>Connexion Starlink</Text>
+                <Text style={styles.amenitySubtext}>{hasStarlink ? 'Internet haut débit satellite' : 'Non disponible'}</Text>
+              </View>
             </View>
+
             <View style={[styles.amenityItem, hasSecurity ? styles.amenityActive : styles.amenityInactive]}>
               <Text style={styles.amenityEmoji}>👮</Text>
-              <Text style={styles.amenityText}>Sécurité & Gardiennage</Text>
+              <View style={styles.amenityDetails}>
+                <Text style={styles.amenityText}>Sécurité & Gardiennage</Text>
+                <Text style={styles.amenitySubtext}>{hasSecurity ? 'Présence d\'un gardien 24/7' : 'Non disponible'}</Text>
+              </View>
             </View>
+
             <View style={[styles.amenityItem, hasKitchen ? styles.amenityActive : styles.amenityInactive]}>
               <Text style={styles.amenityEmoji}>🍳</Text>
-              <Text style={styles.amenityText}>Cuisine privée équipée</Text>
+              <View style={styles.amenityDetails}>
+                <Text style={styles.amenityText}>Cuisine privée équipée</Text>
+                <Text style={styles.amenitySubtext}>{hasKitchen ? 'Accessible pour cuisiner' : 'Non disponible'}</Text>
+              </View>
             </View>
           </View>
 
           {/* Section Staging 3D */}
           {staging && staging.scene && (
             <View style={styles.stagingContainer}>
-              <Text style={styles.sectionTitle}>✨ Visite 3D interactive (IA)</Text>
+              <Text style={styles.stagingTitle}>✨ Visite 3D interactive (IA)</Text>
               <Text style={styles.stagingSubtitle}>Aménagement virtuel en 3D généré par IA</Text>
               
               {/* Room Grid */}
@@ -160,8 +182,8 @@ export default function DetailsScreen({ route, navigation, apiBaseUrl }: Details
                             backgroundColor: selectedItem?.type === item.type ? '#10B981' : item.color,
                             width: isLit ? 70 : isArmoire ? 50 : 25,
                             height: isLit ? 85 : isArmoire ? 30 : 25,
-                            left: 70 + item.position.x * 35,
-                            top: 70 + item.position.z * 35,
+                            left: 65 + item.position.x * 35,
+                            top: 65 + item.position.z * 35,
                           }
                         ]}
                         onPress={() => setSelectedItem(item)}
@@ -239,17 +261,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   scroll: {
-    paddingBottom: 100,
+    paddingBottom: 110,
   },
   visualHeader: {
-    height: 200,
-    backgroundColor: '#065F46',
+    height: 240,
+    backgroundColor: '#065F46', // Emerald
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+    overflow: 'hidden',
   },
   letter: {
-    fontSize: 90,
+    fontSize: 100,
     fontWeight: '900',
     color: 'rgba(255, 255, 255, 0.15)',
   },
@@ -257,23 +282,42 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 50,
     left: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 12,
   },
   backButtonText: {
     color: '#fff',
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '800',
+  },
+  floatingCityBadge: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    backgroundColor: '#fff',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  floatingCityText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#065F46',
   },
   content: {
-    padding: 20,
+    padding: 24,
   },
   title: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: '900',
     color: '#1C1917',
+    lineHeight: 30,
     marginBottom: 6,
   },
   city: {
@@ -284,18 +328,23 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     backgroundColor: '#F5F5F4',
-    marginVertical: 16,
+    marginVertical: 18,
   },
-  priceRow: {
+  priceCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    backgroundColor: '#FAFAF9',
+    borderWidth: 1,
+    borderColor: '#E7E5E4',
+    borderRadius: 20,
+    padding: 16,
   },
   priceLabel: {
     fontSize: 9,
     fontWeight: '800',
     color: '#A8A29E',
-    letterSpacing: 1,
+    letterSpacing: 1.2,
     marginBottom: 4,
   },
   priceValue: {
@@ -303,13 +352,15 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: '#065F46',
   },
-  badgeContainer: {
+  verifiedBadge: {
     backgroundColor: '#ECFDF5',
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 12,
   },
-  badgeText: {
+  verifiedText: {
     fontSize: 11,
     color: '#047857',
     fontWeight: '800',
@@ -318,25 +369,29 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '800',
     color: '#44403C',
-    marginBottom: 10,
+    marginBottom: 12,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
   },
   description: {
     fontSize: 13,
     color: '#57534E',
-    lineHeight: 20,
+    lineHeight: 22,
     fontWeight: '500',
   },
   amenityList: {
-    gap: 8,
+    gap: 10,
   },
   amenityItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
-    borderRadius: 12,
+    padding: 14,
+    borderRadius: 16,
     borderWidth: 1,
+  },
+  amenityDetails: {
+    marginLeft: 14,
+    flex: 1,
   },
   amenityActive: {
     backgroundColor: '#ECFDF5',
@@ -348,65 +403,41 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   amenityEmoji: {
-    fontSize: 16,
-    marginRight: 10,
+    fontSize: 18,
   },
   amenityText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '700',
     color: '#27272A',
   },
-  footer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderColor: '#E7E5E4',
-    padding: 16,
-  },
-  bookButton: {
-    width: '100%',
-    backgroundColor: '#065F46',
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  bookButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 13,
+  amenitySubtext: {
+    fontSize: 10,
     color: '#78716C',
-    fontWeight: '600',
+    marginTop: 2,
   },
   stagingContainer: {
-    marginTop: 20,
+    marginTop: 24,
     backgroundColor: '#FAFAF9',
-    borderRadius: 20,
+    borderRadius: 24,
     padding: 16,
     borderWidth: 1,
     borderColor: '#E7E5E4',
   },
+  stagingTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#44403C',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
   stagingSubtitle: {
     fontSize: 11,
     color: '#78716C',
-    marginBottom: 12,
+    marginBottom: 14,
   },
   roomGrid: {
     height: 220,
-    borderRadius: 16,
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: '#E7E5E4',
     alignItems: 'center',
@@ -414,23 +445,23 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   floorPlan: {
-    width: 200,
-    height: 200,
-    borderRadius: 8,
+    width: 190,
+    height: 190,
+    borderRadius: 12,
     position: 'relative',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 3,
   },
   furniturePiece: {
     position: 'absolute',
-    borderRadius: 6,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.1)',
+    borderColor: 'rgba(0,0,0,0.08)',
   },
   furnitureEmoji: {
     fontSize: 14,
@@ -439,9 +470,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderWidth: 1,
     borderColor: '#E7E5E4',
-    borderRadius: 12,
-    padding: 10,
-    marginTop: 10,
+    borderRadius: 14,
+    padding: 12,
+    marginTop: 12,
   },
   selectedFurnitureTitle: {
     fontSize: 12,
@@ -457,35 +488,35 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#065F46',
     fontWeight: '700',
-    marginTop: 6,
+    marginTop: 8,
     textDecorationLine: 'underline',
   },
   customizerLabel: {
     fontSize: 10,
     fontWeight: '800',
     color: '#78716C',
-    marginTop: 14,
-    marginBottom: 6,
+    marginTop: 16,
+    marginBottom: 8,
     textTransform: 'uppercase',
   },
   colorRow: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 12,
   },
   colorBubble: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     borderWidth: 2,
   },
   textureRow: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 10,
   },
   textureBtn: {
     flex: 1,
-    paddingVertical: 6,
-    borderRadius: 8,
+    paddingVertical: 8,
+    borderRadius: 10,
     alignItems: 'center',
     borderWidth: 1,
   },
@@ -506,5 +537,53 @@ const styles = StyleSheet.create({
   },
   textureBtnTextInactive: {
     color: '#78716C',
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderColor: '#E7E5E4',
+    paddingHorizontal: 24,
+    paddingVertical: 18,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  bookButton: {
+    width: '100%',
+    backgroundColor: '#065F46',
+    borderRadius: 16,
+    height: 52,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#065F46',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  bookButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#fff',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 13,
+    color: '#78716C',
+    fontWeight: '600',
   },
 })
