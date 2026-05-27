@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: inzu
+          POSTGRES_PASSWORD: inzu_dev_password_2026
+          POSTGRES_DB: inzuconnect
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9.0.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: pnpm --filter api exec prisma generate
+        env:
+          DATABASE_URL: postgresql://inzu:inzu_dev_password_2026@localhost:5432/inzuconnect
+
+      - name: Run Database Migrations
+        run: pnpm --filter api exec prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://inzu:inzu_dev_password_2026@localhost:5432/inzuconnect
+
+      - name: Start API Backend
+        run: |
+          pnpm --filter api run dev &
+          echo "Waiting for API to be ready..."
+          npx wait-on http://localhost:3001/api/properties --timeout 30000
+        env:
+          DATABASE_URL: postgresql://inzu:inzu_dev_password_2026@localhost:5432/inzuconnect
+          JWT_SECRET: inzuconnect-jwt-secret-dev-2026
+
+      - name: Run Auth & KYC Integration Tests
+        run: pnpm --filter api exec tsx verify_auth_flow.ts
+        env:
+          DATABASE_URL: postgresql://inzu:inzu_dev_password_2026@localhost:5432/inzuconnect
+
+      - name: Build Monorepo (Turborepo)
+        run: pnpm exec turbo build
+        env:
+          DATABASE_URL: postgresql://inzu:inzu_dev_password_2026@localhost:5432/inzuconnect
+          JWT_SECRET: inzuconnect-jwt-secret-dev-2026
+          NEXTAUTH_SECRET: inzuconnect-secret-dev-2026-change-in-prod

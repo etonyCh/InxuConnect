@@ -1,0 +1,54 @@
+name: Smoke Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      api_url:
+        description: 'URL de l'\''API Backend à tester'
+        required: true
+        default: 'http://localhost:3001'
+      web_url:
+        description: 'URL du site Web à tester'
+        required: true
+        default: 'http://localhost:3000'
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Attendre le démarrage des services (5 secondes)
+        run: sleep 5
+
+      - name: Vérifier la disponibilité de la route listings (API)
+        run: |
+          echo "Test de l'URL : ${{ github.event.inputs.api_url }}/api/listings"
+          STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" "${{ github.event.inputs.api_url }}/api/listings")
+          echo "Statut HTTP retourné : $STATUS_CODE"
+          if [ "$STATUS_CODE" -ne 200 ]; then
+            echo "❌ La route listings est injoignable ou renvoie une erreur (Status: $STATUS_CODE)"
+            exit 1
+          fi
+          echo "✅ Route listings opérationnelle."
+
+      - name: Vérifier la route listings avec un ID valide (API)
+        run: |
+          echo "Test de l'URL : ${{ github.event.inputs.api_url }}/api/listings/prop_1"
+          STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" "${{ github.event.inputs.api_url }}/api/listings/prop_1")
+          echo "Statut HTTP retourné : $STATUS_CODE"
+          if [ "$STATUS_CODE" -ne 200 ] && [ "$STATUS_CODE" -ne 404 ]; then
+            echo "❌ La route listing par ID renvoie une erreur critique (Status: $STATUS_CODE)"
+            exit 1
+          fi
+          echo "✅ Route listing par ID opérationnelle."
+
+      - name: Vérifier l'accès à la page d'accueil (Web Frontend)
+        run: |
+          echo "Test de l'URL : ${{ github.event.inputs.web_url }}"
+          STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" "${{ github.event.inputs.web_url }}")
+          echo "Statut HTTP retourné : $STATUS_CODE"
+          if [ "$STATUS_CODE" -ne 200 ]; then
+            echo "❌ Le site Web n'est pas joignable (Status: $STATUS_CODE)"
+            exit 1
+          fi
+          echo "✅ Site Web opérationnel."
