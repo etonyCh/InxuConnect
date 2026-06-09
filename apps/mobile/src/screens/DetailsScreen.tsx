@@ -8,7 +8,7 @@ interface DetailsScreenProps {
 }
 
 export default function DetailsScreen({ route, navigation, apiBaseUrl }: DetailsScreenProps) {
-  const { listingId } = route.params
+  const { listingId, currency } = route.params
   const [listing, setListing] = useState<any>(null)
   const [loading, setLoading] = useState(true)
 
@@ -21,7 +21,8 @@ export default function DetailsScreen({ route, navigation, apiBaseUrl }: Details
   const fetchDetails = async () => {
     setLoading(true)
     try {
-      const res = await fetch(`${apiBaseUrl}/api/listings/${listingId}`)
+      const url = `${apiBaseUrl}/api/listings/${listingId}${currency ? `?targetCurrency=${currency}` : ''}`
+      const res = await fetch(url)
       if (res.ok) {
         const data = await res.json()
         setListing(data)
@@ -101,7 +102,7 @@ export default function DetailsScreen({ route, navigation, apiBaseUrl }: Details
           <View style={styles.priceCard}>
             <View>
               <Text style={styles.priceLabel}>TARIF PAR NUITÉE</Text>
-              <Text style={styles.priceValue}>{listing.price.toLocaleString()} BIF</Text>
+              <Text style={styles.priceValue}>{listing.price.toLocaleString()} {listing.currency || 'BIF'}</Text>
             </View>
             <View style={styles.verifiedBadge}>
               <Text style={styles.verifiedText}>✓ Garanti</Text>

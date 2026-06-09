@@ -1,12 +1,15 @@
 'use client'
 import { signIn } from 'next-auth/react'
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
-export default function Login() {
-  const [email, setEmail] = useState('guest@inzu.bi')
-  const [password, setPassword] = useState('demo123')
+function LoginFormContent() {
+  const searchParams = useSearchParams()
+  const isRegistered = searchParams?.get('registered') === 'true'
+  
+  const [email, setEmail] = useState(isRegistered ? '' : 'guest@inzu.bi')
+  const [password, setPassword] = useState(isRegistered ? '' : 'demo123')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
@@ -50,6 +53,13 @@ export default function Login() {
           </div>
           <p className="text-sm text-stone-500 font-medium">Connectez-vous pour louer ou réserver</p>
         </div>
+
+        {/* Success alert */}
+        {isRegistered && (
+          <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 text-xs font-semibold text-emerald-800">
+            🎉 Inscription réussie ! Vous pouvez maintenant vous connecter.
+          </div>
+        )}
 
         {/* Error alert */}
         {error && (
@@ -135,7 +145,29 @@ export default function Login() {
           </div>
         </div>
 
+        {/* Redirect Link */}
+        <div className="text-center text-xs text-stone-500 font-medium pt-2 border-t border-stone-100">
+          Pas encore inscrit ?{' '}
+          <Link href="/register" className="font-bold text-emerald-800 hover:text-emerald-950 transition-colors">
+            Créer un compte
+          </Link>
+        </div>
+
       </div>
     </main>
+  )
+}
+
+export default function Login() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen bg-stone-50/50 flex flex-col items-center justify-center p-4">
+        <div className="bg-white border border-stone-200/60 rounded-2xl p-8 sm:p-10 w-full max-w-[420px] shadow-lg flex items-center justify-center min-h-[300px]">
+          <span className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-800 border-t-transparent"></span>
+        </div>
+      </main>
+    }>
+      <LoginFormContent />
+    </Suspense>
   )
 }

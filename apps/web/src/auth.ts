@@ -22,14 +22,35 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: "Mot de passe", type: "password" }
       },
       authorize: async (credentials) => {
-        // Demo: accepte les 2 comptes seed
-        if (credentials?.email === 'guest@inzu.bi' && credentials?.password === 'demo123') {
-          return { id: 'user_guest_1', email: 'guest@inzu.bi', name: 'Marie N.', role: 'GUEST' }
+        if (!credentials?.email || !credentials?.password) return null
+
+        try {
+          const res = await fetch('http://localhost:3001/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: credentials.email,
+              password: credentials.password
+            })
+          })
+
+          if (res.ok) {
+            const data = await res.json() as any
+            if (data.success && data.user) {
+              return {
+                id: data.user.id,
+                email: data.user.email,
+                name: data.user.name,
+                role: data.user.role,
+                accessToken: data.accessToken
+              }
+            }
+          }
+          return null
+        } catch (e) {
+          console.error("NextAuth authorize error:", e)
+          return null
         }
-        if (credentials?.email === 'host@inzu.bi' && credentials?.password === 'demo123') {
-          return { id: 'user_host_1', email: 'host@inzu.bi', name: 'Jean Pierre', role: 'HOST' }
-        }
-        return null
       }
     })
   ],
@@ -39,10 +60,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (user) {
         token.id = user.id
         token.role = (user as any).role
-        
-        // Génère le token d'API Fastify pour le stocker en session
-        const jwtSecret = process.env.JWT_SECRET || 'inzuconnect-jwt-secret-dev-2026'
-        token.accessToken = signJwt({ id: user.id, role: (user as any).role }, jwtSecret)
+        token.accessToken = (user as any).accessToken
       }
       return token
     },

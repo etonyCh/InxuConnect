@@ -3,9 +3,11 @@ import BookingForm from '@/components/BookingForm'
 import Link from 'next/link'
 import VirtualStagingVisualizer from '@/components/VirtualStagingVisualizer'
 import Footer from '@/components/Footer'
+import MapViewerWrapper from '@/components/MapViewerWrapper'
 
-async function getListing(id: string) {
-  const res = await fetch(`http://localhost:3001/api/listings/${id}`, { cache: 'no-store' })
+async function getListing(id: string, targetCurrency?: string) {
+  const url = `http://localhost:3001/api/listings/${id}${targetCurrency ? `?targetCurrency=${targetCurrency}` : ''}`
+  const res = await fetch(url, { cache: 'no-store' })
   if (!res.ok) return null
   return res.json()
 }
@@ -21,9 +23,16 @@ async function getStaging(id: string) {
   }
 }
 
-export default async function PropertyPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function PropertyPage({ 
+  params,
+  searchParams
+}: { 
+  params: Promise<{ id: string }>,
+  searchParams: Promise<{ currency?: string }>
+}) {
   const { id } = await params
-  const property = await getListing(id)
+  const resolvedSearchParams = await searchParams
+  const property = await getListing(id, resolvedSearchParams.currency)
   const staging = property ? await getStaging(id) : null
 
   if (!property) {
@@ -64,11 +73,28 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
           {/* Left Column: Details */}
           <div className="lg:col-span-2 space-y-8">
             
-            {/* Visual Cover */}
-            <div className="relative aspect-[21/9] w-full rounded-2xl overflow-hidden shadow-lg bg-gradient-to-br from-emerald-850 to-emerald-950 flex items-center justify-center text-white text-8xl font-black">
-              {property.city[0]}
-              <div className="absolute inset-0 bg-black/10"></div>
-            </div>
+            {/* Visual Cover / Gallery */}
+            {property.photos && property.photos.length > 0 ? (
+              <div className={`grid gap-4 rounded-2xl overflow-hidden shadow-lg h-[400px] ${property.photos.length > 1 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'}`}>
+                <div className="w-full h-full relative">
+                  <img src={property.photos[0].url} alt={property.title} className="w-full h-full object-cover" />
+                </div>
+                {property.photos.length > 1 && (
+                  <div className="hidden sm:grid grid-rows-2 gap-4 h-full">
+                    {property.photos.slice(1, 3).map((photo: any, idx: number) => (
+                      <div key={idx} className="w-full h-full relative">
+                        <img src={photo.url} alt={`${property.title} photo ${idx + 2}`} className="w-full h-full object-cover" />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="relative aspect-[21/9] w-full rounded-2xl overflow-hidden shadow-lg bg-gradient-to-br from-emerald-850 to-emerald-950 flex items-center justify-center text-white text-8xl font-black">
+                {property.city[0]}
+                <div className="absolute inset-0 bg-black/10"></div>
+              </div>
+            )}
 
             {/* Title & Owner Card */}
             <div className="bg-white rounded-2xl border border-stone-200/50 p-6 sm:p-8 space-y-6">
@@ -128,7 +154,7 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
                     <h4 className="text-sm font-bold text-stone-900">Groupe Électrogène</h4>
                     <p className="text-xs text-stone-500 mt-0.5">
                       {hasGenerator 
-                        ? `Disponible (Surcharge : ${property.surchargeGenerator.toLocaleString()} FBu/nuit)` 
+                        ? `Disponible (Surcharge : ${property.surchargeGenerator.toLocaleString()} ${property.currency || 'BIF'}/nuit)` 
                         : 'Non disponible'
                       }
                     </p>
@@ -195,6 +221,15 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
               </div>
             </div>
 
+            {/* Localisation sur la carte */}
+            {property.latitude && property.longitude && (
+              <div className="bg-white rounded-2xl border border-stone-200/50 p-6 sm:p-8">
+                <h2 className="text-lg font-bold text-stone-900 mb-6">Emplacement</h2>
+                <MapViewerWrapper position={{ lat: property.latitude, lng: property.longitude }} />
+                <p className="mt-4 text-sm text-stone-500 font-medium text-center">📍 {property.city}{property.address ? `, ${property.address}` : ''}</p>
+              </div>
+            )}
+
             {/* Staging Virtuel 3D si disponible */}
             {staging && staging.scene && (
               <VirtualStagingVisualizer scene={staging.scene} listingTitle={property.title} />
@@ -209,7 +244,7 @@ export default async function PropertyPage({ params }: { params: Promise<{ id: s
                 <span className="text-sm font-medium text-stone-500">Tarif par nuit</span>
                 <div className="flex items-baseline gap-1">
                   <span className="text-2xl font-black text-emerald-800">{property.price.toLocaleString()}</span>
-                  <span className="text-sm font-semibold text-stone-600">FBu</span>
+                  <span className="text-sm font-semibold text-stone-600">{property.currency || 'BIF'}</span>
                 </div>
               </div>
 

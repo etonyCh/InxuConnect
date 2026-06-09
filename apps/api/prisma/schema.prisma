@@ -42,6 +42,8 @@ model Listing {
   price              Int
   city               String
   address            String?
+  latitude           Float?
+  longitude          Float?
   bedrooms           Int                   @default(1)
   bathrooms          Int                   @default(1)
   taxiMotoDistance   Int?
@@ -54,6 +56,8 @@ model Listing {
   availabilities     ListingAvailability[]
   services           ServiceItem[]
   stagingRequests    VirtualStagingRequest[]
+  country            String                @default("Burundi")
+  currency           String                @default("BIF")
   createdAt          DateTime              @default(now())
 }
 

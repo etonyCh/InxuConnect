@@ -6,7 +6,7 @@ const prisma = new PrismaClient()
 export async function savingsRoutes(fastify: FastifyInstance) {
   
   // 1. Consulter le solde d'épargne et le statut d'activation
-  fastify.get('/api/host/savings', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+  fastify.get('/api/host/savings', { preHandler: [fastify.authenticate, fastify.requireRole(['HOST', 'ADMIN'])] }, async (request, reply) => {
     const userId = (request.user as any).id
 
     try {
@@ -38,7 +38,7 @@ export async function savingsRoutes(fastify: FastifyInstance) {
   })
 
   // 2. Activer / Désactiver la micro-épargne automatique de 10%
-  fastify.post('/api/host/savings/toggle', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+  fastify.post('/api/host/savings/toggle', { preHandler: [fastify.authenticate, fastify.requireRole(['HOST', 'ADMIN'])] }, async (request, reply) => {
     const userId = (request.user as any).id
     const { enabled } = request.body as { enabled?: boolean }
 
@@ -82,7 +82,7 @@ export async function savingsRoutes(fastify: FastifyInstance) {
   })
 
   // 3. Retirer de l'argent vers le compte Lumicash/EcoCash principal
-  fastify.post('/api/host/savings/withdraw', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+  fastify.post('/api/host/savings/withdraw', { preHandler: [fastify.authenticate, fastify.requireRole(['HOST', 'ADMIN'])] }, async (request, reply) => {
     const userId = (request.user as any).id
     const { amount } = request.body as { amount?: number }
 

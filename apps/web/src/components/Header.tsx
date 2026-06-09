@@ -18,21 +18,49 @@ export default function Header() {
         {/* Center Navbar */}
         <nav className="hidden md:flex items-center gap-6">
           <Link href="/" className="text-sm font-bold text-stone-600 hover:text-emerald-800 transition-colors">
-            Logements
+            Nos logements
           </Link>
-          {session && (
+          
+          {session ? (
             <>
-              <Link href="/bookings" className="text-sm font-bold text-stone-600 hover:text-emerald-800 transition-colors">
-                Mes séjours
-              </Link>
-              <Link href="/b2b" className="text-sm font-bold text-stone-600 hover:text-emerald-800 transition-colors">
-                Espace B2B
-              </Link>
-              <Link href="/settings" className="text-sm font-bold text-stone-600 hover:text-emerald-800 transition-colors">
-                Paramètres
-              </Link>
+              {(session.user as any)?.role === 'HOST' && (
+                <>
+                  <Link href="/host/dashboard" className="text-sm font-bold text-stone-600 hover:text-emerald-800 transition-colors">
+                    Tableau de Bord
+                  </Link>
+                  <Link href="/host/properties/new" className="text-sm font-bold text-stone-600 hover:text-emerald-800 transition-colors">
+                    Ajouter une annonce
+                  </Link>
+                  <Link href="/bookings" className="text-sm font-bold text-stone-600 hover:text-emerald-800 transition-colors">
+                    Mes voyages
+                  </Link>
+                </>
+              )}
+
+              {(session.user as any)?.role === 'AGENT' && (
+                <Link href="/agent/dashboard" className="text-sm font-bold text-stone-600 hover:text-emerald-800 transition-colors">
+                  Espace Agent
+                </Link>
+              )}
+
+              {(session.user as any)?.role === 'ADMIN' && (
+                <Link href="/admin/dashboard" className="text-sm font-bold text-stone-600 hover:text-emerald-800 transition-colors">
+                  Administration
+                </Link>
+              )}
+
+              {(session.user as any)?.role === 'GUEST' && (
+                <>
+                  <Link href="/bookings" className="text-sm font-bold text-stone-600 hover:text-emerald-800 transition-colors">
+                    Mes réservations
+                  </Link>
+                  <Link href="/b2b" className="text-sm font-bold text-stone-600 hover:text-emerald-800 transition-colors">
+                    Espace B2B
+                  </Link>
+                </>
+              )}
             </>
-          )}
+          ) : null}
         </nav>
 
         {/* Right side user info / login */}
@@ -56,12 +84,20 @@ export default function Header() {
               </button>
             </div>
           ) : (
-            <Link 
-              href="/login" 
-              className="inline-flex items-center justify-center rounded-xl bg-emerald-800 hover:bg-emerald-950 px-4.5 py-2 text-sm font-bold text-white shadow-md transition-all cursor-pointer"
-            >
-              Connexion
-            </Link>
+            <div className="flex items-center gap-3">
+              <Link 
+                href="/login" 
+                className="text-sm font-bold text-stone-600 hover:text-emerald-800 transition-colors"
+              >
+                Connexion
+              </Link>
+              <Link 
+                href="/register" 
+                className="inline-flex items-center justify-center rounded-xl bg-emerald-800 hover:bg-emerald-950 px-4.5 py-2 text-sm font-bold text-white shadow-md transition-all cursor-pointer"
+              >
+                S'inscrire
+              </Link>
+            </div>
           )}
         </div>
       </div>

@@ -14,6 +14,10 @@ export default function ListingsScreen({ token, apiBaseUrl, onLogout, navigation
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // Regional/currency filtering states
+  const [selectedCountry, setSelectedCountry] = useState<string>('')
+  const [selectedCurrency, setSelectedCurrency] = useState<string>('BIF')
+
   // Profile states
   const [profile, setProfile] = useState<any>(null)
   const [name, setName] = useState('')
@@ -21,11 +25,15 @@ export default function ListingsScreen({ token, apiBaseUrl, onLogout, navigation
   const [role, setRole] = useState('')
   const [savingProfile, setSavingProfile] = useState(false)
 
-  const fetchListings = async () => {
+  const fetchListings = async (countryFilter = selectedCountry, currencyFilter = selectedCurrency) => {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch(`${apiBaseUrl}/api/listings`)
+      const query = new URLSearchParams()
+      if (countryFilter) query.append('country', countryFilter)
+      if (currencyFilter) query.append('targetCurrency', currencyFilter)
+
+      const res = await fetch(`${apiBaseUrl}/api/listings?${query.toString()}`)
       if (res.ok) {
         const result = await res.json()
         setListings(result.data || [])
@@ -57,7 +65,7 @@ export default function ListingsScreen({ token, apiBaseUrl, onLogout, navigation
   }
 
   useEffect(() => {
-    fetchListings()
+    fetchListings(selectedCountry, selectedCurrency)
     fetchProfile()
   }, [])
 
@@ -103,22 +111,23 @@ export default function ListingsScreen({ token, apiBaseUrl, onLogout, navigation
     const hasGenerator = item.amenities?.some((a: any) => a.name === 'generator')
     const hasWaterTank = item.amenities?.some((a: any) => a.name === 'water_tank')
     const hasStarlink = item.amenities?.some((a: any) => a.name === 'starlink')
+    const flag = item.country === 'Rwanda' ? '🇷🇼' : item.country === 'RDC' ? '🇨🇩' : item.country === 'Tanzanie' ? '🇹🇿' : '🇧🇮'
 
     return (
       <TouchableOpacity 
         style={styles.card} 
-        onPress={() => navigation.navigate('Details', { listingId: item.id })}
+        onPress={() => navigation.navigate('Details', { listingId: item.id, currency: selectedCurrency })}
       >
         <View style={styles.cardMedia}>
           <Text style={styles.cardLetter}>{item.city[0]}</Text>
           <View style={styles.priceTag}>
-            <Text style={styles.priceText}>{item.price.toLocaleString()} BIF</Text>
+            <Text style={styles.priceText}>{item.price.toLocaleString()} {item.currency || 'BIF'}</Text>
           </View>
         </View>
         
         <View style={styles.cardContent}>
           <Text style={styles.cardTitle}>{item.title}</Text>
-          <Text style={styles.cardCity}>📍 {item.city} {item.address ? `• ${item.address}` : ''}</Text>
+          <Text style={styles.cardCity}>{flag} {item.city} {item.address ? `• ${item.address}` : ''}</Text>
 
           <View style={styles.badgeRow}>
             {hasGenerator && <Text style={styles.badge}>🔋 Moteri</Text>}
@@ -138,9 +147,65 @@ export default function ListingsScreen({ token, apiBaseUrl, onLogout, navigation
           <View style={styles.header}>
             <View>
               <Text style={styles.headerTitle}>InzuConnect</Text>
-              <Text style={styles.headerSubtitle}>Logements de confiance au Burundi 🇧🇮</Text>
+              <Text style={styles.headerSubtitle}>Logements de confiance dans la région 🌍</Text>
             </View>
             <View style={styles.headerStatusGlow} />
+          </View>
+
+          {/* Country selection filter row */}
+          <View style={styles.filterContainer}>
+            <Text style={styles.filterSectionTitle}>PAYS</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll} contentContainerStyle={styles.filterScrollContent}>
+              {[
+                { name: 'Tous', value: '', flag: '🌍' },
+                { name: 'Burundi', value: 'Burundi', flag: '🇧🇮' },
+                { name: 'Rwanda', value: 'Rwanda', flag: '🇷🇼' },
+                { name: 'RDC', value: 'RDC', flag: '🇨🇩' },
+                { name: 'Tanzanie', value: 'Tanzanie', flag: '🇹🇿' }
+              ].map((c) => (
+                <TouchableOpacity
+                  key={c.name}
+                  style={[
+                    styles.filterBadge,
+                    selectedCountry === c.value ? styles.filterBadgeActive : styles.filterBadgeInactive
+                  ]}
+                  onPress={() => {
+                    setSelectedCountry(c.value)
+                    fetchListings(c.value, selectedCurrency)
+                  }}
+                >
+                  <Text style={[
+                    styles.filterBadgeText,
+                    selectedCountry === c.value ? styles.filterBadgeTextActive : styles.filterBadgeTextInactive
+                  ]}>{c.flag} {c.name}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+
+          {/* Currency selection filter row */}
+          <View style={styles.currencyFilterContainer}>
+            <Text style={styles.filterSectionTitle}>DEVISE</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll} contentContainerStyle={styles.filterScrollContent}>
+              {['BIF', 'RWF', 'USD', 'TZS'].map((curr) => (
+                <TouchableOpacity
+                  key={curr}
+                  style={[
+                    styles.currencyBadge,
+                    selectedCurrency === curr ? styles.currencyBadgeActive : styles.currencyBadgeInactive
+                  ]}
+                  onPress={() => {
+                    setSelectedCurrency(curr)
+                    fetchListings(selectedCountry, curr)
+                  }}
+                >
+                  <Text style={[
+                    styles.currencyBadgeText,
+                    selectedCurrency === curr ? styles.currencyBadgeTextActive : styles.currencyBadgeTextInactive
+                  ]}>{curr}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
 
           {loading ? (
@@ -151,7 +216,7 @@ export default function ListingsScreen({ token, apiBaseUrl, onLogout, navigation
           ) : error ? (
             <View style={styles.centerContainer}>
               <Text style={styles.errorText}>⚠️ {error}</Text>
-              <TouchableOpacity style={styles.retryButton} onPress={fetchListings}>
+              <TouchableOpacity style={styles.retryButton} onPress={() => fetchListings(selectedCountry, selectedCurrency)}>
                 <Text style={styles.retryButtonText}>Réessayer</Text>
               </TouchableOpacity>
             </View>
@@ -162,7 +227,7 @@ export default function ListingsScreen({ token, apiBaseUrl, onLogout, navigation
               keyExtractor={(item) => item.id}
               contentContainerStyle={styles.list}
               refreshing={loading}
-              onRefresh={fetchListings}
+              onRefresh={() => fetchListings(selectedCountry, selectedCurrency)}
               ListEmptyComponent={
                 <Text style={styles.emptyText}>Aucun logement disponible.</Text>
               }
@@ -314,6 +379,81 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
     shadowRadius: 4,
+  },
+  filterContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    backgroundColor: '#fff',
+  },
+  currencyFilterContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 12,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderColor: '#E7E5E4',
+  },
+  filterSectionTitle: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#A8A29E',
+    marginBottom: 6,
+    letterSpacing: 0.5,
+  },
+  filterScroll: {
+    flexDirection: 'row',
+  },
+  filterScrollContent: {
+    gap: 8,
+    paddingRight: 20,
+  },
+  filterBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  filterBadgeActive: {
+    backgroundColor: '#065F46',
+    borderColor: '#065F46',
+  },
+  filterBadgeInactive: {
+    backgroundColor: '#FAFAF9',
+    borderColor: '#E7E5E4',
+  },
+  filterBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  filterBadgeTextActive: {
+    color: '#fff',
+  },
+  filterBadgeTextInactive: {
+    color: '#57534E',
+  },
+  currencyBadge: {
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  currencyBadgeActive: {
+    backgroundColor: '#065F46',
+    borderColor: '#065F46',
+  },
+  currencyBadgeInactive: {
+    backgroundColor: '#FAFAF9',
+    borderColor: '#E7E5E4',
+  },
+  currencyBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  currencyBadgeTextActive: {
+    color: '#fff',
+  },
+  currencyBadgeTextInactive: {
+    color: '#57534E',
   },
   list: {
     padding: 20,

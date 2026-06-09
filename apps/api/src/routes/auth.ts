@@ -7,6 +7,125 @@ import bcrypt from 'bcryptjs'
 const prisma = new PrismaClient()
 
 export async function authRoutes(fastify: FastifyInstance) {
+  
+  // A. Inscription classique (Email, Téléphone, Password, Nom, Rôle)
+  fastify.post('/api/auth/register', async (request, reply) => {
+    const { email, phone, password, name, role } = request.body as {
+      email: string
+      phone?: string
+      password: string
+      name: string
+      role?: 'GUEST' | 'HOST' | 'AGENT' | 'ADMIN'
+    }
+
+    if (!email || !password || !name) {
+      return reply.status(400).send({ error: 'Email, mot de passe et nom complet sont requis' })
+    }
+
+    try {
+      const cleanEmail = email.trim().toLowerCase()
+      const cleanPhone = phone ? phone.trim() : null
+
+      // Vérifier l'existence
+      const OR: any[] = [{ email: cleanEmail }]
+      if (cleanPhone) {
+        OR.push({ phone: cleanPhone })
+      }
+
+      const existingUser = await prisma.user.findFirst({
+        where: { OR }
+      })
+
+      if (existingUser) {
+        return reply.status(400).send({ error: 'Un utilisateur avec cet email ou ce numéro de téléphone existe déjà' })
+      }
+
+      // Hasher le mot de passe
+      const hashedPassword = await bcrypt.hash(password, 10)
+
+      // Création de l'utilisateur
+      const user = await prisma.user.create({
+        data: {
+          email: cleanEmail,
+          phone: cleanPhone,
+          password: hashedPassword,
+          name,
+          role: role || 'GUEST',
+          phoneVerified: cleanPhone ? true : false
+        }
+      })
+
+      return reply.status(201).send({
+        success: true,
+        message: 'Utilisateur créé avec succès',
+        user: {
+          id: user.id,
+          email: user.email,
+          phone: user.phone,
+          name: user.name,
+          role: user.role
+        }
+      })
+    } catch (error) {
+      fastify.log.error(error)
+      return reply.status(500).send({ error: 'Erreur lors de la création du compte' })
+    }
+  })
+
+  // B. Connexion classique (Email, Password)
+  fastify.post('/api/auth/login', async (request, reply) => {
+    const { email, password } = request.body as { email: string, password: string }
+
+    if (!email || !password) {
+      return reply.status(400).send({ error: 'Email et mot de passe requis' })
+    }
+
+    try {
+      const cleanEmail = email.trim().toLowerCase()
+
+      const user = await prisma.user.findUnique({
+        where: { email: cleanEmail }
+      })
+
+      if (!user) {
+        return reply.status(401).send({ error: 'Identifiants invalides (Email non trouvé)' })
+      }
+
+      const isPasswordValid = await bcrypt.compare(password, user.password)
+      if (!isPasswordValid) {
+        return reply.status(401).send({ error: 'Identifiants invalides (Mot de passe incorrect)' })
+      }
+
+      // Génération des tokens JWT
+      const accessToken = fastify.jwt.sign(
+        { id: user.id, role: user.role },
+        { expiresIn: '15m' }
+      )
+      const refreshToken = fastify.jwt.sign(
+        { id: user.id },
+        { expiresIn: '7d' }
+      )
+
+      return {
+        success: true,
+        accessToken,
+        refreshToken,
+        user: {
+          id: user.id,
+          phone: user.phone,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+          kycStatus: user.kycStatus,
+          badge: user.badge
+        }
+      }
+    } catch (error) {
+      fastify.log.error(error)
+      return reply.status(500).send({ error: 'Erreur lors de la tentative de connexion' })
+    }
+  })
+
   fastify.post('/api/auth/otp/send', async (request, reply) => {
     const { phone } = request.body as { phone: string }
 

@@ -1,6 +1,8 @@
 import Fastify from 'fastify'
 import cors from '@fastify/cors'
 import jwt from '@fastify/jwt'
+import fastifyStatic from '@fastify/static'
+import path from 'path'
 import authPlugin from './plugins/auth'
 import { listingRoutes } from './routes/listings'
 import { bookingRoutes } from './routes/bookings'
@@ -17,6 +19,7 @@ import { b2bRoutes } from './routes/b2b'
 import { savingsRoutes } from './routes/savings'
 import { partnerRoutes } from './routes/partners'
 import { stagingRoutes } from './routes/staging'
+import { adminRoutes } from './routes/admin'
 
 async function start() {
   const fastify = Fastify({ logger: true })
@@ -24,6 +27,12 @@ async function start() {
   await fastify.register(jwt, {
     secret: process.env.JWT_SECRET || 'inzuconnect-jwt-secret-dev-2026'
   })
+  
+  await fastify.register(fastifyStatic, {
+    root: path.join(process.cwd(), 'uploads'),
+    prefix: '/uploads/',
+  })
+
   await fastify.register(authPlugin)
   await fastify.register(listingRoutes)
   await fastify.register(bookingRoutes)
@@ -40,6 +49,7 @@ async function start() {
   await fastify.register(savingsRoutes)
   await fastify.register(partnerRoutes)
   await fastify.register(stagingRoutes)
+  await fastify.register(adminRoutes)
   
   await fastify.listen({ port: 3001, host: '0.0.0.0' })
   console.log('✅ API running on http://localhost:3001')

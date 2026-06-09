@@ -12,4 +12,16 @@ export default fp(async function (fastify: FastifyInstance) {
       }
     }
   )
+
+  fastify.decorate(
+    'requireRole',
+    function (allowedRoles: string[]) {
+      return async function (request: FastifyRequest, reply: FastifyReply) {
+        const user = request.user as any
+        if (!user || !user.role || !allowedRoles.includes(user.role)) {
+          return reply.status(403).send({ error: 'Accès interdit - Droits insuffisants' })
+        }
+      }
+    }
+  )
 })

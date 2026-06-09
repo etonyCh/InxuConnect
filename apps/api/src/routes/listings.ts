@@ -3,31 +3,45 @@ import { PrismaClient } from '@prisma/client'
 import { generatePresignedPutUrl } from '../lib/r2'
 import { optimizeImageUrl } from '../lib/images'
 import { generateListingDescription } from '../lib/claude'
+import { convertCurrency } from '../lib/currency'
 import crypto from 'crypto'
+import fs from 'fs'
+import path from 'path'
 
 const prisma = new PrismaClient()
 
 export async function listingRoutes(fastify: FastifyInstance) {
   
-  // Accepte tous les content-types pour le mock upload
-  fastify.addContentTypeParser('*', (request, payload, done) => {
-    done(null, null)
+  // Accepte tous les content-types pour l'upload binaire
+  fastify.addContentTypeParser('*', { parseAs: 'buffer' }, (request, body, done) => {
+    done(null, body)
   })
 
   // 1. Liste de toutes les annonces (avec filtres optionnels)
   fastify.get('/api/listings', async (request) => {
-    const { city, maxPrice, hasGenerator, hasWaterTank, hasStarlink } = request.query as {
+    const { city, country, maxPrice, hasGenerator, hasWaterTank, hasStarlink, targetCurrency, ownerId } = request.query as {
       city?: string
+      country?: string
       maxPrice?: string
       hasGenerator?: string
       hasWaterTank?: string
       hasStarlink?: string
+      targetCurrency?: string
+      ownerId?: string
     }
 
     const where: any = {}
 
+    if (ownerId) {
+      where.ownerId = ownerId
+    }
+
     if (city) {
       where.city = { equals: city, mode: 'insensitive' }
+    }
+
+    if (country) {
+      where.country = { equals: country, mode: 'insensitive' }
     }
 
     if (maxPrice) {
@@ -53,13 +67,22 @@ export async function listingRoutes(fastify: FastifyInstance) {
       include: { photos: true, amenities: true }
     })
 
-    const optimizedListings = listings.map(listing => ({
-      ...listing,
-      photos: listing.photos.map(photo => ({
-        ...photo,
-        url: optimizeImageUrl(photo.url)
-      }))
-    }))
+    const optimizedListings = listings.map(listing => {
+      const displayPrice = targetCurrency 
+        ? convertCurrency(listing.price, listing.currency, targetCurrency)
+        : listing.price
+      const displayCurrency = targetCurrency ? targetCurrency.toUpperCase() : listing.currency
+
+      return {
+        ...listing,
+        price: displayPrice,
+        currency: displayCurrency,
+        photos: listing.photos.map(photo => ({
+          ...photo,
+          url: optimizeImageUrl(photo.url)
+        }))
+      }
+    })
 
     return { data: optimizedListings }
   })
@@ -67,6 +90,7 @@ export async function listingRoutes(fastify: FastifyInstance) {
   // 2. Détail d'une annonce
   fastify.get('/api/listings/:id', async (request, reply) => {
     const { id } = request.params as { id: string }
+    const { targetCurrency } = request.query as { targetCurrency?: string }
     const listing = await prisma.listing.findUnique({
       where: { id },
       include: { owner: true, photos: true, amenities: true }
@@ -74,8 +98,16 @@ export async function listingRoutes(fastify: FastifyInstance) {
     if (!listing) {
       return reply.status(404).send({ error: 'Annonce non trouvée' })
     }
+
+    const displayPrice = targetCurrency 
+      ? convertCurrency(listing.price, listing.currency, targetCurrency)
+      : listing.price
+    const displayCurrency = targetCurrency ? targetCurrency.toUpperCase() : listing.currency
+
     return {
       ...listing,
+      price: displayPrice,
+      currency: displayCurrency,
       photos: listing.photos.map(photo => ({
         ...photo,
         url: optimizeImageUrl(photo.url)
@@ -84,7 +116,7 @@ export async function listingRoutes(fastify: FastifyInstance) {
   })
 
   // 3. Obtenir une URL pré-signée pour upload d'une photo (Protégée par token)
-  fastify.post('/api/listings/media/presigned', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+  fastify.post('/api/listings/media/presigned', { preHandler: [fastify.authenticate, fastify.requireRole(['HOST', 'AGENT', 'ADMIN'])] }, async (request, reply) => {
     const { fileName, contentType } = request.body as { fileName: string, contentType: string }
     const userId = (request.user as any).id
 
@@ -112,36 +144,53 @@ export async function listingRoutes(fastify: FastifyInstance) {
     }
   })
 
-  // 4. Point de terminaison de simulation de chargement local (Mock)
+  // 4. Point de terminaison de simulation de chargement local (Local Disk)
   fastify.put('/api/listings/media/mock-upload', async (request, reply) => {
-    // Simule une réussite d'upload sur S3/R2 en renvoyant un statut 200 OK
-    console.log(`[SIMULATEUR R2] Fichier reçu pour la clé: ${request.query as any ? (request.query as any).key : 'inconnue'}`)
-    return {
-      success: true,
-      message: 'Fichier chargé virtuellement sur le simulateur R2'
+    const key = (request.query as any).key
+    if (!key) return reply.status(400).send({ error: 'key manquant' })
+
+    const filePath = path.join(process.cwd(), 'uploads', key)
+    
+    try {
+      await fs.promises.mkdir(path.dirname(filePath), { recursive: true })
+      await fs.promises.writeFile(filePath, request.body as Buffer)
+      console.log(`[LOCAL UPLOAD] Fichier sauvegardé: ${filePath}`)
+      return {
+        success: true,
+        message: 'Fichier sauvegardé localement sur le disque'
+      }
+    } catch (err) {
+      fastify.log.error(err)
+      return reply.status(500).send({ error: 'Erreur lors de la sauvegarde locale' })
     }
   })
 
   // 5. Créer une nouvelle annonce (Protégée)
-  fastify.post('/api/listings', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+  fastify.post('/api/listings', { preHandler: [fastify.authenticate, fastify.requireRole(['HOST', 'AGENT', 'ADMIN'])] }, async (request, reply) => {
     const userId = (request.user as any).id
     const {
       title,
       description: baseDescription,
       price,
       city,
+      country,
+      currency,
       address,
       bedrooms,
       bathrooms,
       taxiMotoDistance,
       surchargeGenerator,
       photos,
-      amenities
+      amenities,
+      latitude,
+      longitude
     } = request.body as {
       title: string
       description?: string
       price: number
       city: string
+      country?: string
+      currency?: string
       address?: string
       bedrooms?: number
       bathrooms?: number
@@ -149,6 +198,8 @@ export async function listingRoutes(fastify: FastifyInstance) {
       surchargeGenerator?: number
       photos?: string[]
       amenities?: string[]
+      latitude?: number
+      longitude?: number
     }
 
     if (!title || !price || !city) {
@@ -190,11 +241,15 @@ export async function listingRoutes(fastify: FastifyInstance) {
           description: finalDescription,
           price: Number(price),
           city,
+          country: country || 'Burundi',
+          currency: currency || 'BIF',
           address,
           bedrooms: bedrooms ? Number(bedrooms) : 1,
           bathrooms: bathrooms ? Number(bathrooms) : 1,
           taxiMotoDistance: taxiMotoDistance ? Number(taxiMotoDistance) : null,
           surchargeGenerator: surchargeGenerator ? Number(surchargeGenerator) : 0,
+          latitude: latitude ? Number(latitude) : null,
+          longitude: longitude ? Number(longitude) : null,
           ownerId: userId,
           photos: {
             create: (photos || []).map(url => ({ url }))
@@ -220,7 +275,7 @@ export async function listingRoutes(fastify: FastifyInstance) {
   })
 
   // 6. Mettre à jour une annonce (Protégée par auteur/admin)
-  fastify.patch('/api/listings/:id', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+  fastify.patch('/api/listings/:id', { preHandler: [fastify.authenticate, fastify.requireRole(['HOST', 'AGENT', 'ADMIN'])] }, async (request, reply) => {
     const userId = (request.user as any).id
     const { id } = request.params as { id: string }
     const {
@@ -228,18 +283,24 @@ export async function listingRoutes(fastify: FastifyInstance) {
       description: baseDescription,
       price,
       city,
+      country,
+      currency,
       address,
       bedrooms,
       bathrooms,
       taxiMotoDistance,
       surchargeGenerator,
       photos,
-      amenities
+      amenities,
+      latitude,
+      longitude
     } = request.body as {
       title?: string
       description?: string
       price?: number
       city?: string
+      country?: string
+      currency?: string
       address?: string
       bedrooms?: number
       bathrooms?: number
@@ -247,6 +308,8 @@ export async function listingRoutes(fastify: FastifyInstance) {
       surchargeGenerator?: number
       photos?: string[]
       amenities?: string[]
+      latitude?: number
+      longitude?: number
     }
 
     try {
@@ -267,11 +330,15 @@ export async function listingRoutes(fastify: FastifyInstance) {
       if (title !== undefined) updateData.title = title
       if (price !== undefined) updateData.price = Number(price)
       if (city !== undefined) updateData.city = city
+      if (country !== undefined) updateData.country = country
+      if (currency !== undefined) updateData.currency = currency
       if (address !== undefined) updateData.address = address
       if (bedrooms !== undefined) updateData.bedrooms = Number(bedrooms)
       if (bathrooms !== undefined) updateData.bathrooms = Number(bathrooms)
       if (taxiMotoDistance !== undefined) updateData.taxiMotoDistance = taxiMotoDistance !== null ? Number(taxiMotoDistance) : null
       if (surchargeGenerator !== undefined) updateData.surchargeGenerator = Number(surchargeGenerator)
+      if (latitude !== undefined) updateData.latitude = latitude !== null ? Number(latitude) : null
+      if (longitude !== undefined) updateData.longitude = longitude !== null ? Number(longitude) : null
 
       const coreDetailsChanged = 
         title !== undefined || 
@@ -334,7 +401,7 @@ export async function listingRoutes(fastify: FastifyInstance) {
   })
 
   // 7. Supprimer une annonce (Protégée par auteur/admin)
-  fastify.delete('/api/listings/:id', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+  fastify.delete('/api/listings/:id', { preHandler: [fastify.authenticate, fastify.requireRole(['HOST', 'AGENT', 'ADMIN'])] }, async (request, reply) => {
     const userId = (request.user as any).id
     const { id } = request.params as { id: string }
 

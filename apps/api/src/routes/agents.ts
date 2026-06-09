@@ -5,18 +5,10 @@ import { generateListingDescription } from '../lib/claude'
 
 const prisma = new PrismaClient()
 
-// Middleware pour s'assurer que l'utilisateur est un Agent
-async function requireAgent(request: any, reply: any) {
-  const role = request.user?.role
-  if (role !== 'AGENT' && role !== 'ADMIN') {
-    return reply.status(403).send({ error: 'Accès interdit - Seuls les agents et administrateurs y ont accès.' })
-  }
-}
-
 export async function agentRoutes(fastify: FastifyInstance) {
   
   // 1. Enregistrer un Hôte sous parrainage Agent
-  fastify.post('/api/agents/register-host', { preHandler: [fastify.authenticate, requireAgent] }, async (request, reply) => {
+  fastify.post('/api/agents/register-host', { preHandler: [fastify.authenticate, fastify.requireRole(['AGENT', 'ADMIN'])] }, async (request, reply) => {
     const { name, email, password, phone } = request.body as {
       name?: string
       email?: string
@@ -80,7 +72,7 @@ export async function agentRoutes(fastify: FastifyInstance) {
   })
 
   // 2. Créer une annonce pour le compte d'un Hôte parrainé
-  fastify.post('/api/agents/listings', { preHandler: [fastify.authenticate, requireAgent] }, async (request, reply) => {
+  fastify.post('/api/agents/listings', { preHandler: [fastify.authenticate, fastify.requireRole(['AGENT', 'ADMIN'])] }, async (request, reply) => {
     const {
       title,
       description: baseDescription,
@@ -185,7 +177,7 @@ export async function agentRoutes(fastify: FastifyInstance) {
   })
 
   // 3. Tableau de bord de l'Agent
-  fastify.get('/api/agents/dashboard', { preHandler: [fastify.authenticate, requireAgent] }, async (request, reply) => {
+  fastify.get('/api/agents/dashboard', { preHandler: [fastify.authenticate, fastify.requireRole(['AGENT', 'ADMIN'])] }, async (request, reply) => {
     const agentId = (request.user as any).id
 
     try {
