@@ -71,8 +71,9 @@ function LoginFormContent() {
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4.5">
           <div>
-            <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">Adresse Email</label>
+            <label htmlFor="email" className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">Adresse Email</label>
             <input
+              id="email"
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
@@ -82,8 +83,9 @@ function LoginFormContent() {
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">Mot de passe</label>
+            <label htmlFor="password" className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">Mot de passe</label>
             <input
+              id="password"
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}

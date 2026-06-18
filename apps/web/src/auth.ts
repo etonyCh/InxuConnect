@@ -25,7 +25,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (!credentials?.email || !credentials?.password) return null
 
         try {
-          const res = await fetch('http://localhost:3001/api/auth/login', {
+          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -36,13 +36,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
           if (res.ok) {
             const data = await res.json() as any
-            if (data.success && data.user) {
+            // Spring Boot renvoie { token: "...", user: { ... } }
+            if (data.token && data.user) {
               return {
                 id: data.user.id,
                 email: data.user.email,
                 name: data.user.name,
                 role: data.user.role,
-                accessToken: data.accessToken
+                accessToken: data.token
               }
             }
           }

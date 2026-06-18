@@ -68,17 +68,18 @@ export default function Header() {
           {session ? (
             <div className="flex items-center gap-3">
               <Link href="/settings" className="flex items-center gap-2 group cursor-pointer">
-                <div className="flex flex-col text-right">
-                  <span className="text-xs font-bold text-stone-800 group-hover:text-emerald-800 transition-colors">{session.user?.name}</span>
-                  <span className="text-[9px] text-stone-400 font-extrabold uppercase tracking-wider">{session.user?.role}</span>
+                <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold text-stone-900 group-hover:text-emerald-800 transition-colors">
+                      {((session.user as any)?.role === 'GUEST') ? 'Guest' : (((session.user as any)?.role || '').toString().charAt(0).toUpperCase() + ((session.user as any)?.role || '').toString().slice(1).toLowerCase() || 'User')}
+                    </span>
                 </div>
-                <div className="h-9 w-9 rounded-full bg-emerald-100 flex items-center justify-center text-sm font-bold text-emerald-800 border border-emerald-250/30 group-hover:bg-emerald-200 transition-all">
-                  {session.user?.name ? session.user.name[0].toUpperCase() : 'U'}
+                <div className="h-8 w-8 rounded-full border-2 border-emerald-500 bg-white flex items-center justify-center text-xs font-black text-emerald-800 group-hover:bg-emerald-50 transition-all shadow-sm">
+                  {session.user?.name ? session.user.name[0].toUpperCase() : 'C'}
                 </div>
               </Link>
               <button 
                 onClick={() => signOut()} 
-                className="text-xs font-bold text-stone-500 hover:text-stone-900 bg-stone-100 hover:bg-stone-200/65 px-3 py-2 rounded-xl border border-stone-200/50 transition-all cursor-pointer"
+                className="text-sm font-bold text-stone-700 hover:text-stone-900 bg-white hover:bg-stone-50 px-4 py-1.5 rounded-full border border-stone-300 transition-all shadow-sm cursor-pointer"
               >
                 Quitter
               </button>

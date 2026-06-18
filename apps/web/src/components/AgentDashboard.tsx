@@ -64,7 +64,7 @@ export default function AgentDashboard({ token }: AgentDashboardProps) {
     if (hasKitchen) amenities.push('kitchen')
 
     try {
-      const res = await fetch('http://localhost:3001/api/listings/price-coach', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/listings/price-coach`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -96,7 +96,7 @@ export default function AgentDashboard({ token }: AgentDashboardProps) {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch('http://localhost:3001/api/agents/dashboard', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/agents/dashboard`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -133,7 +133,7 @@ export default function AgentDashboard({ token }: AgentDashboardProps) {
     setRegisterSuccess(null)
 
     try {
-      const res = await fetch('http://localhost:3001/api/agents/register-host', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/agents/register-host`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -183,7 +183,7 @@ export default function AgentDashboard({ token }: AgentDashboardProps) {
     if (hasKitchen) amenities.push('kitchen')
 
     try {
-      const res = await fetch('http://localhost:3001/api/agents/listings', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/agents/listings`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

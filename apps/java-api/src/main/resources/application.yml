@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/inzuconnect}
+    username: ${DATABASE_USER:inzu}
+    password: ${DATABASE_PASSWORD:inzu_dev_password_2026}
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: false
+
+server:
+  port: 8080
+
+inzuconnect:
+  security:
+    jwt:
+      secret: ${JWT_SECRET:8f8a8b8c8d8e8f8a8b8c8d8e8f8a8b8c8d8e8f8a8b8c8d8e8f8a8b8c8d8e8f8a}
+  cors:
+    allowed-origins: ${FRONTEND_URL:http://localhost:3000}

@@ -38,7 +38,7 @@ export default function SettingsForm({ token, initialUser }: SettingsFormProps) 
 
   const fetchProfile = async () => {
     try {
-      const res = await fetch('http://localhost:3001/api/auth/profile', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/auth/profile`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       if (res.ok) {
@@ -65,7 +65,7 @@ export default function SettingsForm({ token, initialUser }: SettingsFormProps) 
     setMsg(null)
 
     try {
-      const res = await fetch('http://localhost:3001/api/auth/profile', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/auth/profile`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -93,7 +93,7 @@ export default function SettingsForm({ token, initialUser }: SettingsFormProps) 
   const handleToggleSavings = async () => {
     if (!profile) return
     try {
-      const res = await fetch('http://localhost:3001/api/host/savings/toggle', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/host/savings/toggle`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       })
@@ -112,7 +112,7 @@ export default function SettingsForm({ token, initialUser }: SettingsFormProps) 
 
     try {
       // 1. Soumettre KYC PENDING
-      const submitRes = await fetch('http://localhost:3001/api/kyc/submit', {
+      const submitRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/kyc/submit`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -127,7 +127,7 @@ export default function SettingsForm({ token, initialUser }: SettingsFormProps) 
       if (!submitRes.ok) throw new Error('Échec soumission')
 
       // 2. Simuler approbation webhook
-      const webhookRes = await fetch('http://localhost:3001/api/kyc/webhook', {
+      const webhookRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/kyc/webhook`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -2,9 +2,10 @@ import { auth } from '@/auth'
 import { redirect } from 'next/navigation'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
+import AgentCharts from '@/components/AgentCharts'
 
 async function getAgentData(token: string) {
-  const res = await fetch('http://localhost:3001/api/agents/dashboard', {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/agents/dashboard`, {
     headers: { Authorization: `Bearer ${token}` },
     cache: 'no-store'
   })
@@ -46,6 +47,8 @@ export default async function AgentDashboard() {
             <span className="text-3xl font-black text-stone-900">{data?.hostsCount || 0}</span>
           </div>
         </div>
+
+        <AgentCharts />
 
         <div className="bg-white rounded-2xl border border-stone-200/50 shadow-sm overflow-hidden mb-8">
           <div className="p-6 border-b border-stone-100 flex justify-between items-center">

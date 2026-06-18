@@ -3,9 +3,10 @@ import { redirect } from 'next/navigation'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import KycActionButtons from '@/components/KycActionButtons'
+import AdminCharts from '@/components/AdminCharts'
 
 async function getAdminData(token: string) {
-  const res = await fetch('http://localhost:3001/api/admin/dashboard', {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/admin/dashboard`, {
     headers: { Authorization: `Bearer ${token}` },
     cache: 'no-store'
   })
@@ -55,6 +56,8 @@ export default async function AdminDashboard() {
             <span className="text-3xl font-black text-orange-600">{data?.stats?.kycPending || 0}</span>
           </div>
         </div>
+
+        <AdminCharts />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="bg-white rounded-2xl border border-stone-200/50 shadow-sm overflow-hidden">

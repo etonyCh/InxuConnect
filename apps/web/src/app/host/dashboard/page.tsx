@@ -3,9 +3,10 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
+import HostCharts from '@/components/HostCharts'
 
 async function getHostListings(ownerId: string) {
-  const res = await fetch(`http://localhost:3001/api/listings?ownerId=${ownerId}`, { cache: 'no-store' })
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/listings?ownerId=${ownerId}`, { cache: 'no-store' })
   if (!res.ok) return { data: [] }
   return res.json()
 }
@@ -48,6 +49,8 @@ export default async function HostDashboard() {
             <span className="text-3xl font-black text-stone-900">{listings?.length || 0}</span>
           </div>
         </div>
+
+        <HostCharts />
 
         <div className="bg-white rounded-2xl border border-stone-200/50 shadow-sm overflow-hidden">
           <div className="p-6 border-b border-stone-100 flex justify-between items-center">

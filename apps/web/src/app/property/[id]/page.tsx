@@ -6,7 +6,7 @@ import Footer from '@/components/Footer'
 import MapViewerWrapper from '@/components/MapViewerWrapper'
 
 async function getListing(id: string, targetCurrency?: string) {
-  const url = `http://localhost:3001/api/listings/${id}${targetCurrency ? `?targetCurrency=${targetCurrency}` : ''}`
+  const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/listings/${id}${targetCurrency ? `?targetCurrency=${targetCurrency}` : ''}`
   const res = await fetch(url, { cache: 'no-store' })
   if (!res.ok) return null
   return res.json()
@@ -14,7 +14,7 @@ async function getListing(id: string, targetCurrency?: string) {
 
 async function getStaging(id: string) {
   try {
-    const res = await fetch(`http://localhost:3001/api/listings/${id}/staging`, { cache: 'no-store' })
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/listings/${id}/staging`, { cache: 'no-store' })
     if (!res.ok) return null
     const data = await res.json()
     return data.stagingRequest || null

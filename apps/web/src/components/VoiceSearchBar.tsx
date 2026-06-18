@@ -98,7 +98,7 @@ export default function VoiceSearchBar() {
   // Soumet la phrase décodée au backend NLP
   const submitTranscriptToBackend = async (transcript: string) => {
     try {
-      const res = await fetch('http://localhost:3001/api/ai/voice-assistant', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/ai/voice-assistant`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

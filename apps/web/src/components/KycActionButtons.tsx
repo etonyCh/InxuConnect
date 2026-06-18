@@ -12,7 +12,7 @@ export default function KycActionButtons({ kycId, token }: { kycId: string, toke
     
     setLoading(true)
     try {
-      const res = await fetch(`http://localhost:3001/api/admin/kyc/${kycId}/review`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/admin/kyc/${kycId}/review`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -24,7 +24,7 @@ function generateHostToken() {
 }
 
 async function getBookings(userId: string, token: string) {
-  const res = await fetch(`http://localhost:3001/api/bookings/user/${userId}`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/bookings/user/${userId}`, {
     cache: 'no-store',
     headers: {
       'Authorization': `Bearer ${token}`

@@ -19,7 +19,7 @@ export default function Register() {
     setError('')
 
     try {
-      const res = await fetch('http://localhost:3001/api/auth/register', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -32,10 +32,15 @@ export default function Register() {
       })
 
       const data = await res.json() as any
-      if (res.ok && data.success) {
+      if (res.ok) {
         router.push('/login?registered=true')
       } else {
-        setError(data.error || "Une erreur est survenue lors de l'inscription")
+        if (data.validationErrors) {
+          const errList = Object.values(data.validationErrors).join(' - ')
+          setError(errList)
+        } else {
+          setError(data.error || "Une erreur est survenue lors de l'inscription")
+        }
       }
     } catch (err) {
       setError("Connexion au serveur impossible")
@@ -73,8 +78,9 @@ export default function Register() {
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4.5">
           <div>
-            <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">Nom Complet</label>
+            <label htmlFor="name" className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">Nom Complet</label>
             <input
+              id="name"
               type="text"
               value={name}
               onChange={e => setName(e.target.value)}
@@ -85,8 +91,9 @@ export default function Register() {
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">Adresse Email</label>
+            <label htmlFor="email" className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">Adresse Email</label>
             <input
+              id="email"
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
@@ -97,8 +104,9 @@ export default function Register() {
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">Téléphone Mobile Money (Optionnel)</label>
+            <label htmlFor="phone" className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">Téléphone Mobile Money (Optionnel)</label>
             <input
+              id="phone"
               type="tel"
               value={phone}
               onChange={e => setPhone(e.target.value)}
@@ -108,9 +116,10 @@ export default function Register() {
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">Rôle souhaité</label>
+            <label htmlFor="role" className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">Rôle souhaité</label>
             <div className="relative">
               <select
+                id="role"
                 value={role}
                 onChange={e => setRole(e.target.value as any)}
                 className="w-full rounded-xl border border-stone-200 bg-stone-50/50 px-4.5 py-3 text-sm text-stone-900 focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-200/50 transition-all outline-none appearance-none cursor-pointer font-medium"
@@ -126,8 +135,9 @@ export default function Register() {
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">Mot de passe</label>
+            <label htmlFor="password" className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">Mot de passe</label>
             <input
+              id="password"
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}

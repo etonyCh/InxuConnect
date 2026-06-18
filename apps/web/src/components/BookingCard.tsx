@@ -31,7 +31,7 @@ export default function BookingCard({ booking: b, hostToken }: BookingCardProps)
     setLoadingReviews(true)
     try {
       const tokenToUse = guestToken || hostToken
-      const res = await fetch(`http://localhost:3001/api/bookings/${b.id}/reviews`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/bookings/${b.id}/reviews`, {
         headers: {
           'Authorization': `Bearer ${tokenToUse}`
         }
@@ -58,7 +58,7 @@ export default function BookingCard({ booking: b, hostToken }: BookingCardProps)
     const sendSOSRequest = async (lat?: number, lng?: number) => {
       try {
         const tokenToUse = guestToken || hostToken
-        const res = await fetch(`http://localhost:3001/api/bookings/${b.id}/sos`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/bookings/${b.id}/sos`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -116,7 +116,7 @@ export default function BookingCard({ booking: b, hostToken }: BookingCardProps)
     if (!b.payment?.reference) return
     setLoading(true)
     try {
-      const res = await fetch('http://localhost:3001/api/payments/mock-callback', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/payments/mock-callback`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -141,7 +141,7 @@ export default function BookingCard({ booking: b, hostToken }: BookingCardProps)
   const simulateCheckIn = async () => {
     setLoading(true)
     try {
-      const res = await fetch(`http://localhost:3001/api/bookings/${b.id}/check-in`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/bookings/${b.id}/check-in`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${hostToken}`,

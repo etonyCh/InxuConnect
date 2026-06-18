@@ -33,7 +33,7 @@ export default function B2bDashboard({ token }: B2bDashboardProps) {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch('http://localhost:3001/api/b2b/dashboard', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/b2b/dashboard`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -74,7 +74,7 @@ export default function B2bDashboard({ token }: B2bDashboardProps) {
     setRegisterError(null)
 
     try {
-      const res = await fetch('http://localhost:3001/api/b2b/register', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/b2b/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -110,7 +110,7 @@ export default function B2bDashboard({ token }: B2bDashboardProps) {
     setInviteSuccess(null)
 
     try {
-      const res = await fetch('http://localhost:3001/api/b2b/invite', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/b2b/invite`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -147,7 +147,7 @@ export default function B2bDashboard({ token }: B2bDashboardProps) {
     setPolicySuccess(null)
 
     try {
-      const res = await fetch('http://localhost:3001/api/b2b/policy', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/b2b/policy`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

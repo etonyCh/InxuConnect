@@ -51,7 +51,7 @@ export default function NewProperty() {
       const newPhotos: string[] = []
       for (const file of files) {
         // 1. Get Presigned URL
-        const presignRes = await fetch('http://localhost:3001/api/listings/media/presigned', {
+        const presignRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/listings/media/presigned`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -101,7 +101,7 @@ export default function NewProperty() {
     const token = (session as any)?.accessToken
 
     try {
-      const res = await fetch('http://localhost:3001/api/listings', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/listings`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

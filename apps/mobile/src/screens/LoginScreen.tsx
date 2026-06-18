@@ -6,7 +6,7 @@ interface LoginScreenProps {
 }
 
 export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
-  const [apiBaseUrl, setApiBaseUrl] = useState('http://10.0.2.2:3001')
+  const [apiBaseUrl, setApiBaseUrl] = useState('http://10.0.2.2:8080')
   const [phone, setPhone] = useState('+25779000000')
   const [otpCode, setOtpCode] = useState('')
   const [step, setStep] = useState<'PHONE' | 'OTP'>('PHONE')
@@ -57,8 +57,8 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       })
 
       const data = await res.json() as any
-      if (res.ok && data.accessToken) {
-        onLoginSuccess(data.accessToken, apiBaseUrl)
+      if (res.ok && data.token) {
+        onLoginSuccess(data.token, apiBaseUrl)
       } else {
         Alert.alert('Erreur', data.error || 'Code OTP invalide.')
       }
@@ -151,12 +151,12 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
               style={styles.configInput}
               value={apiBaseUrl}
               onChangeText={setApiBaseUrl}
-              placeholder="http://10.0.2.2:3001"
+              placeholder="http://10.0.2.2:8080"
               placeholderTextColor="#A8A29E"
             />
             <Text style={styles.configHint}>
-              * Emulateur Android : http://10.0.2.2:3001{'\n'}
-              * Appareil physique : http://[IP_PC_WIFI]:3001
+              * Emulateur Android : http://10.0.2.2:8080{'\n'}
+              * Appareil physique : http://[IP_PC_WIFI]:8080
             </Text>
           </View>
         )}

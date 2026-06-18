@@ -16,7 +16,7 @@ export default function HostSavings({ token }: HostSavingsProps) {
 
   const fetchSavings = async () => {
     try {
-      const res = await fetch('http://localhost:3001/api/host/savings', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/host/savings`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -45,7 +45,7 @@ export default function HostSavings({ token }: HostSavingsProps) {
     setError(null)
     setSuccess(null)
     try {
-      const res = await fetch('http://localhost:3001/api/host/savings/toggle', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/host/savings/toggle`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -78,7 +78,7 @@ export default function HostSavings({ token }: HostSavingsProps) {
     setError(null)
     setSuccess(null)
     try {
-      const res = await fetch('http://localhost:3001/api/host/savings/withdraw', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/host/savings/withdraw`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

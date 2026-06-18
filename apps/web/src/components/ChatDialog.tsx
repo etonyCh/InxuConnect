@@ -58,7 +58,7 @@ export default function ChatDialog({ bookingId, guestToken, guestUserId, hostTok
 
   const fetchMessages = async () => {
     try {
-      const res = await fetch(`http://localhost:3001/api/bookings/${bookingId}/messages`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/bookings/${bookingId}/messages`, {
         headers: {
           'Authorization': `Bearer ${activeToken}`
         }
@@ -88,7 +88,7 @@ export default function ChatDialog({ bookingId, guestToken, guestUserId, hostTok
     if (!messageText.trim()) return
     setLoading(true)
     try {
-      const res = await fetch(`http://localhost:3001/api/bookings/${bookingId}/messages`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/bookings/${bookingId}/messages`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

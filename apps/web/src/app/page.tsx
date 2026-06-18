@@ -24,7 +24,7 @@ async function getListings(searchParams: any) {
   if (searchParams.hasWaterTank) query.append('hasWaterTank', 'true')
   if (searchParams.hasStarlink) query.append('hasStarlink', 'true')
 
-  const res = await fetch(`http://localhost:3001/api/listings?${query.toString()}`, { cache: 'no-store' })
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/listings?${query.toString()}`, { cache: 'no-store' })
   if (!res.ok) return { data: [] }
   return res.json()
 }
@@ -48,35 +48,29 @@ export default async function Home({ searchParams }: { searchParams: Promise<any
       <Header />
       
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-emerald-950 text-white py-16 sm:py-24">
-        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]"></div>
-        <div className="absolute -left-20 -top-20 w-80 h-80 rounded-full bg-emerald-700/20 blur-3xl"></div>
-        <div className="absolute -right-20 -bottom-20 w-80 h-80 rounded-full bg-emerald-600/10 blur-3xl"></div>
-
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-          <span className="inline-flex items-center rounded-full bg-emerald-900/80 px-4 py-1 text-xs font-semibold text-emerald-300 ring-1 ring-inset ring-emerald-500/30 mb-6">
-            ✨ Le meilleur du logement au Burundi 🇧🇮
-          </span>
-          <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl text-white max-w-3xl mx-auto leading-tight">
+      <div className="relative overflow-hidden bg-[#023E2A] text-white py-24 sm:py-32">
+        <div className="absolute inset-0 opacity-15" style={{ backgroundImage: 'radial-gradient(#ffffff44 1.5px, transparent 1.5px)', backgroundSize: '24px 24px' }}></div>
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10 text-center flex flex-col items-center">
+          <h1 className="text-4xl font-extrabold tracking-tight sm:text-6xl text-white max-w-4xl mx-auto leading-tight">
             Trouvez votre logement idéal, en toute sécurité
           </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-emerald-200/90 font-medium">
+          <p className="mx-auto mt-6 max-w-2xl text-xl text-emerald-50 font-light">
             Des offres de confiance à Bujumbura, Gitega et Ngozi.
           </p>
           
-          <div className="max-w-2xl mx-auto mt-8 mb-6">
+          <div className="w-full max-w-2xl mx-auto mt-10 mb-8 relative">
             <VoiceSearchBar />
           </div>
           
-          <div className="mt-6 flex flex-wrap justify-center gap-4">
-            <span className="inline-flex items-center gap-1.5 px-4.5 py-2 rounded-xl bg-white/10 text-sm font-semibold text-white backdrop-blur-sm border border-white/10">
-              🔋 Groupes Électrogènes
+          <div className="mt-4 flex flex-wrap justify-center gap-4">
+            <span className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-emerald-900/60 text-sm font-semibold text-white border border-yellow-500/50 shadow-sm">
+              <span className="text-yellow-400">⚡</span> Electricité 24/7
             </span>
-            <span className="inline-flex items-center gap-1.5 px-4.5 py-2 rounded-xl bg-white/10 text-sm font-semibold text-white backdrop-blur-sm border border-white/10">
-              💧 Citernes d'Eau
+            <span className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-emerald-900/60 text-sm font-semibold text-white border border-blue-400/50 shadow-sm">
+              <span className="text-blue-400">💧</span> Eau Potable Assurée
             </span>
-            <span className="inline-flex items-center gap-1.5 px-4.5 py-2 rounded-xl bg-white/10 text-sm font-semibold text-white backdrop-blur-sm border border-white/10">
-              📲 Lumicash / EcoCash
+            <span className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-emerald-900/60 text-sm font-semibold text-white border border-emerald-400/50 shadow-sm">
+              <span className="text-emerald-400">📶</span> Wi-Fi Haut Débit
             </span>
           </div>
         </div>
@@ -87,16 +81,29 @@ export default async function Home({ searchParams }: { searchParams: Promise<any
 
 
         {/* Cities and search header */}
-        <div className="flex flex-col md:flex-row md:items-baseline md:justify-between mb-8 pb-4 border-b border-stone-200/70">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 pb-4 border-b border-stone-200/70 gap-4">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight text-stone-900">Explorer les logements disponibles</h2>
+            <h2 className="text-2xl font-bold tracking-tight text-stone-900">Listings</h2>
             <p className="mt-1 text-sm text-stone-500">Logements filtrés par pays, ville et équipements de secours.</p>
           </div>
-          <div className="mt-4 md:mt-0 flex gap-2 overflow-x-auto pb-2 md:pb-0">
-            <Link href={buildUrl(resolvedParams, { city: '' })} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${!resolvedParams.city ? 'bg-stone-800 text-white shadow-sm' : 'bg-white hover:bg-stone-50 text-stone-600 border border-stone-200'}`}>Toutes les villes</Link>
-            <Link href={buildUrl(resolvedParams, { city: 'Bujumbura' })} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${resolvedParams.city?.toLowerCase() === 'bujumbura' ? 'bg-stone-800 text-white shadow-sm' : 'bg-white hover:bg-stone-50 text-stone-600 border border-stone-200'}`}>Bujumbura</Link>
-            <Link href={buildUrl(resolvedParams, { city: 'Gitega' })} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${resolvedParams.city?.toLowerCase() === 'gitega' ? 'bg-stone-800 text-white shadow-sm' : 'bg-white hover:bg-stone-50 text-stone-600 border border-stone-200'}`}>Gitega</Link>
-            <Link href={buildUrl(resolvedParams, { city: 'Ngozi' })} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${resolvedParams.city?.toLowerCase() === 'ngozi' ? 'bg-stone-800 text-white shadow-sm' : 'bg-white hover:bg-stone-50 text-stone-600 border border-stone-200'}`}>Ngozi</Link>
+          <div className="flex items-center gap-6">
+            <Link href={buildUrl(resolvedParams, { city: '' })} className="px-5 py-2 rounded-full text-xs font-bold transition-all cursor-pointer bg-stone-900 text-white shadow-sm">
+              Toutes les villes
+            </Link>
+            
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-stone-600">Superhost</span>
+              <div className="w-10 h-6 bg-emerald-500 rounded-full flex items-center p-1 cursor-pointer">
+                <div className="w-4 h-4 bg-white rounded-full translate-x-4"></div>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-stone-600">B2B</span>
+              <div className="w-10 h-6 bg-stone-200 rounded-full flex items-center p-1 cursor-pointer">
+                <div className="w-4 h-4 bg-white rounded-full"></div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -117,26 +124,27 @@ export default async function Home({ searchParams }: { searchParams: Promise<any
                     </div>
                     
                     {/* Floating Price Tag */}
-                    <div className="absolute top-4 left-4 rounded-xl bg-white/95 px-3 py-1.5 text-sm font-extrabold text-emerald-900 shadow-md backdrop-blur-sm border border-stone-100 flex items-baseline gap-0.5">
+                    <div className="absolute top-4 left-4 rounded-lg bg-[#3b82f6] px-3 py-1.5 text-sm font-extrabold text-white shadow-md flex items-baseline gap-1">
                       <span>{l.price.toLocaleString()}</span>
-                      <span className="text-[10px] font-bold text-stone-500">{l.currency || 'BIF'}/nuit</span>
+                      <span className="text-[10px] font-bold text-blue-100">{l.currency || 'BIF'}/nuit</span>
                     </div>
 
-                    {/* Trust Badges */}
+                    {/* Trust Badges & Icons */}
+                    <div className="absolute bottom-4 left-4 flex gap-1">
+                      <span className="inline-flex items-center gap-1 bg-white/95 text-emerald-900 px-3 py-1 rounded-full text-xs font-bold shadow-sm backdrop-blur-sm border border-stone-100">
+                        <span className="text-yellow-500">⭐</span> Superhost
+                      </span>
+                    </div>
+                    
                     <div className="absolute bottom-4 right-4 flex gap-1">
                       {hasGenerator && (
-                        <span className="h-7 w-7 rounded-lg bg-emerald-900/90 text-white flex items-center justify-center text-xs shadow-sm backdrop-blur-sm" title="Groupe électrogène">
-                          🔋
+                        <span className="h-7 w-7 rounded-full bg-emerald-900/90 text-white flex items-center justify-center text-xs shadow-sm backdrop-blur-sm border border-white/20" title="Groupe électrogène">
+                          ⚡
                         </span>
                       )}
                       {hasWaterTank && (
-                        <span className="h-7 w-7 rounded-lg bg-emerald-900/90 text-white flex items-center justify-center text-xs shadow-sm backdrop-blur-sm" title="Citerne d'eau">
+                        <span className="h-7 w-7 rounded-full bg-emerald-900/90 text-white flex items-center justify-center text-xs shadow-sm backdrop-blur-sm border border-white/20" title="Citerne d'eau">
                           💧
-                        </span>
-                      )}
-                      {hasStarlink && (
-                        <span className="h-7 w-7 rounded-lg bg-emerald-900/90 text-white flex items-center justify-center text-xs shadow-sm backdrop-blur-sm" title="Internet Starlink">
-                          📡
                         </span>
                       )}
                     </div>

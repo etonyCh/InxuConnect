@@ -130,9 +130,10 @@ export default function ListingsScreen({ token, apiBaseUrl, onLogout, navigation
           <Text style={styles.cardCity}>{flag} {item.city} {item.address ? `• ${item.address}` : ''}</Text>
 
           <View style={styles.badgeRow}>
-            {hasGenerator && <Text style={styles.badge}>🔋 Moteri</Text>}
+            <Text style={styles.badge}>⭐ Superhost</Text>
+            {hasGenerator && <Text style={styles.badge}>⚡ Moteri</Text>}
             {hasWaterTank && <Text style={styles.badge}>💧 Ikigega</Text>}
-            {hasStarlink && <Text style={styles.badge}>📲 Starlink</Text>}
+            {hasStarlink && <Text style={styles.badge}>📡 Starlink</Text>}
           </View>
         </View>
       </TouchableOpacity>
@@ -361,7 +362,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 22,
     fontWeight: '900',
-    color: '#065F46', // Emerald
+    color: '#023E2A', // Dark Emerald
     letterSpacing: -0.5,
   },
   headerSubtitle: {
@@ -474,7 +475,7 @@ const styles = StyleSheet.create({
   },
   cardMedia: {
     height: 150,
-    backgroundColor: '#065F46',
+    backgroundColor: '#023E2A',
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
@@ -488,7 +489,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 14,
     left: 14,
-    backgroundColor: '#fff',
+    backgroundColor: '#3b82f6',
     paddingVertical: 5,
     paddingHorizontal: 10,
     borderRadius: 12,
@@ -500,7 +501,7 @@ const styles = StyleSheet.create({
   priceText: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#065F46',
+    color: '#fff',
   },
   cardContent: {
     padding: 18,

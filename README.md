@@ -15,48 +15,55 @@
 
 ## 🛠️ Stack Technique
 
-InzuConnect est un monorepo Turborepo contenant :
+InzuConnect est un monorepo architecturé avec **Turborepo** contenant :
 
 - **Frontend (Web)** : Next.js 14+ (App Router), React, Tailwind CSS, Leaflet (Cartographie), NextAuth (Authentification).
-- **Backend (API)** : Fastify, Prisma ORM, PostgreSQL.
+- **Frontend (Mobile)** : React Native avec Expo, Navigation native, expo-secure-store.
+- **Backend (API)** : Java 21, Spring Boot 3, Spring Security (JWT), Hibernate/JPA.
+- **Base de Données** : PostgreSQL 16 (conteneurisée via Docker).
+- **Tests Automatisés** : Playwright (End-to-End).
+- **Monitoring** : Sentry (Web & Mobile).
 
 ## ⚙️ Installation & Lancement
 
 ### Prérequis
-- Node.js (v18+)
-- PostgreSQL en cours d'exécution
+- Java 21 (JDK) & Maven
+- Node.js (v18+) & pnpm
+- Docker & Docker Compose
 
 ### 1. Cloner et Installer
 ```bash
 git clone https://github.com/etonyCh/InxuConnect.git
 cd InxuConnect
-npm install
+pnpm install
 ```
 
-### 2. Configuration Environnement
-Créez un fichier `.env` à la racine (ou dans `apps/api/` selon votre configuration) avec au minimum :
-```env
-DATABASE_URL="postgresql://user:password@localhost:5432/inzuconnect"
-NEXTAUTH_SECRET="votre-secret-complexe"
-NEXTAUTH_URL="http://localhost:3000"
-```
-
-### 3. Base de Données
-Initialisez la base de données et générez les données de démo :
+### 2. Démarrer la Base de Données (PostgreSQL)
+L'infrastructure locale est gérée via Docker Compose.
 ```bash
-cd apps/api
-npx prisma db push
-npx prisma db seed
+docker-compose up -d postgres
 ```
-> *Comptes par défaut (mot de passe : `demo123`) : guest@inzu.bi, host@inzu.bi, agent@inzu.bi, admin@inzu.bi*
 
-### 4. Démarrer l'application
-Depuis la racine du projet :
+### 3. Démarrer le Backend (Spring Boot)
+L'API écoutera sur le port `8080`.
 ```bash
-npm run dev
+cd apps/java-api
+mvn spring-boot:run
 ```
-- Le frontend sera accessible sur `http://localhost:3000`
-- L'API backend sera accessible sur `http://localhost:3001`
+*(Note: Hibernate se chargera de créer et de mettre à jour le schéma de la base de données automatiquement).*
+
+### 4. Démarrer le Frontend (Next.js)
+Dans un nouveau terminal, depuis la racine du projet :
+```bash
+pnpm --filter web dev
+```
+- Le site web sera accessible sur `http://localhost:3000`
+
+### 5. Tests E2E (Playwright)
+Pour lancer les tests automatisés avec interface graphique :
+```bash
+npx playwright test --ui
+```
 
 ## 🛡️ License
 

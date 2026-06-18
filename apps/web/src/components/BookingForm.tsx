@@ -17,7 +17,7 @@ export default function BookingForm({ listingId, price }: { listingId: string, p
   useEffect(() => {
     const fetchServices = async () => {
       try {
-        const res = await fetch(`http://localhost:3001/api/listings/${listingId}/services`)
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/listings/${listingId}/services`)
         if (res.ok) {
           const data = await res.json()
           setServices(data)
@@ -66,7 +66,7 @@ export default function BookingForm({ listingId, price }: { listingId: string, p
     setLoading(true)
 
     try {
-      const res = await fetch('http://localhost:3001/api/bookings', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/bookings`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
