@@ -67,5 +67,8 @@ public class User {
     @Column(name = "\"savingsBalance\"", nullable = false)
     private Integer savingsBalance = 0;
 
+    @Column(name = "\"referredByAgentId\"")
+    private String referredByAgentId;
+
     // TODO: Add relationships (listings, bookings, etc.) after creating their entities.
 }

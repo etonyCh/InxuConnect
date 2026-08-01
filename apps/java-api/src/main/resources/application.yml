@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/inzuconnect}
-    username: ${DATABASE_USER:inzu}
-    password: ${DATABASE_PASSWORD:inzu_dev_password_2026}
+    url: ${JDBC_DATABASE_URL:jdbc:postgresql://localhost:5432/${POSTGRES_DB:inzuconnect}}
+    username: ${POSTGRES_USER:inzu}
+    password: ${POSTGRES_PASSWORD:inzu_dev_password_2026}
     driver-class-name: org.postgresql.Driver
   
   jpa:
@@ -22,4 +22,4 @@ inzuconnect:
     jwt:
       secret: ${JWT_SECRET:8f8a8b8c8d8e8f8a8b8c8d8e8f8a8b8c8d8e8f8a8b8c8d8e8f8a8b8c8d8e8f8a}
   cors:
-    allowed-origins: ${FRONTEND_URL:http://localhost:3000}
+    allowed-origins: ${FRONTEND_URL:http://localhost:4200,http://localhost:3000}

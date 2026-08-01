@@ -1,5 +1,6 @@
 package com.inzuconnect.inzuconnect_api.domain;
 
+import com.inzuconnect.inzuconnect_api.domain.enums.CommissionStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -27,6 +28,10 @@ public class AgentCommission {
 
     @Column(nullable = false)
     private Integer amount;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private CommissionStatus status = CommissionStatus.PENDING;
 
     @CreationTimestamp
     @Column(name = "\"createdAt\"", updatable = false)

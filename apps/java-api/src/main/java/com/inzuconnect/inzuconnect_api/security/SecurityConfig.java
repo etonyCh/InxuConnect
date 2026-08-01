@@ -34,8 +34,14 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/listings").permitAll()
+                .requestMatchers("/ws-chat/**", "/api/v1/chat/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/listings", "/api/listings/*", "/api/listings/*/services", "/api/v1/listings/search").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/users/*/reviews").permitAll()
+                .requestMatchers("/api/listings/media/mock-upload").permitAll()
+                .requestMatchers("/api/payments/mock-callback").permitAll()
+                .requestMatchers("/api/kyc/webhook").permitAll()
                 .requestMatchers("/api/health").permitAll()
+                .requestMatchers("/api/ai/voice-assistant").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
@@ -45,7 +51,8 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of(allowedOrigins));
+        List<String> origins = List.of(allowedOrigins.split(","));
+        configuration.setAllowedOrigins(origins);
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         configuration.setAllowCredentials(true);

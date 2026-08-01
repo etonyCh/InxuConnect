@@ -1,33 +1,32 @@
 {
   "name": "web",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
+    "ng": "ng",
+    "start": "ng serve --port 4200",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "dev": "ng serve --port 4200"
   },
   "dependencies": {
-    "@auth/prisma-adapter": "^2.11.2",
-    "leaflet": "^1.9.4",
-    "lucide-react": "^1.21.0",
-    "next": "16.2.6",
-    "next-auth": "5.0.0-beta.25",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
-    "react-leaflet": "^5.0.0",
-    "recharts": "^3.8.1"
+    "@angular/animations": "18.2.14",
+    "@angular/common": "18.2.14",
+    "@angular/compiler": "18.2.14",
+    "@angular/core": "18.2.14",
+    "@angular/forms": "18.2.14",
+    "@angular/platform-browser": "18.2.14",
+    "@angular/platform-browser-dynamic": "18.2.14",
+    "@angular/router": "18.2.14",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0",
+    "zone.js": "~0.14.10"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@types/leaflet": "^1.9.21",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.2.6",
-    "tailwindcss": "^4",
-    "typescript": "^5"
+    "@angular-devkit/build-angular": "18.2.14",
+    "@angular/build": "18.2.14",
+    "@angular/cli": "18.2.14",
+    "@angular/compiler-cli": "18.2.14",
+    "typescript": "~5.5.4"
   }
 }

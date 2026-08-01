@@ -1,0 +1,17 @@
+{
+  "name": "InzuConnect Burundi - Plateforme Immobilière & Séjours",
+  "short_name": "InzuConnect",
+  "theme_color": "#36255C",
+  "background_color": "#F7F4FD",
+  "display": "standalone",
+  "scope": "/",
+  "start_url": "/",
+  "description": "Réservez vos hébergements et séjours au Burundi avec InzuConnect (Paiement Mobile Money Lumicash/EcoCash).",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}
