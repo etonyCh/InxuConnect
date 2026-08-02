@@ -242,3 +242,114 @@ body {
   background: #000000;
   border-radius: 50%;
 }
+
+/* ==========================================================================
+   RESPONSIVE DESIGN — BREAKPOINTS
+   Mobile-first (base = mobile), tablet (768), desktop (1024), xl (1440)
+   ========================================================================== */
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  max-width: 100%;
+}
+
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  overflow-wrap: break-word;
+}
+
+.main-content {
+  padding: 1rem 1rem 6rem 1rem;
+}
+
+.btn-primary,
+.btn-lavender {
+  width: auto;
+  min-height: 44px;
+}
+
+/* Mobile Simulator — only enable on real desktop screens */
+@media (max-width: 1023px) {
+  .mobile-simulator-wrapper {
+    background: var(--neutral-50);
+    padding: 0;
+    align-items: stretch;
+    justify-content: flex-start;
+  }
+
+  .mobile-phone-frame {
+    width: 100% !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    border-radius: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  .mobile-notch {
+    display: none;
+  }
+}
+
+@media (min-width: 768px) {
+  .main-content {
+    padding: 1.25rem 1.25rem 6rem 1.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .main-content {
+    padding: 1.5rem 2rem 6rem 2rem;
+  }
+
+  .btn-primary,
+  .btn-lavender {
+    width: auto;
+  }
+}
+
+@media (min-width: 1440px) {
+  .main-content {
+    padding: 2rem 3rem 6rem 3rem;
+  }
+}
+
+/* Safe areas pour iPhone notch / dynamic island */
+@supports (padding: max(0px)) {
+  .main-content {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+    padding-bottom: max(6rem, calc(6rem + env(safe-area-inset-bottom)));
+    padding-top: max(1rem, env(safe-area-inset-top));
+  }
+}

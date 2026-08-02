@@ -130,6 +130,26 @@ import { CommonModule } from '@angular/common';
       background: #FFFFFF;
       box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
+
+    @media (max-width: 767px) {
+      .resilience-card {
+        padding: 0.75rem;
+        gap: 0.5rem;
+      }
+      .badge-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.4rem;
+      }
+      .utilities-list {
+        flex-wrap: wrap;
+        gap: 0.35rem;
+      }
+      .utility-item {
+        flex: 1 1 calc(50% - 0.35rem);
+        min-width: 0;
+      }
+    }
   `]
 })
 export class ResilienceBadgeComponent {

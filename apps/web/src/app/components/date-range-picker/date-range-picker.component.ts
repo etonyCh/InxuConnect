@@ -79,6 +79,21 @@ import { FormsModule } from '@angular/forms';
       gap: 0.4rem;
       align-self: flex-start;
     }
+
+    @media (max-width: 767px) {
+      .date-picker-card {
+        width: 100%;
+        padding: 0.75rem;
+        gap: 0.5rem;
+      }
+      .dates-inputs-row {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+      }
+      .date-input {
+        min-height: 44px;
+      }
+    }
   `]
 })
 export class DateRangePickerComponent {

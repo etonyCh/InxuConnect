@@ -166,6 +166,31 @@ import { CommonModule } from '@angular/common';
       align-items: center;
       gap: 0.5rem;
     }
+
+    @media (max-width: 767px) {
+      .voice-assistant-card {
+        width: 100%;
+        padding: 1rem;
+      }
+      .voice-header {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .ai-badge {
+        flex: 1;
+        min-width: 0;
+      }
+      .lang-switch-btn {
+        flex-shrink: 0;
+      }
+      .transcript-box {
+        width: 100%;
+      }
+      .ai-response-banner {
+        width: 100%;
+        flex-wrap: wrap;
+      }
+    }
   `]
 })
 export class VoiceAssistantComponent {

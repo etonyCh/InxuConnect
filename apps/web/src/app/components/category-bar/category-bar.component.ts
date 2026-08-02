@@ -52,9 +52,11 @@ interface CategoryItem {
       align-items: center;
       gap: 2.25rem;
       overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
       scrollbar-width: none;
       padding-bottom: 0.5rem;
       flex: 1;
+      flex-wrap: nowrap;
     }
 
     .categories-scroll-container::-webkit-scrollbar {
@@ -70,10 +72,12 @@ interface CategoryItem {
       border: none;
       cursor: pointer;
       padding: 0.4rem 0.2rem;
+      min-height: 44px;
       color: #6B7280;
       border-bottom: 2px solid transparent;
       transition: all 0.2s ease;
       white-space: nowrap;
+      flex: 0 0 auto;
     }
 
     .category-item-btn:hover {
@@ -90,6 +94,7 @@ interface CategoryItem {
     .icon-box {
       font-size: 1.4rem;
       height: 28px;
+      min-width: 40px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -118,6 +123,7 @@ interface CategoryItem {
       background: #FFFFFF;
       border: 1px solid #E5E7EB;
       padding: 0.6rem 1rem;
+      min-height: 44px;
       border-radius: 12px;
       font-size: 0.85rem;
       font-weight: 700;
@@ -125,12 +131,68 @@ interface CategoryItem {
       cursor: pointer;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
       transition: all 0.2s ease;
+      white-space: nowrap;
     }
 
     .filters-btn:hover {
       border-color: #36255C;
       background: #F7F4FD;
       color: #36255C;
+    }
+
+    @media (max-width: 767px) {
+      .category-bar-wrapper {
+        padding: 0.85rem 1rem 0.35rem 1rem;
+        gap: 0.75rem;
+      }
+      .categories-scroll-container {
+        gap: 1.5rem;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        flex-wrap: nowrap;
+      }
+      .category-item-btn {
+        flex: 0 0 auto;
+        white-space: nowrap;
+        gap: 0.35rem;
+        padding: 0.35rem 0.15rem;
+      }
+      .icon-box {
+        font-size: 1.2rem;
+        height: 26px;
+      }
+      .category-name {
+        font-size: 0.7rem;
+      }
+      .filters-btn {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.78rem;
+        gap: 0.35rem;
+      }
+    }
+
+    @media (min-width: 600px) {
+      .category-bar-wrapper {
+        gap: 1.25rem;
+      }
+      .categories-scroll-container {
+        gap: 1.75rem;
+      }
+    }
+
+    @media (min-width: 900px) {
+      .category-bar-wrapper {
+        padding: 1.25rem 2rem 0.5rem 2rem;
+        gap: 1.5rem;
+      }
+      .categories-scroll-container {
+        flex-wrap: wrap;
+        gap: 2.25rem;
+        overflow-x: visible;
+      }
+      .category-item-btn {
+        flex: 0 0 auto;
+      }
     }
   `]
 })

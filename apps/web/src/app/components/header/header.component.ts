@@ -96,14 +96,39 @@ import { FormsModule } from '@angular/forms';
     .segment-input { border: none; outline: none; font-size: 0.85rem; color: #111827; background: transparent; width: 100%; }
     .segment-value { font-size: 0.82rem; color: #9CA3AF; }
     .divider { width: 1px; height: 24px; background: #E5E7EB; }
-    .search-btn { width: 42px; height: 42px; border-radius: 50%; background: #36255C; color: #FFFFFF; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    .search-btn { width: 42px; height: 42px; min-height: 44px; border-radius: 50%; background: #36255C; color: #FFFFFF; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; }
     .header-actions { display: flex; align-items: center; gap: 0.5rem; }
-    .icon-nav-btn { width: 38px; height: 38px; border-radius: 50%; background: #F7F4FD; border: 1px solid #D2C3F6; color: #36255C; display: flex; align-items: center; justify-content: center; font-size: 1rem; cursor: pointer; }
-    .mode-toggle-btn { display: flex; align-items: center; gap: 0.4rem; background: #F7F4FD; color: #36255C; border: 1.5px solid #D2C3F6; padding: 0.5rem 0.85rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
+    .icon-nav-btn { width: 40px; height: 40px; min-height: 44px; border-radius: 50%; background: #F7F4FD; border: 1px solid #D2C3F6; color: #36255C; display: flex; align-items: center; justify-content: center; font-size: 1rem; cursor: pointer; }
+    .mode-toggle-btn { display: flex; align-items: center; gap: 0.4rem; background: #F7F4FD; color: #36255C; border: 1.5px solid #D2C3F6; padding: 0.5rem 0.85rem; min-height: 44px; border-radius: 9999px; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
     .mode-toggle-btn.active-simulator { background: #36255C; color: #FFFFFF; }
-    .host-link-btn { background: transparent; border: 1px solid #D2C3F6; font-size: 0.8rem; font-weight: 700; color: #36255C; padding: 0.45rem 0.8rem; border-radius: 9999px; cursor: pointer; display: flex; align-items: center; gap: 0.35rem; }
-    .user-menu-pill { display: flex; align-items: center; gap: 0.5rem; border: 1px solid #E5E7EB; padding: 0.3rem 0.3rem 0.3rem 0.75rem; border-radius: 9999px; cursor: pointer; background: #FFFFFF; }
+    .host-link-btn { background: transparent; border: 1px solid #D2C3F6; font-size: 0.8rem; font-weight: 700; color: #36255C; padding: 0.45rem 0.8rem; min-height: 44px; border-radius: 9999px; cursor: pointer; display: flex; align-items: center; gap: 0.35rem; }
+    .user-menu-pill { display: flex; align-items: center; gap: 0.5rem; border: 1px solid #E5E7EB; padding: 0.3rem 0.3rem 0.3rem 0.75rem; min-height: 44px; border-radius: 9999px; cursor: pointer; background: #FFFFFF; }
     .user-avatar-circle { width: 32px; height: 32px; border-radius: 50%; background: #36255C; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; }
+    @media (max-width: 767px) {
+      .site-header { padding: 0.65rem 1rem; }
+      .header-inner { flex-wrap: wrap; gap: 0.75rem; }
+      .brand-logo { gap: 0.5rem; }
+      .logo-icon { width: 38px; height: 38px; font-size: 1.15rem; }
+      .brand-name { font-size: 1.1rem; }
+      .brand-sub { font-size: 0.6rem; }
+      .search-pill-container { max-width: 100%; width: 100%; order: 3; flex: 1 1 100%; flex-wrap: wrap; gap: 0.35rem; padding: 0.5rem 0.75rem; }
+      .search-segment { flex: 1 1 auto; min-width: 100px; padding: 0.25rem 0.35rem; }
+      .divider { display: none; }
+      .search-btn { width: 40px; height: 40px; }
+      .header-actions { gap: 0.35rem; }
+      .mode-toggle-btn { display: none; }
+      .host-link-btn { display: none; }
+      .icon-nav-btn { width: 40px; height: 40px; }
+      .user-menu-pill { padding: 0.25rem 0.25rem 0.25rem 0.6rem; gap: 0.35rem; }
+    }
+    @media (min-width: 600px) {
+      .header-inner { gap: 1rem; }
+    }
+    @media (min-width: 900px) {
+      .site-header { padding: 0.85rem 2rem; }
+      .header-inner { gap: 1.25rem; }
+      .search-pill-container { max-width: 520px; }
+    }
   `]
 })
 export class HeaderComponent {

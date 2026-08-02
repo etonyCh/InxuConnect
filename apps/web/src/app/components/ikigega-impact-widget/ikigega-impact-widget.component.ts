@@ -97,6 +97,29 @@ import { CommonModule } from '@angular/common';
       font-size: 0.65rem;
       opacity: 0.8;
     }
+
+    @media (max-width: 767px) {
+      .ikigega-card {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        gap: 0.5rem;
+      }
+      .ikigega-header {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .ikigega-title {
+        flex: 1;
+        min-width: 0;
+      }
+      .pool-total {
+        flex-shrink: 0;
+      }
+      .projects-row {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+      }
+    }
   `]
 })
 export class IkigegaImpactWidgetComponent {

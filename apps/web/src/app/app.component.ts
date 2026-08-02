@@ -209,22 +209,45 @@ import { Listing } from './models/listing.model';
     </div>
   `,
   styles: [`
-    .app-main-layout { width: 100%; min-height: 100vh; display: flex; flex-direction: column; background: #FFFFFF; }
-    .creative-actions-bar { display: flex; gap: 0.75rem; margin-bottom: 1.25rem; }
-    .creative-btn { background: #F7F4FD; color: #36255C; border: 1px solid #D2C3F6; padding: 0.5rem 1rem; border-radius: 9999px; font-weight: 700; font-size: 0.82rem; cursor: pointer; display: flex; align-items: center; gap: 0.45rem; box-shadow: 0 2px 8px rgba(54, 37, 92, 0.08); }
+    .app-main-layout { width: 100%; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; background: #FFFFFF; }
+    .creative-actions-bar { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    .creative-actions-bar::-webkit-scrollbar { display: none; }
+    .creative-btn { background: #F7F4FD; color: #36255C; border: 1px solid #D2C3F6; padding: 0.6rem 0.9rem; border-radius: 9999px; font-weight: 700; font-size: 0.78rem; cursor: pointer; display: flex; align-items: center; gap: 0.4rem; box-shadow: 0 2px 8px rgba(54, 37, 92, 0.08); flex: 0 0 auto; white-space: nowrap; min-height: 40px; }
     .creative-btn:hover { background: #36255C; color: #FFFFFF; }
-    .filter-status-banner { display: flex; align-items: center; justify-content: space-between; background: #F7F4FD; border: 1px solid #D2C3F6; padding: 0.75rem 1.25rem; border-radius: 14px; margin-bottom: 1.5rem; color: #36255C; }
-    .clear-filter-btn { background: #36255C; color: #FFFFFF; border: none; padding: 0.35rem 0.85rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 700; cursor: pointer; }
-    .listings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 1.75rem 1.5rem; }
+    .filter-status-banner { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; background: #F7F4FD; border: 1px solid #D2C3F6; padding: 0.65rem 1rem; border-radius: 14px; margin-bottom: 1.25rem; color: #36255C; flex-wrap: wrap; }
+    .filter-status-banner .status-text { font-size: 0.82rem; line-height: 1.4; flex: 1 1 220px; min-width: 0; }
+    .clear-filter-btn { background: #36255C; color: #FFFFFF; border: none; padding: 0.5rem 0.9rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 700; cursor: pointer; min-height: 40px; flex: 0 0 auto; }
+    .listings-grid { display: grid; grid-template-columns: 1fr; gap: 1.25rem 1rem; }
     .listing-wrapper { display: flex; flex-direction: column; gap: 0.5rem; }
-    .empty-state { text-align: center; padding: 4rem 2rem; display: flex; flex-direction: column; align-items: center; gap: 1rem; }
-    .empty-icon { font-size: 3.5rem; color: #D2C3F6; }
-    .map-view-container { padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
-    .map-header h3 { font-size: 1.2rem; color: #36255C; font-weight: 800; display: flex; align-items: center; gap: 0.5rem; }
-    .map-mock-canvas { width: 100%; height: 480px; background: #E8E0FA url('https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&w=1200&q=80') center/cover; border-radius: 16px; position: relative; overflow: hidden; border: 2px solid #D2C3F6; }
-    .map-empty-state { width: 100%; height: 480px; display:flex; align-items:center; justify-content:center; color:#36255C; font-weight:700; border-radius:16px; background:#F7F4FD; border:2px dashed #D2C3F6; }
-    .map-pin { position: absolute; background: #36255C; color: #FFFFFF; padding: 0.45rem 0.85rem; border-radius: 9999px; font-weight: 800; font-size: 0.8rem; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); border: 2px solid #FFFFFF; transition: transform 0.2s ease; }
-    .map-pin:hover { transform: scale(1.15); background: #6E44BA; z-index: 10; }
+    .empty-state { text-align: center; padding: 3rem 1rem; display: flex; flex-direction: column; align-items: center; gap: 0.75rem; }
+    .empty-icon { font-size: 2.75rem; color: #D2C3F6; }
+    .map-view-container { padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem; }
+    .map-header h3 { font-size: 1rem; color: #36255C; font-weight: 800; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    .map-header p { font-size: 0.8rem; line-height: 1.4; }
+    .map-mock-canvas { width: 100%; height: 320px; background: #E8E0FA url('https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&w=1200&q=80') center/cover; border-radius: 16px; position: relative; overflow: hidden; border: 2px solid #D2C3F6; }
+    .map-empty-state { width: 100%; height: 320px; display:flex; align-items:center; justify-content:center; color:#36255C; font-weight:700; border-radius:16px; background:#F7F4FD; border:2px dashed #D2C3F6; text-align:center; padding:1rem; }
+    .map-pin { position: absolute; background: #36255C; color: #FFFFFF; padding: 0.35rem 0.65rem; border-radius: 9999px; font-weight: 800; font-size: 0.7rem; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); border: 2px solid #FFFFFF; transition: transform 0.2s ease; }
+    .map-pin:hover { transform: scale(1.1); background: #6E44BA; z-index: 10; }
+
+    @media (min-width: 600px) {
+      .listings-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem 1.25rem; }
+      .creative-actions-bar { gap: 0.75rem; margin-bottom: 1.25rem; }
+      .map-mock-canvas, .map-empty-state { height: 400px; }
+      .empty-state { padding: 4rem 2rem; }
+      .empty-icon { font-size: 3.5rem; }
+    }
+
+    @media (min-width: 900px) {
+      .listings-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.75rem 1.5rem; }
+      .map-mock-canvas, .map-empty-state { height: 480px; }
+      .map-view-container { padding: 1.5rem; gap: 1rem; }
+      .filter-status-banner { padding: 0.75rem 1.25rem; margin-bottom: 1.5rem; }
+      .creative-btn { font-size: 0.82rem; padding: 0.5rem 1rem; gap: 0.45rem; }
+    }
+
+    @media (min-width: 1280px) {
+      .listings-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
   `]
 })
 export class AppComponent implements OnInit {

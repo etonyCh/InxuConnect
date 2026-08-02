@@ -26,7 +26,6 @@ interface ChatMessage {
           </div>
           <button class="close-btn" (click)="closeDrawer()"><i class="fa-solid fa-xmark"></i></button>
         </div>
-
         <div class="chat-messages-container">
           <div *ngFor="let msg of messages" class="message-bubble" [class.me]="msg.isMe">
             <span class="sender-name">{{ msg.sender }}</span>
@@ -34,7 +33,6 @@ interface ChatMessage {
             <span class="message-time">{{ msg.time }}</span>
           </div>
         </div>
-
         <div class="chat-input-row">
           <input type="text" [(ngModel)]="newMessage" (keyup.enter)="sendMessage()" placeholder="Écrivez votre message..." class="chat-input" />
           <button class="send-btn" (click)="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
@@ -62,24 +60,66 @@ interface ChatMessage {
     .sender-name { font-size: 0.7rem; font-weight: 800; opacity: 0.8; display: block; margin-bottom: 0.2rem; }
     .message-time { font-size: 0.65rem; opacity: 0.7; display: block; margin-top: 0.3rem; text-align: right; }
     .chat-input-row { padding: 1rem; border-top: 1px solid #F3F4F6; display: flex; gap: 0.65rem; background: #FFFFFF; }
-    .chat-input { flex: 1; border: 1px solid #D2C3F6; padding: 0.65rem 1rem; border-radius: 9999px; outline: none; font-size: 0.88rem; }
+    .chat-input { flex: 1; border: 1px solid #D2C3F6; padding: 0.65rem 1rem; border-radius: 9999px; outline: none; font-size: 0.88rem; width: 100%; }
     .send-btn { width: 40px; height: 40px; border-radius: 50%; background: #36255C; color: #FFFFFF; border: none; cursor: pointer; }
+    @media (max-width: 767px) {
+      .chat-drawer-overlay {
+        padding: 0;
+      }
+      .chat-drawer-card {
+        width: 100vw !important;
+        max-width: 100vw;
+        height: 100vh;
+        height: 100dvh;
+        top: 0 !important;
+        left: 0 !important;
+        border-radius: 0 !important;
+        padding: 0;
+        overflow-y: auto;
+      }
+      .close-btn {
+        min-height: 44px;
+        min-width: 44px;
+      }
+      .chat-messages-container {
+        padding: 1rem;
+      }
+      .chat-input-row {
+        padding: 1rem;
+      }
+      .chat-input {
+        min-height: 44px;
+        width: 100%;
+      }
+      .send-btn {
+        min-height: 44px;
+        min-width: 44px;
+      }
+      .message-bubble {
+        max-width: 90%;
+      }
+      .host-status strong {
+        font-size: 0.9rem;
+      }
+    }
+    @media (min-width: 768px) {
+      .chat-drawer-card {
+        max-width: 90vw;
+      }
+    }
   `]
 })
 export class ChatDrawerComponent {
   @Output() close = new EventEmitter<void>();
-
   newMessage = '';
   messages: ChatMessage[] = [
     { sender: 'Jean-Claude (Hôte)', text: 'Amahoro ! Bienvenue au Burundi. N\'hésitez pas si vous avez des questions sur la villa.', isMe: false, time: '14:30' },
     { sender: 'Vous', text: 'Bonjour Jean-Claude ! Est-ce que le logement dispose bien d\'un groupe électrogène en cas de coupure REGIDESO ?', isMe: true, time: '14:32' },
     { sender: 'Jean-Claude (Hôte)', text: 'Oui tout à fait ! Un groupe automatique + citerne d\'eau de 5000L sont installés.', isMe: false, time: '14:34' }
   ];
-
   closeDrawer() {
     this.close.emit();
   }
-
   sendMessage() {
     if (this.newMessage.trim()) {
       this.messages.push({

@@ -42,6 +42,22 @@ import { CommonModule } from '@angular/common';
       transform: scale(1.05);
       background: #36255C;
     }
+
+    @media (max-width: 767px) {
+      .map-toggle-floating-container {
+        width: calc(100% - 2rem);
+        left: 1rem;
+        transform: none;
+        bottom: calc(80px + env(safe-area-inset-bottom));
+      }
+      .map-toggle-btn {
+        width: 100%;
+        justify-content: center;
+        min-height: 44px;
+        padding: 0.65rem 1rem;
+        flex-wrap: wrap;
+      }
+    }
   `]
 })
 export class MapToggleComponent {

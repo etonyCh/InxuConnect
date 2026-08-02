@@ -66,6 +66,24 @@ import { CommonModule } from '@angular/common';
       font-size: 0.68rem;
       font-weight: 700;
     }
+
+    @media (max-width: 767px) {
+      .mobile-bottom-nav {
+        height: auto;
+        padding-bottom: env(safe-area-inset-bottom);
+      }
+      .nav-tab-btn {
+        flex: 1;
+        min-height: 56px;
+        padding: 0.5rem 0.25rem;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .mobile-bottom-nav {
+        display: none;
+      }
+    }
   `]
 })
 export class MobileNavComponent {
