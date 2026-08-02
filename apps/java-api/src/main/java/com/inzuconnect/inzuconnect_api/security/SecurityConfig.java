@@ -55,7 +55,7 @@ public class SecurityConfig {
                 .requestMatchers("/ws-chat/**", "/api/v1/chat/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/listings", "/api/listings/*", "/api/listings/*/services", "/api/v1/listings/search", "/api/v1/listings/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/users/*/reviews").permitAll()
-                .requestMatchers("/api/admin/**", "/api/v1/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/admin/**", "/api/v1/admin/**").hasAnyRole("ADMIN", "B2B")
                 .requestMatchers("/api/listings/media/mock-upload").permitAll()
                 .requestMatchers("/api/payments/mock-callback").permitAll()
                 .requestMatchers("/api/kyc/webhook").permitAll()

@@ -4,5 +4,7 @@ public enum Role {
     GUEST,
     HOST,
     AGENT,
+    PARTNER,
+    B2B,
     ADMIN
 }
