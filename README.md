@@ -1,70 +1,65 @@
 # InzuConnect 🇧🇮
 
-**InzuConnect** est la première plateforme immobilière moderne et sécurisée spécialement conçue pour le marché du Burundi. Elle connecte facilement les voyageurs, les propriétaires, les agents communautaires et les entreprises.
+**InzuConnect** est la première plateforme d'hébergement et de séjours spécialement conçue pour le marché du Burundi. Inspirée des standards d'Airbnb et adaptée aux réalités socio-économiques locales (*Franc Burundais FBU, Mobile Money Lumicash/EcoCash, Cartographie OpenStreetMap, Bilinguisme Français/Kirundi, Programme d'Affiliation Agents*).
 
-## 🚀 Fonctionnalités Principales
+---
 
-- **Multi-Rôles (RBAC)** :
-  - **Voyageur (Guest)** : Recherche de logements avec carte interactive (Leaflet), gestion de séjours, accès à l'espace B2B.
-  - **Hôte (Host)** : Ajout de propriétés, gestion des réservations, tableau de bord financier.
-  - **Agent Communautaire (Agent)** : Système de parrainage (affiliation) avec suivi des filleuls et des commissions générées.
-  - **Administrateur (Admin)** : Tour de contrôle globale, gestion des utilisateurs, validation des identités (KYC) et statistiques de la plateforme.
-- **Sécurité & Confiance (KYC)** : Vérification d'identité via CNI et selfie, contrôlée manuellement par les administrateurs pour octroyer un badge `VERIFIED`.
-- **Cartographie** : Localisation précise des propriétés au Burundi grâce à OpenStreetMap.
-- **B2B** : Espace dédié aux entreprises et ONG pour gérer les séjours professionnels.
+## 🎨 Charte Graphique & UI Premium
+- **Couleur Primaire (Violet Inzu)** : `#36255C`
+- **Couleur Secondaire (Lavande)** : `#D2C3F6`
+- **Interface UI/UX** : Inspirée d'Airbnb (Pill search bar, carousel de photos, badges d'hôtes vérifiés, sélecteur de dates, décomposition détaillée du tarif FBU).
+
+---
+
+## 🚀 Fonctionnalités Clés Burundi
+
+- **💳 Séquestre Mobile Money (Lumicash & EcoCash)** : Blocage sécurisé des acomptes en FBU avec libération automatique vers l'Hôte 24h après le Check-in.
+- **🤝 Programme d'Affiliation Agents (3% FBU)** : Calcul automatique de 3% de commission pour les agents communautaires parrains dans les provinces (*Bujumbura, Gitega, Ngozi, Bururi*).
+- **📅 Sélecteur de Dates & Décomposition Tarif FBU** : Calcul dynamique du séjour (*Prix base × N nuits + Frais de ménage 15 000 FBU + Frais service 5% + Option Épargne Communautaire*).
+- **🎛️ Filtres d'Infrastructures Burundi** : Groupe Électrogène, Citerne d'eau, Énergie Solaire, Vue Lac, Climatisation.
+- **💬 Messagerie Temps Réel Hôte ↔ Voyageur** : WebSockets STOMP (`/ws-chat`) pour échanger en direct avant et après réservation.
+- **📱 PWA & Mode Mobile Simulator** : Basculeur intégré Vue Web / Vue Mobile Smartphone et manifeste PWA (`manifest.json`) pour installation sur Android/iOS.
+- **📲 Notifications SMS (+257 Burundi)** : Alertes SMS automatiques pour les réservations et validations de comptes.
+- **🛡️ Validation Identité KYC Admin** : Soumission de CNI / Passeport et Selfie pour l'obtention du badge `VÉRIFIÉ`.
+
+---
 
 ## 🛠️ Stack Technique
 
-InzuConnect est un monorepo architecturé avec **Turborepo** contenant :
+InzuConnect est un monorepo architecturé avec **Turborepo** :
 
-- **Frontend (Web)** : Next.js 14+ (App Router), React, Tailwind CSS, Leaflet (Cartographie), NextAuth (Authentification).
-- **Frontend (Mobile)** : React Native avec Expo, Navigation native, expo-secure-store.
-- **Backend (API)** : Java 21, Spring Boot 3, Spring Security (JWT), Hibernate/JPA.
-- **Base de Données** : PostgreSQL 16 (conteneurisée via Docker).
-- **Tests Automatisés** : Playwright (End-to-End).
-- **Monitoring** : Sentry (Web & Mobile).
+- **Frontend (Web & PWA)** : **Angular 18** (Standalone Components, RxJS, PWA Manifest, Leaflet OpenStreetMap).
+- **Backend (API)** : **Java 21**, **Spring Boot 3**, Spring Security (CORS & WebSockets STOMP), Hibernate/JPA Specification.
+- **Base de Données** : PostgreSQL 16.
 
-## ⚙️ Installation & Lancement
+---
 
-### Prérequis
-- Java 21 (JDK) & Maven
-- Node.js (v18+) & pnpm
-- Docker & Docker Compose
+## ⚙️ Démarrage Rapide
 
-### 1. Cloner et Installer
-```bash
-git clone https://github.com/etonyCh/InxuConnect.git
-cd InxuConnect
-pnpm install
-```
-
-### 2. Démarrer la Base de Données (PostgreSQL)
-L'infrastructure locale est gérée via Docker Compose.
-```bash
-docker-compose up -d postgres
-```
-
-### 3. Démarrer le Backend (Spring Boot)
-L'API écoutera sur le port `8080`.
+### 1. Démarrer le Backend (Spring Boot 3)
 ```bash
 cd apps/java-api
 mvn spring-boot:run
 ```
-*(Note: Hibernate se chargera de créer et de mettre à jour le schéma de la base de données automatiquement).*
+*(L'API écoute sur `http://localhost:8080`)*
 
-### 4. Démarrer le Frontend (Next.js)
-Dans un nouveau terminal, depuis la racine du projet :
+### 2. Démarrer le Frontend (Angular 18)
 ```bash
-pnpm --filter web dev
+cd apps/web
+pnpm dev
 ```
-- Le site web sera accessible sur `http://localhost:3000`
+*(Le site web et la PWA sont accessibles sur `http://localhost:4200`)*
 
-### 5. Tests E2E (Playwright)
-Pour lancer les tests automatisés avec interface graphique :
+### 3. Compilation & Build Production
 ```bash
-npx playwright test --ui
+# Backend Spring Boot
+cd apps/java-api && mvn compile
+
+# Frontend Angular 18
+cd apps/web && npx ng build
 ```
 
-## 🛡️ License
+---
 
-Projet privé. Tous droits réservés.
+## 🛡️ Licence
+Projet InzuConnect Burundi - Tous droits réservés.
