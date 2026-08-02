@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { StyleSheet, Text, View, FlatList, TouchableOpacity, ActivityIndicator, ScrollView, Switch, Alert, TextInput } from 'react-native'
+import { StyleSheet, Text, View, FlatList, TouchableOpacity, ActivityIndicator, ScrollView, Alert } from 'react-native'
 
 interface ListingsScreenProps {
   token: string
@@ -12,23 +12,16 @@ export default function ListingsScreen({ token, apiBaseUrl, onLogout, navigation
   const [activeTab, setActiveTab] = useState<'EXPLORE' | 'SETTINGS'>('EXPLORE')
   const [listings, setListings] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
 
-  // Regional/currency filtering states
   const [selectedCountry, setSelectedCountry] = useState<string>('Burundi')
   const [selectedCurrency, setSelectedCurrency] = useState<string>('BIF')
   const [voiceQuery, setVoiceQuery] = useState<string>('')
 
-  // Profile states
   const [profile, setProfile] = useState<any>(null)
   const [name, setName] = useState('')
-  const [phone, setPhone] = useState('')
-  const [role, setRole] = useState('')
-  const [savingProfile, setSavingProfile] = useState(false)
 
   const fetchListings = async (countryFilter = selectedCountry, currencyFilter = selectedCurrency) => {
     setLoading(true)
-    setError(null)
     try {
       const query = new URLSearchParams()
       if (countryFilter) query.append('country', countryFilter)
@@ -39,7 +32,6 @@ export default function ListingsScreen({ token, apiBaseUrl, onLogout, navigation
         const result = await res.json()
         setListings(result || [])
       } else {
-        // Fallback clean display
         setListings([])
       }
     } catch (e) {
@@ -58,8 +50,6 @@ export default function ListingsScreen({ token, apiBaseUrl, onLogout, navigation
         const data = await res.json()
         setProfile(data.user)
         setName(data.user.name)
-        setPhone(data.user.phone || '')
-        setRole(data.user.role)
       }
     } catch (e) {
       // Ignorer
@@ -86,30 +76,6 @@ export default function ListingsScreen({ token, apiBaseUrl, onLogout, navigation
         }
       ]
     )
-  }
-
-  const handleUpdateProfile = async () => {
-    setSavingProfile(true)
-    try {
-      const res = await fetch(`${apiBaseUrl}/api/v1/auth/profile`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ name, phone, role })
-      })
-      if (res.ok) {
-        Alert.alert('Succès', 'Votre profil a été mis à jour avec succès.')
-        fetchProfile()
-      } else {
-        Alert.alert('Erreur', 'Impossible de mettre à jour le profil.')
-      }
-    } catch (e) {
-      Alert.alert('Erreur', 'Erreur de connexion au serveur.')
-    } finally {
-      setSavingProfile(false)
-    }
   }
 
   const renderItem = ({ item }: { item: any }) => {
@@ -144,11 +110,11 @@ export default function ListingsScreen({ token, apiBaseUrl, onLogout, navigation
     <View style={styles.container}>
       {activeTab === 'EXPLORE' ? (
         <View style={{ flex: 1 }}>
-          {/* HEADER WITH VIOLET BRANDING */}
+          {/* HEADER WITH BLUE CHARCOAL & FLUORESCENT BLUE BRANDING */}
           <View style={styles.header}>
             <View>
               <Text style={styles.headerTitle}>InzuConnect</Text>
-              <Text style={styles.headerSubtitle}>Logements & Séquestre Mobile Money Burundi 🇧🇮</Text>
+              <Text style={styles.headerSubtitle}>Séquestre Mobile Money & Logements Burundi 🇧🇮</Text>
             </View>
 
             {/* VOICE SEARCH BUTTON */}
@@ -198,7 +164,7 @@ export default function ListingsScreen({ token, apiBaseUrl, onLogout, navigation
 
           {loading ? (
             <View style={styles.centerContainer}>
-              <ActivityIndicator size="large" color="#36255C" />
+              <ActivityIndicator size="large" color="#50E8F4" />
               <Text style={styles.loadingText}>Chargement des logements en direct...</Text>
             </View>
           ) : (
@@ -268,7 +234,7 @@ export default function ListingsScreen({ token, apiBaseUrl, onLogout, navigation
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F7F4FD',
+    backgroundColor: '#C7F8FE',
   },
   header: {
     flexDirection: 'row',
@@ -277,46 +243,50 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 55,
     paddingBottom: 16,
-    backgroundColor: '#36255C',
+    backgroundColor: '#001619',
+    borderBottomWidth: 2,
+    borderColor: '#50E8F4',
   },
   headerTitle: {
     fontSize: 22,
     fontWeight: '900',
-    color: '#FFFFFF',
+    color: '#50E8F4',
     letterSpacing: -0.5,
   },
   headerSubtitle: {
     fontSize: 10,
-    color: '#D2C3F6',
+    color: '#C7F8FE',
     fontWeight: '600',
     marginTop: 2,
   },
   voiceBtn: {
-    backgroundColor: '#D2C3F6',
+    backgroundColor: '#50E8F4',
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 20,
   },
   voiceBtnText: {
-    color: '#36255C',
+    color: '#001619',
     fontWeight: '800',
     fontSize: 12,
   },
   voiceActiveBanner: {
-    backgroundColor: '#36255C',
+    backgroundColor: '#001619',
     paddingHorizontal: 20,
     paddingVertical: 8,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    borderBottomWidth: 1,
+    borderColor: '#50E8F4',
   },
   voiceActiveText: {
-    color: '#FFFFFF',
+    color: '#50E8F4',
     fontSize: 12,
     fontWeight: '700',
   },
   clearVoiceText: {
-    color: '#D2C3F6',
+    color: '#C7F8FE',
     fontWeight: '800',
     fontSize: 12,
   },
@@ -325,12 +295,12 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#50E8F4',
   },
   filterSectionTitle: {
     fontSize: 9,
     fontWeight: '800',
-    color: '#6B7280',
+    color: '#001619',
     marginBottom: 6,
     letterSpacing: 0.5,
   },
@@ -348,22 +318,22 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   filterBadgeActive: {
-    backgroundColor: '#36255C',
-    borderColor: '#36255C',
+    backgroundColor: '#001619',
+    borderColor: '#50E8F4',
   },
   filterBadgeInactive: {
-    backgroundColor: '#F3F4F6',
-    borderColor: '#E5E7EB',
+    backgroundColor: '#C7F8FE',
+    borderColor: '#50E8F4',
   },
   filterBadgeText: {
     fontSize: 11,
     fontWeight: '700',
   },
   filterBadgeTextActive: {
-    color: '#fff',
+    color: '#50E8F4',
   },
   filterBadgeTextInactive: {
-    color: '#374151',
+    color: '#001619',
   },
   list: {
     padding: 20,
@@ -374,13 +344,13 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginBottom: 16,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#D2C3F6',
+    borderWidth: 1.5,
+    borderColor: '#50E8F4',
     elevation: 3,
   },
   cardMedia: {
     height: 140,
-    backgroundColor: '#36255C',
+    backgroundColor: '#001619',
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
@@ -388,13 +358,15 @@ const styles = StyleSheet.create({
   cardLetter: {
     fontSize: 64,
     fontWeight: '900',
-    color: 'rgba(255, 255, 255, 0.2)',
+    color: 'rgba(80, 232, 244, 0.25)',
   },
   priceTag: {
     position: 'absolute',
     top: 12,
     left: 12,
-    backgroundColor: '#10B981',
+    backgroundColor: '#001619',
+    borderWidth: 1,
+    borderColor: '#50E8F4',
     paddingVertical: 4,
     paddingHorizontal: 10,
     borderRadius: 12,
@@ -402,7 +374,7 @@ const styles = StyleSheet.create({
   priceText: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#fff',
+    color: '#50E8F4',
   },
   cardContent: {
     padding: 16,
@@ -410,12 +382,12 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#1F2937',
+    color: '#001619',
     marginBottom: 4,
   },
   cardCity: {
     fontSize: 12,
-    color: '#6B7280',
+    color: '#00363D',
     fontWeight: '600',
     marginBottom: 10,
   },
@@ -439,8 +411,8 @@ const styles = StyleSheet.create({
     color: '#065F46',
   },
   badgeWater: {
-    backgroundColor: '#E0F2FE',
-    color: '#075985',
+    backgroundColor: '#C7F8FE',
+    color: '#001619',
   },
   centerContainer: {
     flex: 1,
@@ -451,7 +423,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 12,
-    color: '#36255C',
+    color: '#001619',
     fontWeight: '700',
   },
   emptyContainer: {
@@ -461,11 +433,11 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#36255C',
+    color: '#001619',
   },
   emptyText: {
     fontSize: 12,
-    color: '#6B7280',
+    color: '#00363D',
     marginTop: 4,
   },
   tabBar: {
@@ -474,10 +446,10 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 65,
-    backgroundColor: '#fff',
+    backgroundColor: '#001619',
     flexDirection: 'row',
     borderTopWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#50E8F4',
   },
   tabItem: {
     flex: 1,
@@ -485,19 +457,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   tabItemActive: {
-    backgroundColor: '#F7F4FD',
+    backgroundColor: '#002B30',
   },
   tabIcon: {
     fontSize: 18,
   },
   tabLabel: {
     fontSize: 10,
-    color: '#6B7280',
+    color: '#C7F8FE',
     fontWeight: '700',
     marginTop: 2,
   },
   tabLabelActive: {
-    color: '#36255C',
+    color: '#50E8F4',
   },
   settingsScroll: {
     padding: 20,
@@ -507,7 +479,7 @@ const styles = StyleSheet.create({
   settingsPageTitle: {
     fontSize: 22,
     fontWeight: '900',
-    color: '#36255C',
+    color: '#001619',
     marginBottom: 20,
   },
   profileSection: {
@@ -520,14 +492,14 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#D2C3F6',
+    borderColor: '#50E8F4',
     marginBottom: 20,
   },
   avatar: {
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#36255C',
+    backgroundColor: '#001619',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 14,
@@ -535,16 +507,16 @@ const styles = StyleSheet.create({
   avatarLetter: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#D2C3F6',
+    color: '#50E8F4',
   },
   profileName: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#1F2937',
+    color: '#001619',
   },
   profileEmail: {
     fontSize: 12,
-    color: '#6B7280',
+    color: '#00363D',
     marginTop: 2,
   },
   logoutBtn: {

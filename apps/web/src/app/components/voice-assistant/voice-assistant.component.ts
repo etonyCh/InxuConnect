@@ -42,7 +42,7 @@ import { CommonModule } from '@angular/common';
   `,
   styles: [`
     .voice-assistant-card {
-      background: linear-gradient(135deg, rgba(54, 37, 92, 0.95) 0%, rgba(110, 68, 186, 0.95) 100%);
+      background: linear-gradient(135deg, #001619 0%, #00363D 50%, #50E8F4 100%);
       color: #FFFFFF;
       border-radius: 24px;
       padding: 1.25rem 1.5rem;
@@ -50,8 +50,8 @@ import { CommonModule } from '@angular/common';
       flex-direction: column;
       align-items: center;
       gap: 1rem;
-      box-shadow: 0 16px 40px rgba(54, 37, 92, 0.35);
-      border: 1.5px solid #D2C3F6;
+      box-shadow: 0 16px 40px rgba(0, 22, 25, 0.45);
+      border: 1.5px solid #50E8F4;
       margin-bottom: 1.5rem;
     }
 
@@ -68,14 +68,16 @@ import { CommonModule } from '@angular/common';
       gap: 0.45rem;
       font-size: 0.82rem;
       font-weight: 800;
-      background: rgba(255, 255, 255, 0.15);
+      background: rgba(80, 232, 244, 0.25);
+      color: #C7F8FE;
       padding: 0.3rem 0.75rem;
       border-radius: 9999px;
+      border: 1px solid #50E8F4;
     }
 
     .lang-switch-btn {
-      background: #D2C3F6;
-      color: #36255C;
+      background: #50E8F4;
+      color: #001619;
       border: none;
       padding: 0.25rem 0.7rem;
       border-radius: 9999px;
@@ -97,11 +99,11 @@ import { CommonModule } from '@angular/common';
       height: 64px;
       border-radius: 50%;
       background: #FFFFFF;
-      color: #36255C;
+      color: #001619;
       border: none;
       font-size: 1.5rem;
       cursor: pointer;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
       transition: transform 0.2s ease;
     }
 
@@ -114,7 +116,7 @@ import { CommonModule } from '@angular/common';
       width: 84px;
       height: 84px;
       border-radius: 50%;
-      background: rgba(210, 195, 248, 0.4);
+      background: rgba(80, 232, 244, 0.4);
       animation: pulse 1.2s infinite ease-out;
     }
 
@@ -139,20 +141,22 @@ import { CommonModule } from '@angular/common';
 
     .transcript-placeholder {
       font-size: 0.82rem;
-      color: rgba(255, 255, 255, 0.75);
+      color: #C7F8FE;
     }
 
     .listening-text {
       font-size: 0.9rem;
       font-weight: 800;
-      color: #D2C3F6;
+      color: #50E8F4;
       display: flex;
       align-items: center;
       gap: 0.45rem;
     }
 
     .ai-response-banner {
-      background: rgba(255, 255, 255, 0.2);
+      background: rgba(0, 22, 25, 0.7);
+      border: 1px solid #50E8F4;
+      color: #C7F8FE;
       backdrop-filter: blur(8px);
       padding: 0.5rem 1rem;
       border-radius: 12px;

@@ -1,29 +1,36 @@
 /* ==========================================================================
-   INZUCONNECT DESIGN SYSTEM (VIOLET & LAVENDER + AIRBNB UI INSPIRATION)
-   Primary Violet: #36255C
-   Primary Lavender: #D2C3F6
+   INZUCONNECT DESIGN SYSTEM (COLOR COMBO 03)
+   1. Fluorescent Blue: #50E8F4
+   2. Thin Air: #C7F8FE
+   3. Blue Charcoal: #001619
    ========================================================================== */
 
 :root {
-  /* Color Palette */
-  --violet-primary: #36255C;
-  --violet-dark: #23173F;
-  --violet-light: #4A337A;
-  --violet-hover: #2D1E4E;
+  /* Color Palette - COLOR COMBO 03 */
+  --fluorescent-blue: #50E8F4;
+  --thin-air: #C7F8FE;
+  --blue-charcoal: #001619;
+  --blue-charcoal-light: #002B30;
 
-  --lavender-primary: #D2C3F6;
-  --lavender-soft: #E8E0FA;
-  --lavender-bg: #F7F4FD;
-  --lavender-active: #C2B0EF;
+  /* Theme Mapping */
+  --violet-primary: #001619;
+  --violet-dark: #000F11;
+  --violet-light: #50E8F4;
+  --violet-hover: #002B30;
+
+  --lavender-primary: #50E8F4;
+  --lavender-soft: #C7F8FE;
+  --lavender-bg: #EAFBFE;
+  --lavender-active: #50E8F4;
 
   --neutral-50: #FFFFFF;
-  --neutral-100: #F9FAFB;
-  --neutral-200: #F3F4F6;
-  --neutral-300: #E5E7EB;
-  --neutral-400: #9CA3AF;
-  --neutral-500: #6B7280;
-  --neutral-700: #374151;
-  --neutral-900: #111827;
+  --neutral-100: #F3FCFD;
+  --neutral-200: #E6F9FC;
+  --neutral-300: #C7F8FE;
+  --neutral-400: #7ADEEB;
+  --neutral-500: #36BCCB;
+  --neutral-700: #004B54;
+  --neutral-900: #001619;
 
   /* Accent Colors */
   --accent-gold: #FFB800;
@@ -31,15 +38,16 @@
   --accent-green: #10B981;
 
   /* Gradients */
-  --gradient-violet-lavender: linear-gradient(135deg, #36255C 0%, #5E3A9B 50%, #8B65D9 100%);
-  --gradient-card-glass: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(247, 244, 253, 0.9) 100%);
+  --gradient-cyan-charcoal: linear-gradient(135deg, #001619 0%, #00363D 60%, #50E8F4 100%);
+  --gradient-violet-lavender: linear-gradient(135deg, #001619 0%, #00363D 60%, #50E8F4 100%);
+  --gradient-card-glass: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(234, 251, 254, 0.9) 100%);
 
   /* Shadows */
-  --shadow-sm: 0 2px 4px rgba(54, 37, 92, 0.04);
-  --shadow-md: 0 6px 16px rgba(54, 37, 92, 0.08);
-  --shadow-lg: 0 12px 32px rgba(54, 37, 92, 0.14);
+  --shadow-sm: 0 2px 4px rgba(0, 22, 25, 0.04);
+  --shadow-md: 0 6px 16px rgba(0, 22, 25, 0.08);
+  --shadow-lg: 0 12px 32px rgba(0, 22, 25, 0.14);
   --shadow-pill: 0 4px 12px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-violet-glow: 0 8px 24px rgba(54, 37, 92, 0.25);
+  --shadow-violet-glow: 0 8px 24px rgba(80, 232, 244, 0.35);
 
   /* Typography */
   --font-family-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -89,7 +97,7 @@ body {
 /* Glassmorphism Card Style */
 .glass-card {
   background: var(--neutral-50);
-  border: 1px solid rgba(210, 195, 248, 0.4);
+  border: 1.5px solid var(--thin-air);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
   backdrop-filter: blur(12px);
@@ -97,12 +105,12 @@ body {
 
 /* Buttons */
 .btn-primary {
-  background: var(--gradient-violet-lavender);
-  color: var(--neutral-50);
+  background: var(--gradient-cyan-charcoal);
+  color: #FFFFFF;
   border: none;
   padding: 0.75rem 1.5rem;
   border-radius: var(--radius-pill);
-  font-weight: 600;
+  font-weight: 700;
   font-family: var(--font-family-sans);
   font-size: 0.95rem;
   cursor: pointer;
@@ -116,7 +124,7 @@ body {
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 28px rgba(54, 37, 92, 0.35);
+  box-shadow: 0 10px 28px rgba(80, 232, 244, 0.45);
 }
 
 .btn-primary:active {
@@ -124,39 +132,39 @@ body {
 }
 
 .btn-lavender {
-  background: var(--lavender-soft);
-  color: var(--violet-dark);
-  border: 1px solid var(--lavender-primary);
+  background: var(--thin-air);
+  color: var(--blue-charcoal);
+  border: 1px solid var(--fluorescent-blue);
   padding: 0.6rem 1.2rem;
   border-radius: var(--radius-pill);
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   transition: all var(--transition-fast);
 }
 
 .btn-lavender:hover {
-  background: var(--lavender-primary);
-  color: var(--violet-dark);
+  background: var(--fluorescent-blue);
+  color: var(--blue-charcoal);
 }
 
 /* Badge Styles */
 .badge-lavender {
-  background-color: var(--lavender-soft);
-  color: var(--violet-primary);
+  background-color: var(--thin-air);
+  color: var(--blue-charcoal);
   padding: 0.25rem 0.75rem;
   border-radius: var(--radius-pill);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: 0.02em;
 }
 
 .badge-verified {
-  background: linear-gradient(135deg, #36255C 0%, #6E44BA 100%);
+  background: var(--gradient-cyan-charcoal);
   color: #FFFFFF;
   padding: 0.3rem 0.8rem;
   border-radius: var(--radius-pill);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 800;
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
@@ -171,11 +179,11 @@ body {
   background: var(--neutral-100);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--lavender-primary);
+  background: var(--fluorescent-blue);
   border-radius: var(--radius-pill);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--violet-primary);
+  background: var(--blue-charcoal);
 }
 
 /* Animations */
@@ -190,7 +198,7 @@ body {
 
 /* Mobile Simulator Container Frame */
 .mobile-simulator-wrapper {
-  background: #0F0A1C;
+  background: #000F11;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -204,8 +212,8 @@ body {
   height: 844px;
   background: var(--neutral-50);
   border-radius: 48px;
-  border: 12px solid #23173F;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5), 0 0 0 2px rgba(210, 195, 248, 0.3);
+  border: 12px solid #001619;
+  box-shadow: 0 25px 60px rgba(0, 22, 25, 0.7), 0 0 0 2px rgba(80, 232, 244, 0.4);
   overflow: hidden;
   position: relative;
   display: flex;
@@ -215,7 +223,7 @@ body {
 .mobile-notch {
   width: 140px;
   height: 28px;
-  background: #23173F;
+  background: #001619;
   position: absolute;
   top: 0;
   left: 50%;

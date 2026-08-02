@@ -37,8 +37,8 @@ import { CommonModule } from '@angular/common';
   `,
   styles: [`
     .resilience-card {
-      background: #F7F4FD;
-      border: 1.5px solid #D2C3F6;
+      background: #EAFBFE;
+      border: 1.5px solid #50E8F4;
       border-radius: 16px;
       padding: 0.85rem 1rem;
       display: flex;
@@ -65,7 +65,7 @@ import { CommonModule } from '@angular/common';
     .badge-title {
       font-size: 0.78rem;
       font-weight: 800;
-      color: #36255C;
+      color: #001619;
       display: flex;
       align-items: center;
       gap: 0.35rem;
@@ -77,26 +77,26 @@ import { CommonModule } from '@angular/common';
     .score-pill {
       font-size: 0.72rem;
       font-weight: 800;
-      background: #36255C;
-      color: #FFFFFF;
+      background: #001619;
+      color: #50E8F4;
       padding: 0.15rem 0.55rem;
       border-radius: 9999px;
     }
 
-    .tier-autonome .score-pill { background: #10B981; }
-    .tier-semi .score-pill { background: #F59E0B; }
+    .tier-autonome .score-pill { background: #10B981; color: #FFFFFF; }
+    .tier-semi .score-pill { background: #F59E0B; color: #FFFFFF; }
 
     .score-progress-bar {
       width: 100%;
       height: 6px;
-      background: #E5E7EB;
+      background: #C7F8FE;
       border-radius: 9999px;
       overflow: hidden;
     }
 
     .score-fill {
       height: 100%;
-      background: #36255C;
+      background: #001619;
       transition: width 0.4s ease;
     }
 
@@ -117,14 +117,14 @@ import { CommonModule } from '@angular/common';
       gap: 0.3rem;
       font-size: 0.68rem;
       font-weight: 700;
-      color: #9CA3AF;
+      color: #7ADEEB;
       background: rgba(255, 255, 255, 0.7);
       padding: 0.3rem;
       border-radius: 8px;
     }
 
     .utility-item.active {
-      color: #111827;
+      color: #001619;
       background: #FFFFFF;
       box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
