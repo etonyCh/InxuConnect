@@ -1,9 +1,7 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: inzuconnect-postgres
+    container_name: inzu-postgres
     restart: always
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-inzu}
@@ -19,19 +17,32 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    image: redis:7-alpine
+    container_name: inzu-redis
+    restart: always
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+
   backend:
     build:
       context: ./apps/java-api
       dockerfile: Dockerfile
-    container_name: inzuconnect-backend
+    container_name: inzu-backend
     restart: always
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_started
     environment:
       JDBC_DATABASE_URL: jdbc:postgresql://postgres:5432/inzuconnect
       POSTGRES_USER: ${POSTGRES_USER:-inzu}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-inzu_dev_password_2026}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
       JWT_SECRET: ${JWT_SECRET:-8f8a8b8c8d8e8f8a8b8c8d8e8f8a8b8c8d8e8f8a8b8c8d8e8f8a8b8c8d8e8f8a}
       FRONTEND_URL: http://localhost,http://localhost:4200,http://192.168.1.12
     ports:
@@ -41,7 +52,7 @@ services:
     build:
       context: ./apps/web
       dockerfile: Dockerfile
-    container_name: inzuconnect-frontend
+    container_name: inzu-frontend
     restart: always
     depends_on:
       - backend
@@ -51,3 +62,4 @@ services:
 
 volumes:
   postgres_data:
+  redis_data:
