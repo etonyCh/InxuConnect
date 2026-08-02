@@ -7,6 +7,10 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.header.writers.StaticHeadersWriter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -88,7 +92,36 @@ public class SecurityConfig {
     }
 
     @Bean
-    public org.springframework.security.crypto.password.PasswordEncoder passwordEncoder() {
-        return new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder(12);
+    public PasswordEncoder passwordEncoder() {
+        /*
+         * OWASP recommended password hashing (Argon2id v=19, PHC winner 2015), with
+         * a Spring DelegatingPasswordEncoder so EXISTING BCrypt-hashed rows continue
+         * to verify WITHOUT downtime during a gradual migration.
+         *
+         * New encodes use the default encoder id \"argon2\" → produce:
+         *      {argon2}$argon2id$v=19$m=19456,t=2,p=1$<b64salt>$<b64hash>
+         * Old rows prefixed with \"{bcrypt}\" still match the bcrypt delegate; rows
+         * without any prefix fall through to bcrypt fallback (for legacy data that
+         * pre-dates the prefix scheme).
+         *
+         * Argon2id parameters target ~300 ms on a single core in Docker:
+         *   saltLength  = 16 bytes  (128 bits, NIST minimum)
+         *   hashLength  = 32 bytes  (256 bits, SHA-256 equivalent)
+         *   parallelism = 1         (single lane = 2 threads in Bouncy Castle)
+         *   memory      = 19456 KB  (~19 MB, OWASP ASVS 2024 minimum for interactive)
+         *   iterations  = 2
+         *
+         * BCrypt delegate keeps cost=12 (the prior production cost).
+         *
+         * Bouncy Castle provider (bcprov-jdk18on) is required by
+         * Argon2PasswordEncoder; it auto-registers via META-INF/services SPI loader.
+         */
+        String defaultEncoderId = "argon2";
+        java.util.Map<String, PasswordEncoder> encoders = new java.util.HashMap<>();
+        encoders.put(defaultEncoderId, new Argon2PasswordEncoder(16, 32, 1, 19456, 2));
+        encoders.put("bcrypt", new BCryptPasswordEncoder(12));
+        DelegatingPasswordEncoder delegate = new DelegatingPasswordEncoder(defaultEncoderId, encoders);
+        delegate.setDefaultPasswordEncoderForMatches(new BCryptPasswordEncoder(12));
+        return delegate;
     }
 }
