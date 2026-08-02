@@ -12,6 +12,11 @@ import { ChatDrawerComponent } from './components/chat-drawer/chat-drawer.compon
 import { WishlistModalComponent } from './components/wishlist-modal/wishlist-modal.component';
 import { HostDashboardComponent } from './components/host-dashboard/host-dashboard.component';
 import { KycUploadModalComponent } from './components/kyc-upload-modal/kyc-upload-modal.component';
+import { VoiceAssistantComponent } from './components/voice-assistant/voice-assistant.component';
+import { ResilienceBadgeComponent } from './components/resilience-badge/resilience-badge.component';
+import { IkigegaImpactWidgetComponent } from './components/ikigega-impact-widget/ikigega-impact-widget.component';
+import { VirtualStagingModalComponent } from './components/virtual-staging-modal/virtual-staging-modal.component';
+import { AirportTransferModalComponent } from './components/airport-transfer-modal/airport-transfer-modal.component';
 import { ListingService } from './services/listing.service';
 import { Listing } from './models/listing.model';
 
@@ -31,7 +36,12 @@ import { Listing } from './models/listing.model';
     ChatDrawerComponent,
     WishlistModalComponent,
     HostDashboardComponent,
-    KycUploadModalComponent
+    KycUploadModalComponent,
+    VoiceAssistantComponent,
+    ResilienceBadgeComponent,
+    IkigegaImpactWidgetComponent,
+    VirtualStagingModalComponent,
+    AirportTransferModalComponent
   ],
   template: `
     <!-- MAIN APPLICATION WRAPPER -->
@@ -64,6 +74,23 @@ import { Listing } from './models/listing.model';
 
         <!-- MAIN BODY CONTENT -->
         <main class="main-content">
+          
+          <!-- CREATIVE FEATURE 1: KIRUNDI/FRENCH VOICE ASSISTANT -->
+          <app-voice-assistant (searchVoice)="onSearch($event)"></app-voice-assistant>
+
+          <!-- CREATIVE FEATURE 3: IKIGEGA COMMUNITY IMPACT WIDGET -->
+          <app-ikigega-impact-widget></app-ikigega-impact-widget>
+
+          <!-- Action Bar for Creative Features (Virtual Staging & Airport Transfer) -->
+          <div class="creative-actions-bar">
+            <button class="creative-btn" (click)="showVirtualStaging = true">
+              <i class="fa-solid fa-wand-magic-sparkles"></i> AI Staging Déco
+            </button>
+            <button class="creative-btn" (click)="showAirportTransfer = true">
+              <i class="fa-solid fa-taxi"></i> Transfert Aéroport / Moto
+            </button>
+          </div>
+
           <!-- Active Filter Banner (if filtering) -->
           <div class="filter-status-banner" *ngIf="activeCategory !== 'Tous' || currentSearchTerm || activeFilterCriteria">
             <span class="status-text">
@@ -74,13 +101,21 @@ import { Listing } from './models/listing.model';
             <button class="clear-filter-btn" (click)="onResetAll()">Réinitialiser</button>
           </div>
 
-          <!-- LISTING GRID VIEW -->
+          <!-- LISTING GRID VIEW WITH RESILIENCE BADGES -->
           <div class="listings-grid" *ngIf="!isMapView && listings.length > 0">
-            <app-listing-card 
-              *ngFor="let item of listings" 
-              [listing]="item"
-              (selectListing)="onSelectListing($event)"
-            ></app-listing-card>
+            <div *ngFor="let item of listings" class="listing-wrapper">
+              <app-listing-card 
+                [listing]="item"
+                (selectListing)="onSelectListing($event)"
+              ></app-listing-card>
+              
+              <!-- CREATIVE FEATURE 2: RESILIENCE BADGE FOR BURUNDI UTILITIES -->
+              <app-resilience-badge 
+                [hasSolar]="true" 
+                [hasGenerator]="true" 
+                [hasWaterTank]="true"
+              ></app-resilience-badge>
+            </div>
           </div>
 
           <!-- EMPTY STATE -->
@@ -161,14 +196,28 @@ import { Listing } from './models/listing.model';
           (close)="showKycModal = false"
         ></app-kyc-upload-modal>
 
+        <app-virtual-staging-modal 
+          *ngIf="showVirtualStaging" 
+          (close)="showVirtualStaging = false"
+        ></app-virtual-staging-modal>
+
+        <app-airport-transfer-modal 
+          *ngIf="showAirportTransfer" 
+          (close)="showAirportTransfer = false"
+        ></app-airport-transfer-modal>
+
       </div>
     </div>
   `,
   styles: [`
     .app-main-layout { width: 100%; min-height: 100vh; display: flex; flex-direction: column; background: #FFFFFF; }
+    .creative-actions-bar { display: flex; gap: 0.75rem; margin-bottom: 1.25rem; }
+    .creative-btn { background: #F7F4FD; color: #36255C; border: 1px solid #D2C3F6; padding: 0.5rem 1rem; border-radius: 9999px; font-weight: 700; font-size: 0.82rem; cursor: pointer; display: flex; align-items: center; gap: 0.45rem; box-shadow: 0 2px 8px rgba(54, 37, 92, 0.08); }
+    .creative-btn:hover { background: #36255C; color: #FFFFFF; }
     .filter-status-banner { display: flex; align-items: center; justify-content: space-between; background: #F7F4FD; border: 1px solid #D2C3F6; padding: 0.75rem 1.25rem; border-radius: 14px; margin-bottom: 1.5rem; color: #36255C; }
     .clear-filter-btn { background: #36255C; color: #FFFFFF; border: none; padding: 0.35rem 0.85rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 700; cursor: pointer; }
-    .listings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.75rem 1.5rem; }
+    .listings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 1.75rem 1.5rem; }
+    .listing-wrapper { display: flex; flex-direction: column; gap: 0.5rem; }
     .empty-state { text-align: center; padding: 4rem 2rem; display: flex; flex-direction: column; align-items: center; gap: 1rem; }
     .empty-icon { font-size: 3.5rem; color: #D2C3F6; }
     .map-view-container { padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
@@ -192,6 +241,8 @@ export class AppComponent implements OnInit {
   showWishlistModal = false;
   showHostDashboard = false;
   showKycModal = false;
+  showVirtualStaging = false;
+  showAirportTransfer = false;
 
   activeFilterCriteria: FilterCriteria | null = null;
 
