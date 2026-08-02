@@ -35,13 +35,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             final String jwt = authHeader.substring(7);
+
+            if (!jwtService.isTokenValid(jwt)) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/problem+json");
+                response.setCharacterEncoding("UTF-8");
+                response.getWriter().write("""
+                        {"type":"https://inzuconnect.bi/problem/unauthorized",\
+                        "title":"Token invalide ou expiré",\
+                        "status":401,\
+                        "detail":"Veuillez vous reconnecter."}""");
+                return;
+            }
+
             final String userId = jwtService.extractUserId(jwt);
             final String role = jwtService.extractRole(jwt);
+            final String email = jwtService.extractEmail(jwt);
 
             if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                // Créer une authentification Spring Security
+                String principal = email != null && !email.isBlank() ? email : userId;
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userId,
+                        principal,
                         null,
                         List.of(new SimpleGrantedAuthority("ROLE_" + role))
                 );
@@ -49,7 +63,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         } catch (Exception e) {
-            // Token invalide
+            SecurityContextHolder.clearContext();
+            if (response.isCommitted()) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/problem+json");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write("""
+                    {"type":"https://inzuconnect.bi/problem/unauthorized",\
+                    "title":"Jeton d'authentification invalide",\
+                    "status":401,\
+                    "detail":"%s"}""".formatted(e.getMessage() != null ? e.getMessage() : "Jeton malformé."));
+            return;
         }
 
         filterChain.doFilter(request, response);

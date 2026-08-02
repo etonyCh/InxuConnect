@@ -82,5 +82,9 @@ public class Listing {
     @OneToMany(mappedBy = "listing", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ListingAvailability> availabilities = new ArrayList<>();
 
+    @Version
+    @Column(name = "\"version\"", nullable = false)
+    private Long version = 0L;
+
     // TODO: Bookings, Services, StagingRequests
 }

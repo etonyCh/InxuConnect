@@ -70,5 +70,9 @@ public class User {
     @Column(name = "\"referredByAgentId\"")
     private String referredByAgentId;
 
+    @Version
+    @Column(name = "\"version\"", nullable = false)
+    private Long version = 0L;
+
     // TODO: Add relationships (listings, bookings, etc.) after creating their entities.
 }

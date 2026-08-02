@@ -48,4 +48,8 @@ public class Booking {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "\"b2bCompanyId\"")
     private B2bCompany b2bCompany;
+
+    @Version
+    @Column(name = "\"version\"", nullable = false)
+    private Long version = 0L;
 }

@@ -4,7 +4,14 @@ spring:
     username: ${POSTGRES_USER:inzu}
     password: ${POSTGRES_PASSWORD:inzu_dev_password_2026}
     driver-class-name: org.postgresql.Driver
-  
+    hikari:
+      maximum-pool-size: ${HIKARI_MAX_POOL:20}
+      minimum-idle: ${HIKARI_MIN_IDLE:5}
+      idle-timeout: 300000
+      connection-timeout: 30000
+      max-lifetime: 600000
+      leak-detection-threshold: 60000
+
   jpa:
     hibernate:
       ddl-auto: update
@@ -12,7 +19,34 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: false
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+        query:
+          plan_cache_max_size: 2048
+          in_clause_parameter_padding: true
     show-sql: false
+    open-in-view: false
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 5000
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 2
+
+  cache:
+    # Définissez SPRING_CACHE_TYPE=redis en production si Redis est disponible
+    # type: redis
+    redis:
+      time-to-live: 3600000
+      cache-null-values: false
 
 server:
   port: 8080
@@ -20,10 +54,65 @@ server:
     include-stacktrace: never
     include-message: never
     include-binding-errors: never
+  forward-headers-strategy: framework
+  servlet:
+    context-path: /
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,httptrace,caches,loggers,env,configprops,threaddump,heapdump
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+      show-components: always
+      probes:
+        enabled: true
+    metrics:
+      export:
+        prometheus:
+          enabled: true
+          step: 30s
+  metrics:
+    tags:
+      application: inzuconnect-api
+    distribution:
+      percentiles-histogram:
+        http:
+          server:
+            requests: true
+      percentiles:
+        http:
+          server:
+            requests: 0.5,0.75,0.95,0.99
+  tracing:
+    sampling:
+      probability: 1.0
+    enabled: true
+
+springdoc:
+  api-docs:
+    path: /api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+    default-models-expand-depth: 2
+  show-login-endpoint: true
+  model-converters:
+    pageable-converter:
+      enabled: true
 
 inzuconnect:
   security:
     jwt:
       secret: ${JWT_SECRET:8f8a8b8c8d8e8f8a8b8c8d8e8f8a8b8c8d8e8f8a8b8c8d8e8f8a8b8c8d8e8f8a}
+      expiration-ms: ${JWT_EXPIRATION_MS:604800000}
+      refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:2592000000}
   cors:
     allowed-origins: ${FRONTEND_URL:http://localhost:4200,http://localhost:3000,http://localhost,http://192.168.1.12}
+  enforce-https: ${ENFORCE_HTTPS:false}
