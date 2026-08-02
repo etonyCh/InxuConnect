@@ -70,14 +70,8 @@ public class AuthController {
     public ResponseEntity<?> sendOtp(@RequestBody com.inzuconnect.inzuconnect_api.web.dto.OtpSendDto dto) {
         Optional<User> optionalUser = userRepository.findByPhone(dto.getPhone());
         if (optionalUser.isEmpty()) {
-            // Créer un utilisateur fantôme pour la démo mobile
-            User demoUser = new User();
-            demoUser.setName("Guest Mobile");
-            demoUser.setEmail("mobile" + System.currentTimeMillis() + "@inzu.bi");
-            demoUser.setPassword(passwordEncoder.encode("secret"));
-            demoUser.setPhone(dto.getPhone());
-            demoUser.setKycStatus(KycStatus.NONE);
-            userRepository.save(demoUser);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(java.util.Map.of("error", "Aucun compte enregistré avec ce numéro de téléphone."));
         }
         return ResponseEntity.ok(java.util.Map.of("success", true, "message", "OTP envoyé"));
     }

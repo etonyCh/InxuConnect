@@ -100,9 +100,5 @@ import { CommonModule } from '@angular/common';
   `]
 })
 export class IkigegaImpactWidgetComponent {
-  projects = [
-    { icon: 'fa-solid fa-sun', count: '14', title: 'Lampadaires Solaires', location: 'Collines de Gitega' },
-    { icon: 'fa-solid fa-droplet', count: '4', title: 'Forages d\'eau potable', location: 'Province Ngozi' },
-    { icon: 'fa-solid fa-seedling', count: '1 200', title: 'Arbres fruitiers plantés', location: 'Province Bururi' }
-  ];
+  projects: Array<{ icon: string; count: string; title: string; location: string }> = [];
 }
