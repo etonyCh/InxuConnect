@@ -6,9 +6,9 @@
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [
-        "dist/apps/web/**",
-        "apps/java-api/target/**",
-        ".angular/**"
+        "apps/web/dist/**",
+        "apps/web/.angular/**",
+        "apps/java-api/target/**"
       ]
     },
     "lint": {
