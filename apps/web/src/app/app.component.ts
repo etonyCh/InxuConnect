@@ -103,7 +103,7 @@ import { Listing } from './models/listing.model';
 
           <!-- LISTING GRID VIEW WITH RESILIENCE BADGES -->
           <div class="listings-grid" *ngIf="!isMapView && listings.length > 0">
-            <div *ngFor="let item of listings" class="listing-wrapper">
+            <div *ngFor="let item of listings; trackBy: trackByListingId" class="listing-wrapper">
               <app-listing-card 
                 [listing]="item"
                 (selectListing)="onSelectListing($event)"
@@ -111,9 +111,9 @@ import { Listing } from './models/listing.model';
               
               <!-- CREATIVE FEATURE 2: RESILIENCE BADGE FOR BURUNDI UTILITIES -->
               <app-resilience-badge 
-                [hasSolar]="true" 
-                [hasGenerator]="true" 
-                [hasWaterTank]="true"
+                [hasSolar]="hasAmenity(item, 'solar')" 
+                [hasGenerator]="hasAmenity(item, 'generator')" 
+                [hasWaterTank]="hasAmenity(item, 'water_tank')"
               ></app-resilience-badge>
             </div>
           </div>
@@ -132,19 +132,18 @@ import { Listing } from './models/listing.model';
               <h3><i class="fa-solid fa-map-location-dot"></i> Carte des Logements au Burundi</h3>
               <p>Explorez les propriétés disponibles à Bujumbura, Gitega, Ngozi et Bururi</p>
             </div>
-            <div class="map-mock-canvas">
-              <div class="map-pin" style="top: 35%; left: 42%;" (click)="onSelectListing(listings[0])">
-                <span>{{ getItemPrice(0) }} FBU</span>
+            <div class="map-mock-canvas" *ngIf="listings.length > 0">
+              <div
+                *ngFor="let item of listings.slice(0, 20); let i = index; trackBy: trackByListingId"
+                class="map-pin"
+                [style.top.%]="mapPinPosition(i).top"
+                [style.left.%]="mapPinPosition(i).left"
+                (click)="onSelectListing(item)">
+                <span>{{ formatPrice(item.pricePerNightFbu) }} FBU</span>
               </div>
-              <div class="map-pin" style="top: 55%; left: 60%;" (click)="onSelectListing(listings[1])">
-                <span>{{ getItemPrice(1) }} FBU</span>
-              </div>
-              <div class="map-pin" style="top: 25%; left: 75%;" (click)="onSelectListing(listings[2])">
-                <span>{{ getItemPrice(2) }} FBU</span>
-              </div>
-              <div class="map-pin" style="top: 48%; left: 45%;" (click)="onSelectListing(listings[3])">
-                <span>{{ getItemPrice(3) }} FBU</span>
-              </div>
+            </div>
+            <div class="map-empty-state" *ngIf="listings.length === 0">
+              <p>Aucune propriété à afficher sur la carte.</p>
             </div>
           </div>
         </main>
@@ -223,6 +222,7 @@ import { Listing } from './models/listing.model';
     .map-view-container { padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
     .map-header h3 { font-size: 1.2rem; color: #36255C; font-weight: 800; display: flex; align-items: center; gap: 0.5rem; }
     .map-mock-canvas { width: 100%; height: 480px; background: #E8E0FA url('https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&w=1200&q=80') center/cover; border-radius: 16px; position: relative; overflow: hidden; border: 2px solid #D2C3F6; }
+    .map-empty-state { width: 100%; height: 480px; display:flex; align-items:center; justify-content:center; color:#36255C; font-weight:700; border-radius:16px; background:#F7F4FD; border:2px dashed #D2C3F6; }
     .map-pin { position: absolute; background: #36255C; color: #FFFFFF; padding: 0.45rem 0.85rem; border-radius: 9999px; font-weight: 800; font-size: 0.8rem; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); border: 2px solid #FFFFFF; transition: transform 0.2s ease; }
     .map-pin:hover { transform: scale(1.15); background: #6E44BA; z-index: 10; }
   `]
@@ -295,17 +295,31 @@ export class AppComponent implements OnInit {
     this.loadListings();
   }
 
-  onListingCreated(newListing: any) {
-    this.listings.unshift({
+  onListingCreated(newListing: Partial<Listing>) {
+    const defaults: Partial<Listing> = {
       id: Date.now(),
-      ...newListing,
-      description: 'Nouveau logement au Burundi.',
-      bathroomsCount: 1,
-      datesAvailable: 'Disponible maintenant',
+      photos: [],
+      amenities: [],
+      rating: 0,
+      reviewCount: 0,
+      hostName: 'Nouvel hôte',
+      isVerifiedHost: false,
       guestsCount: 2,
-      province: 'Bujumbura',
-      amenities: ['Wifi', 'Climatisation']
-    });
+      bedroomsCount: 1,
+      bathroomsCount: 1,
+      pricePerNightFbu: 50000
+    };
+    const merged: Listing = {
+      ...defaults,
+      ...newListing,
+      title: newListing.title ?? 'Sans titre',
+      description: newListing.description ?? 'Logement au Burundi',
+      location: newListing.location ?? newListing.province ?? 'Burundi',
+      province: newListing.province ?? 'Bujumbura',
+      category: newListing.category ?? 'Tous',
+      datesAvailable: newListing.datesAvailable ?? 'Disponible maintenant'
+    } as Listing;
+    this.listings.unshift(merged);
   }
 
   onMobileTabChange(tabId: string) {
@@ -318,8 +332,30 @@ export class AppComponent implements OnInit {
     return val ? new Intl.NumberFormat('fr-FR').format(val) : '';
   }
 
-  getItemPrice(index: number): string {
-    const item = this.listings[index];
-    return item ? this.formatPrice(item.pricePerNightFbu) : '150 000';
+  trackByListingId(_index: number, item: Listing): number {
+    return item.id;
+  }
+
+  hasAmenity(listing: Listing, key: string): boolean {
+    if (!listing?.amenities?.length) return false;
+    const lower = String(key).toLowerCase();
+    return listing.amenities.some(a => {
+      const cmp = String(a).toLowerCase();
+      if (cmp === lower) return true;
+      if (lower === 'solar') return /solaire|solar|panneau/.test(cmp);
+      if (lower === 'generator') return /groupe|generator|electrogene|genere/.test(cmp);
+      if (lower === 'water_tank' || lower === 'watertank') return /citerne|reservoir|water.?tank|eau/.test(cmp);
+      return false;
+    });
+  }
+
+  mapPinPosition(i: number): { top: number; left: number } {
+    // Stable, deterministic, index-based spread across the canvas (0-100%).
+    // Avoids fixed-listings[0..3] array-out-of-bounds crash on <4 listings.
+    const row = i % 4;
+    const col = Math.floor(i / 4) % 4;
+    const top = 15 + row * 22 + ((i * 7) % 9);
+    const left = 12 + col * 21 + ((i * 11) % 7);
+    return { top: Math.max(5, Math.min(85, top)), left: Math.max(5, Math.min(90, left)) };
   }
 }

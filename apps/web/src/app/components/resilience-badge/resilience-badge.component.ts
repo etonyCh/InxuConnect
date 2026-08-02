@@ -6,6 +6,7 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule],
   template: `
+    <ng-container *ngIf="!empty">
     <div class="resilience-card" [class.tier-autonome]="score >= 80" [class.tier-semi]="score >= 50 && score < 80">
       <div class="badge-header">
         <div class="badge-title">
@@ -34,6 +35,7 @@ import { CommonModule } from '@angular/common';
         </div>
       </div>
     </div>
+    </ng-container>
   `,
   styles: [`
     .resilience-card {
@@ -131,9 +133,9 @@ import { CommonModule } from '@angular/common';
   `]
 })
 export class ResilienceBadgeComponent {
-  @Input() hasSolar = true;
-  @Input() hasGenerator = true;
-  @Input() hasWaterTank = true;
+  @Input() hasSolar = false;
+  @Input() hasGenerator = false;
+  @Input() hasWaterTank = false;
 
   get score(): number {
     let total = 0;
@@ -141,5 +143,9 @@ export class ResilienceBadgeComponent {
     if (this.hasGenerator) total += 30;
     if (this.hasWaterTank) total += 30;
     return total;
+  }
+
+  get empty(): boolean {
+    return this.score === 0;
   }
 }
