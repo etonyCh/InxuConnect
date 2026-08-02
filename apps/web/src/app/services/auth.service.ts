@@ -38,8 +38,6 @@ export type AuthRole = UserDto['role'];
   providedIn: 'root',
 })
 export class AuthService {
-  private readonly tokenKey = environment.tokenStorageKey;
-  private readonly userKey = environment.userStorageKey;
   private readonly isBrowser: boolean;
 
   private tokenSignal = signal<string | null>(null);
@@ -47,7 +45,7 @@ export class AuthService {
 
   public readonly token = this.tokenSignal.asReadonly();
   public readonly user = this.userSignal.asReadonly();
-  public readonly isAuthenticated = computed(() => this.tokenSignal() !== null);
+  public readonly isAuthenticated = computed(() => this.userSignal() !== null);
   public readonly currentRole = computed<AuthRole | null>(() => this.userSignal()?.role ?? null);
 
   constructor(
@@ -60,13 +58,13 @@ export class AuthService {
 
   login(payload: LoginRequest): Observable<AuthResponse> {
     return this.http
-      .post<AuthResponse>(`${environment.apiBaseUrl}/api/auth/login`, payload)
+      .post<AuthResponse>(`${environment.apiBaseUrl}/api/auth/login`, payload, { withCredentials: true })
       .pipe(tap((resp) => this.saveSession(resp)));
   }
 
   register(payload: RegisterRequest): Observable<AuthResponse> {
     return this.http
-      .post<AuthResponse>(`${environment.apiBaseUrl}/api/auth/register`, payload)
+      .post<AuthResponse>(`${environment.apiBaseUrl}/api/auth/register`, payload, { withCredentials: true })
       .pipe(tap((resp) => this.saveSession(resp)));
   }
 
@@ -74,6 +72,7 @@ export class AuthService {
     return this.http.post<{ success: boolean; message: string }>(
       `${environment.apiBaseUrl}/api/auth/otp/send`,
       { phone },
+      { withCredentials: true },
     );
   }
 
@@ -82,19 +81,17 @@ export class AuthService {
       .post<AuthResponse>(`${environment.apiBaseUrl}/api/auth/otp/verify`, {
         phone,
         code,
-      })
+      }, { withCredentials: true })
       .pipe(tap((resp) => this.saveSession(resp)));
   }
 
   refreshProfile(): Observable<{ user: UserDto }> {
-    if (!this.tokenSignal()) return of({ user: null as unknown as UserDto });
     return this.http
-      .get<{ user: UserDto }>(`${environment.apiBaseUrl}/api/auth/profile`)
+      .get<{ user: UserDto }>(`${environment.apiBaseUrl}/api/auth/profile`, { withCredentials: true })
       .pipe(
         tap((resp) => {
           if (resp.user) {
             this.userSignal.set(resp.user);
-            this.store.setItem(this.userKey, JSON.stringify(resp.user));
           }
         }),
         catchError(() => {
@@ -119,14 +116,10 @@ export class AuthService {
   logout(): void {
     this.tokenSignal.set(null);
     this.userSignal.set(null);
-    if (this.isBrowser) {
-      try {
-        this.store.removeItem(this.tokenKey);
-        this.store.removeItem(this.userKey);
-      } catch {
-        /* ignore */
-      }
-    }
+    this.http
+      .post<void>(`${environment.apiBaseUrl}/api/auth/logout`, {}, { withCredentials: true })
+      .pipe(catchError(() => of(undefined as unknown as void)))
+      .subscribe();
   }
 
   decodeJwtExpiry(token: string): number | null {
@@ -165,37 +158,22 @@ export class AuthService {
   private saveSession(resp: AuthResponse): void {
     this.tokenSignal.set(resp.token);
     this.userSignal.set(resp.user);
-    if (this.isBrowser) {
-      try {
-        this.store.setItem(this.tokenKey, resp.token);
-        this.store.setItem(this.userKey, JSON.stringify(resp.user));
-      } catch {
-        /* ignore storage quota errors */
-      }
-    }
   }
 
   private restoreSession(): void {
     if (!this.isBrowser) return;
-    try {
-      const token = this.store.getItem(this.tokenKey);
-      const rawUser = this.store.getItem(this.userKey);
-      if (token) {
-        this.tokenSignal.set(token);
-      }
-      if (rawUser) {
-        try {
-          this.userSignal.set(JSON.parse(rawUser) as UserDto);
-        } catch {
-          this.store.removeItem(this.userKey);
+    this.http
+      .get<{ user: UserDto }>(`${environment.apiBaseUrl}/api/auth/profile`, { withCredentials: true })
+      .pipe(
+        catchError(() => of({ user: null as unknown as UserDto })),
+      )
+      .subscribe((resp) => {
+        if (resp.user) {
+          this.userSignal.set(resp.user);
+        } else {
+          this.tokenSignal.set(null);
+          this.userSignal.set(null);
         }
-      }
-    } catch {
-      this.logout();
-    }
-  }
-
-  private get store(): Storage {
-    return localStorage;
+      });
   }
 }

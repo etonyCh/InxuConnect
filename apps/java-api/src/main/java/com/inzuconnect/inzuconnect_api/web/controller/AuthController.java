@@ -16,14 +16,19 @@ import com.inzuconnect.inzuconnect_api.web.dto.RegisterDto;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.env.Environment;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Duration;
 import java.util.Optional;
 
 @RestController
@@ -37,17 +42,20 @@ public class AuthController {
     private final JwtService jwtService;
     private final OtpService otpService;
     private final SmsNotificationService smsNotificationService;
+    private final Environment environment;
 
     public AuthController(UserRepository userRepository,
                           PasswordEncoder passwordEncoder,
                           JwtService jwtService,
                           OtpService otpService,
-                          SmsNotificationService smsNotificationService) {
+                          SmsNotificationService smsNotificationService,
+                          Environment environment) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.otpService = otpService;
         this.smsNotificationService = smsNotificationService;
+        this.environment = environment;
     }
 
     @PostMapping("/login")
@@ -62,7 +70,10 @@ public class AuthController {
         User user = optionalUser.get();
         String token = jwtService.generateToken(user);
 
-        return ResponseEntity.ok(buildAuthResponse(user, token));
+        ResponseCookie cookie = buildJwtCookie(token);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(buildAuthResponse(user, token));
     }
 
     @PostMapping("/register")
@@ -82,7 +93,10 @@ public class AuthController {
         userRepository.save(user);
         String token = jwtService.generateToken(user);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(buildAuthResponse(user, token));
+        ResponseCookie cookie = buildJwtCookie(token);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(buildAuthResponse(user, token));
     }
 
     @PostMapping("/otp/send")
@@ -124,10 +138,18 @@ public class AuthController {
         }
 
         String token = jwtService.generateToken(user);
-        return ResponseEntity.ok(buildAuthResponse(user, token));
+        ResponseCookie cookie = buildJwtCookie(token);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(buildAuthResponse(user, token));
     }
 
-    @org.springframework.web.bind.annotation.GetMapping("/profile")
+    @GetMapping("/me")
+    public ResponseEntity<?> getMe() {
+        return getProfile();
+    }
+
+    @GetMapping("/profile")
     public ResponseEntity<?> getProfile() {
         String email = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
         Optional<User> user = userRepository.findByEmail(email);
@@ -145,6 +167,32 @@ public class AuthController {
                 .badge(user.get().getBadge().name())
                 .build();
         return ResponseEntity.ok(java.util.Map.of("user", dto));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout() {
+        ResponseCookie cookie = ResponseCookie.from("INZU_JWT", "")
+                .httpOnly(true)
+                .secure(environment.getProperty("inzuconnect.security.jwt.cookie-secure", Boolean.class, false))
+                .sameSite("Lax")
+                .path("/")
+                .maxAge(0)
+                .domain("")
+                .build();
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(java.util.Map.of("success", true));
+    }
+
+    private ResponseCookie buildJwtCookie(String token) {
+        return ResponseCookie.from("INZU_JWT", token)
+                .httpOnly(true)
+                .secure(environment.getProperty("inzuconnect.security.jwt.cookie-secure", Boolean.class, false))
+                .sameSite("Lax")
+                .path("/")
+                .maxAge(Duration.ofHours(12))
+                .domain("")
+                .build();
     }
 
     private AuthResponseDto buildAuthResponse(User user, String token) {

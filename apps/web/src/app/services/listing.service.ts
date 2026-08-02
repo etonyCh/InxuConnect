@@ -16,7 +16,6 @@ export interface PaginatedListingsResponse {
 export class ListingService {
   private readonly apiBase = environment.apiBaseUrl;
   private readonly apiUrl = `${this.apiBase}/api/listings`;
-  private readonly searchUrl = `${this.apiBase}/api/v1/listings/search`;
 
   constructor(private http: HttpClient) {}
 
@@ -33,10 +32,7 @@ export class ListingService {
       .get<PaginatedListingsResponse>(this.apiUrl, { params, headers: this.defaultHeaders() })
       .pipe(
         map((resp) => resp?.data ?? []),
-        catchError((err) => {
-          console.warn('API connection returned empty or error, returning clean array:', err);
-          return of([] as Listing[]);
-        }),
+        catchError(() => of([] as Listing[])),
       );
   }
 
