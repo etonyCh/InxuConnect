@@ -11,15 +11,19 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
+        format_sql: false
     show-sql: false
 
 server:
   port: 8080
+  error:
+    include-stacktrace: never
+    include-message: never
+    include-binding-errors: never
 
 inzuconnect:
   security:
     jwt:
       secret: ${JWT_SECRET:8f8a8b8c8d8e8f8a8b8c8d8e8f8a8b8c8d8e8f8a8b8c8d8e8f8a8b8c8d8e8f8a}
   cors:
-    allowed-origins: ${FRONTEND_URL:http://localhost:4200,http://localhost:3000}
+    allowed-origins: ${FRONTEND_URL:http://localhost:4200,http://localhost:3000,http://localhost,http://192.168.1.12}

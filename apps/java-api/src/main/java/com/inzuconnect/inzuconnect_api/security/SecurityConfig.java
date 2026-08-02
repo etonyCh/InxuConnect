@@ -7,6 +7,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.header.writers.StaticHeadersWriter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -21,9 +22,11 @@ public class SecurityConfig {
     private String allowedOrigins;
 
     private final JwtAuthenticationFilter jwtAuthFilter;
+    private final RateLimitingFilter rateLimitingFilter;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter) {
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter, RateLimitingFilter rateLimitingFilter) {
         this.jwtAuthFilter = jwtAuthFilter;
+        this.rateLimitingFilter = rateLimitingFilter;
     }
 
     @Bean
@@ -32,11 +35,19 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .headers(headers -> headers
+                .frameOptions(frame -> frame.deny())
+                .contentTypeOptions(contentType -> {})
+                .addHeaderWriter(new StaticHeadersWriter("X-Content-Type-Options", "nosniff"))
+                .addHeaderWriter(new StaticHeadersWriter("X-XSS-Protection", "1; mode=block"))
+                .addHeaderWriter(new StaticHeadersWriter("Referrer-Policy", "strict-origin-when-cross-origin"))
+            )
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/auth/**", "/api/v1/auth/**").permitAll()
                 .requestMatchers("/ws-chat/**", "/api/v1/chat/**").permitAll()
-                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/listings", "/api/listings/*", "/api/listings/*/services", "/api/v1/listings/search").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/listings", "/api/listings/*", "/api/listings/*/services", "/api/v1/listings/search", "/api/v1/listings/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/users/*/reviews").permitAll()
+                .requestMatchers("/api/admin/**", "/api/v1/admin/**").hasAuthority("ADMIN")
                 .requestMatchers("/api/listings/media/mock-upload").permitAll()
                 .requestMatchers("/api/payments/mock-callback").permitAll()
                 .requestMatchers("/api/kyc/webhook").permitAll()
@@ -44,6 +55,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/ai/voice-assistant").permitAll()
                 .anyRequest().authenticated()
             )
+            .addFilterBefore(rateLimitingFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(jwtAuthFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
@@ -54,7 +66,7 @@ public class SecurityConfig {
         List<String> origins = List.of(allowedOrigins.split(","));
         configuration.setAllowedOrigins(origins);
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));
         configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
@@ -63,6 +75,6 @@ public class SecurityConfig {
 
     @Bean
     public org.springframework.security.crypto.password.PasswordEncoder passwordEncoder() {
-        return new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder();
+        return new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder(12);
     }
 }
