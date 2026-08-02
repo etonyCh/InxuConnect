@@ -1,6 +1,8 @@
 package com.inzuconnect.inzuconnect_api.web.controller;
 
 import com.inzuconnect.inzuconnect_api.service.SmsNotificationService;
+import com.inzuconnect.inzuconnect_api.web.dto.OfflineSmsPayloadDto;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,9 +22,9 @@ public class OfflineSmsController {
      * Webhook for receiving SMS responses ("1" = Accept, "2" = Reject) from rural hosts in Burundi without 3G/4G.
      */
     @PostMapping("/incoming")
-    public ResponseEntity<?> handleIncomingHostSms(@RequestBody Map<String, String> payload) {
-        String fromPhone = payload.get("from");
-        String messageBody = payload.get("text");
+    public ResponseEntity<?> handleIncomingHostSms(@Valid @RequestBody OfflineSmsPayloadDto dto) {
+        String fromPhone = dto.getFrom();
+        String messageBody = dto.getText();
 
         if (messageBody != null && messageBody.trim().equals("1")) {
             System.out.println("[SMS OFFLINE HOST] Réservation ACCEPTÉE par l'hôte " + fromPhone);

@@ -3,12 +3,22 @@ package com.inzuconnect.inzuconnect_api.web.controller;
 import com.inzuconnect.inzuconnect_api.domain.*;
 import com.inzuconnect.inzuconnect_api.domain.enums.*;
 import com.inzuconnect.inzuconnect_api.repository.*;
+import com.inzuconnect.inzuconnect_api.security.WebhookSignatureService;
+import com.inzuconnect.inzuconnect_api.web.dto.KycSubmitDto;
+import com.inzuconnect.inzuconnect_api.web.dto.KycWebhookDto;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.ContentCachingRequestWrapper;
 
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
 
@@ -16,25 +26,23 @@ import java.util.Optional;
 @RequestMapping("/api/kyc")
 public class KycController {
 
+    private static final String RFC_TYPE_BASE = "https://inzuconnect.bi/problem/";
+
     private final KycRequestRepository kycRequestRepository;
     private final UserRepository userRepository;
+    private final WebhookSignatureService webhookSignatureService;
 
-    public KycController(KycRequestRepository kycRequestRepository, UserRepository userRepository) {
+    public KycController(KycRequestRepository kycRequestRepository,
+                         UserRepository userRepository,
+                         WebhookSignatureService webhookSignatureService) {
         this.kycRequestRepository = kycRequestRepository;
         this.userRepository = userRepository;
+        this.webhookSignatureService = webhookSignatureService;
     }
 
-    // 1. Soumission des pièces d'identité
     @PostMapping("/submit")
     @Transactional
-    public ResponseEntity<?> submitKyc(@RequestBody Map<String, String> body) {
-        String cniUrl = body.get("cniUrl");
-        String selfieUrl = body.get("selfieUrl");
-
-        if (cniUrl == null || selfieUrl == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "CNI URL et Selfie URL requis"));
-        }
-
+    public ResponseEntity<?> submitKyc(@Valid @RequestBody KycSubmitDto dto) {
         User currentUser = getCurrentUser();
         if (currentUser == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Utilisateur non authentifié"));
@@ -45,14 +53,14 @@ public class KycController {
 
         if (optionalKyc.isPresent()) {
             kycRequest = optionalKyc.get();
-            kycRequest.setCniUrl(cniUrl);
-            kycRequest.setSelfieUrl(selfieUrl);
+            kycRequest.setCniUrl(dto.getCniUrl());
+            kycRequest.setSelfieUrl(dto.getSelfieUrl());
             kycRequest.setStatus(KycStatus.PENDING);
         } else {
             kycRequest = new KycRequest();
             kycRequest.setUser(currentUser);
-            kycRequest.setCniUrl(cniUrl);
-            kycRequest.setSelfieUrl(selfieUrl);
+            kycRequest.setCniUrl(dto.getCniUrl());
+            kycRequest.setSelfieUrl(dto.getSelfieUrl());
             kycRequest.setStatus(KycStatus.PENDING);
         }
 
@@ -68,32 +76,39 @@ public class KycController {
         ));
     }
 
-    // 2. Webhook de simulation de Smile Identity (Public)
     @PostMapping("/webhook")
     @Transactional
-    public ResponseEntity<?> kycWebhook(@RequestBody Map<String, String> body) {
-        String userId = body.get("userId");
-        String result = body.get("result");
-
-        if (userId == null || result == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "userId et result (APPROVED/REJECTED) requis"));
+    public ResponseEntity<?> kycWebhook(@RequestHeader("X-Signature") String signatureHeader,
+                                        @Valid @RequestBody KycWebhookDto dto,
+                                        HttpServletRequest request) {
+        String rawPayload = extractRawPayload(request);
+        if (!webhookSignatureService.verifyHmacSha256(rawPayload, signatureHeader)) {
+            ProblemDetail detail = ProblemDetail.forStatusAndDetail(
+                    HttpStatus.FORBIDDEN,
+                    "Signature HMAC invalide ou absente."
+            );
+            detail.setType(URI.create(RFC_TYPE_BASE + "invalid-signature"));
+            detail.setTitle("Signature invalide");
+            detail.setInstance(URI.create(request.getRequestURI()));
+            detail.setProperty("timestamp", Instant.now());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(detail);
         }
 
-        Optional<User> optionalUser = userRepository.findById(userId);
+        Optional<User> optionalUser = userRepository.findById(dto.getUserId());
         if (optionalUser.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Utilisateur introuvable"));
         }
 
         User user = optionalUser.get();
-        Optional<KycRequest> optionalKyc = kycRequestRepository.findByUserId(userId);
+        Optional<KycRequest> optionalKyc = kycRequestRepository.findByUserId(dto.getUserId());
         if (optionalKyc.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Demande KYC introuvable"));
         }
 
         KycRequest kycRequest = optionalKyc.get();
 
-        KycStatus status = result.equalsIgnoreCase("APPROVED") ? KycStatus.VERIFIED : KycStatus.REJECTED;
-        Badge badge = result.equalsIgnoreCase("APPROVED") ? Badge.VERIFIED : Badge.NONE;
+        KycStatus status = "APPROVED".equals(dto.getResult()) ? KycStatus.VERIFIED : KycStatus.REJECTED;
+        Badge badge = "APPROVED".equals(dto.getResult()) ? Badge.VERIFIED : Badge.NONE;
 
         kycRequest.setStatus(status);
         kycRequestRepository.save(kycRequest);
@@ -112,6 +127,16 @@ public class KycController {
                         "badge", user.getBadge()
                 )
         ));
+    }
+
+    private String extractRawPayload(HttpServletRequest request) {
+        if (request instanceof ContentCachingRequestWrapper wrapper) {
+            byte[] buf = wrapper.getContentAsByteArray();
+            if (buf.length > 0) {
+                return new String(buf, StandardCharsets.UTF_8);
+            }
+        }
+        return "";
     }
 
     private User getCurrentUser() {

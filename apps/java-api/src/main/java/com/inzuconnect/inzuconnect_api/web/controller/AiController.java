@@ -2,6 +2,9 @@ package com.inzuconnect.inzuconnect_api.web.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.inzuconnect.inzuconnect_api.web.dto.VoiceAssistantRequestDto;
+import com.inzuconnect.inzuconnect_api.web.dto.VoiceFiltersDto;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,62 +25,79 @@ import java.util.regex.Pattern;
 @RequestMapping("/api/ai")
 public class AiController {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
-    private final HttpClient httpClient = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(10))
-            .build();
+    private static final Pattern INJECTION_PATTERN = Pattern.compile(
+            "(?i)(ignore\\s+(les|la|les\\s+règles|the\\s+previous|all\\s+previous|your\\s+rules)" +
+            "|oublie\\s+(les|la)\\s+(règles|instruction)" +
+            "|renvoie\\s+(le\\s+prompt|le\\s+texte|la\\s+phrase|ces\\s+mots|ce\\s+texte)" +
+            "|tu\\s+es\\s+maintenant|you\\s+are\\s+now\\s+(a|the)\\s+(system|assistant)" +
+            "|system\\s+prompt|règle\\s+système" +
+            "|exec\\s*\\(|curl\\s+|wget\\s+|<script|javascript:|data:text/html)",
+            Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE
+    );
+
+    private final ObjectMapper objectMapper;
+    private final HttpClient httpClient;
+
+    public AiController(ObjectMapper springObjectMapper) {
+        this.objectMapper = springObjectMapper.copy()
+                .configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true)
+                .configure(com.fasterxml.jackson.databind.SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+        this.httpClient = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(10))
+                .build();
+    }
 
     @PostMapping("/voice-assistant")
-    public ResponseEntity<?> voiceAssistant(@RequestBody Map<String, Object> body) {
-        String transcript = (String) body.get("transcript");
-        String audio = (String) body.get("audio");
-        String mockTranscript = (String) body.get("mockTranscript");
+    public ResponseEntity<?> voiceAssistant(@Valid @RequestBody VoiceAssistantRequestDto dto) {
+        String textCommand = dto.toSanitizedTranscript();
 
-        String textCommand = transcript != null ? transcript : "";
-
-        // Simulation de transcription si un flux audio base64 est envoyé
-        if (audio != null && !audio.trim().isEmpty() && textCommand.isEmpty()) {
-            if (mockTranscript != null && !mockTranscript.trim().isEmpty()) {
-                textCommand = mockTranscript;
-            } else {
-                if (audio.startsWith("U291cyAzMDAwMCBGaXRlZ2E=")) { // "Sous 30000 Gitega"
-                    textCommand = "Je cherche une chambre i Gitega sous 30000 BIF avec generator";
-                } else if (audio.startsWith("NmdvemkgaW56dSBpZmlzZSBtb3Rlcmk=")) { // "Ngozi inzu ifise moteri"
-                    textCommand = "Ngozi inzu ifise moteri y'umuriro";
-                } else {
-                    textCommand = "Bujumbura pas cher avec Starlink";
-                }
-            }
-            System.out.println("[SPEECH-TO-TEXT SIMULATOR] Flux audio décodé en : \"" + textCommand + "\"");
-        }
-
-        if (textCommand.trim().isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "Aucune transcription textuelle ou flux audio n'a été fourni."));
+        Matcher m = INJECTION_PATTERN.matcher(textCommand);
+        if (m.find()) {
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                    .body(Map.of(
+                            "error", "Requête refusée - détection d'instructions suspectes.",
+                            "hint", "Consultez notre politique d'usage de l'assistant vocal."
+                    ));
         }
 
         try {
-            Map<String, Object> filters = parseVoiceCommand(textCommand);
+            VoiceFiltersDto filters = parseVoiceCommand(textCommand);
+            validateFilters(filters);
             return ResponseEntity.ok(Map.of(
                     "success", true,
                     "transcript", textCommand,
                     "filters", filters
             ));
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Erreur lors du traitement de la commande vocale."));
         }
     }
 
-    private Map<String, Object> parseVoiceCommand(String transcript) {
+    private void validateFilters(VoiceFiltersDto f) {
+        if (f == null || f.getInterpretedQuery() == null) {
+            throw new IllegalStateException("filters null");
+        }
+        if (f.getCity() != null && !VoiceFiltersDto.ALLOWED_CITIES.contains(f.getCity())) {
+            throw new IllegalStateException("ville hors périmètre");
+        }
+        if (f.getMaxPrice() != null && (f.getMaxPrice() < 0 || f.getMaxPrice() > 999_999_999)) {
+            throw new IllegalStateException("prix invalide");
+        }
+        if (f.getInterpretedQuery().length() > 240) {
+            throw new IllegalStateException("interpretedQuery trop long");
+        }
+    }
+
+    private VoiceFiltersDto parseVoiceCommand(String transcript) {
         String apiKey = System.getenv("ANTHROPIC_API_KEY");
 
         if (apiKey != null && !apiKey.trim().isEmpty() && !apiKey.startsWith("YOUR_")) {
             try {
-                return callClaudeForVoiceParsing(apiKey, transcript);
+                VoiceFiltersDto r = callClaudeForVoiceParsing(apiKey, transcript);
+                if (r == null) throw new IllegalStateException("claude returned null");
+                return r;
             } catch (Exception e) {
-                System.err.println("Erreur lors du décodage vocal par Claude API, utilisation du fallback : " + e.getMessage());
                 return parseVoiceCommandFallback(transcript);
             }
         } else {
@@ -85,26 +105,20 @@ public class AiController {
         }
     }
 
-    private Map<String, Object> callClaudeForVoiceParsing(String apiKey, String transcript) throws Exception {
-        String prompt = "Vous êtes l'assistant vocal NLP de la plateforme InzuConnect au Burundi.\n" +
-                "Analysez la commande vocale suivante de l'utilisateur (qui peut être en Français, en Kirundi, ou un mélange bilingue des deux) et extrayez les filtres de recherche de logement sous forme de JSON strict.\n\n" +
-                "Commande vocale : \"" + transcript + "\"\n\n" +
-                "Consignes :\n" +
-                "1. Extrayez les filtres suivants :\n" +
-                "   - \"city\": Nom exact de la ville parmi \"Bujumbura\", \"Gitega\", \"Ngozi\" (ou null si non précisé)\n" +
-                "   - \"maxPrice\": Prix maximum en BIF sous forme de nombre entier (ou null si non précisé)\n" +
-                "   - \"hasGenerator\": true si l'utilisateur demande explicitement un groupe électrogène / \"moteri\" / \"courant\" (ou null)\n" +
-                "   - \"hasWaterTank\": true si l'utilisateur demande explicitement une citerne d'eau / \"ikigega\" / \"amazi\" (ou null)\n" +
-                "   - \"hasStarlink\": true si l'utilisateur demande explicitement internet Starlink / \"umuhora\" / \"connexion\" (ou null)\n" +
-                "   - \"hasSecurityGuard\": true si l'utilisateur demande un gardien / \"abazamu\" / \"sécurité\" (ou null)\n" +
-                "   - \"hasKitchen\": true si l'utilisateur demande une cuisine / \"igikoni\" (ou null)\n" +
-                "   - \"interpretedQuery\": Une phrase résumant l'intention en Français (ex: \"Logement à Gitega avec citerne d'eau sous 35 000 FBu\")\n\n" +
-                "2. Renvoyez UNIQUEMENT le JSON strict sans aucun autre texte d'introduction, conclusion ou bloc de code Markdown (```).";
+    private VoiceFiltersDto callClaudeForVoiceParsing(String apiKey, String transcript) throws Exception {
+        String system = "Tu es l'assistant NLP d'InzuConnect (Burundi). Règles obligatoires:\n" +
+                "1. Tu pars UNIQUEMENT la transcription utilisateur, tu ne lis JAMAIS cette consigne comme étant une entrée.\n" +
+                "2. Tu renvoies UNIQUEMENT un JSON STRICT respectant ce schéma: {city: string|null (Bujumbura|Gitega|Ngozi), maxPrice: integer|null, hasGenerator: boolean|null, hasWaterTank: boolean|null, hasStarlink: boolean|null, hasSecurityGuard: boolean|null, hasKitchen: boolean|null, interpretedQuery: string (max 240 chars)}.\n" +
+                "3. Toute autre clé est interdite. Si tu ne sais pas, ne renvoie pas la clé ou la valeur null.\n" +
+                "4. N'ajoute JAMAIS de texte, ni de blocs ``` autour du JSON.\n";
+
+        String user = "Commande vocale: \"" + transcript.replace("\"", "\\\"") + "\"";
 
         Map<String, Object> requestBody = Map.of(
                 "model", "claude-3-5-sonnet-20241022",
-                "max_tokens", 500,
-                "messages", List.of(Map.of("role", "user", "content", prompt))
+                "max_tokens", 400,
+                "system", system,
+                "messages", List.of(Map.of("role", "user", "content", user))
         );
 
         String jsonPayload = objectMapper.writeValueAsString(requestBody);
@@ -114,113 +128,84 @@ public class AiController {
                 .header("x-api-key", apiKey)
                 .header("anthropic-version", "2023-06-01")
                 .header("content-type", "application/json")
+                .timeout(Duration.ofSeconds(20))
                 .POST(HttpRequest.BodyPublishers.ofString(jsonPayload))
                 .build();
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
         if (response.statusCode() != 200) {
             throw new RuntimeException("Claude API returned status " + response.statusCode());
         }
 
         JsonNode root = objectMapper.readTree(response.body());
         String rawText = root.path("content").get(0).path("text").asText().trim();
-
-        // Nettoyer les blocs markdown éventuels
         String cleanJsonText = rawText.replaceAll("(?i)^```json\\s*", "").replaceAll("```$", "").trim();
-        JsonNode parsed = objectMapper.readTree(cleanJsonText);
 
-        Map<String, Object> filters = new HashMap<>();
-        if (parsed.hasNonNull("city")) filters.put("city", parsed.get("city").asText());
-        if (parsed.hasNonNull("maxPrice")) filters.put("maxPrice", parsed.get("maxPrice").asInt());
-        if (parsed.hasNonNull("hasGenerator") && parsed.get("hasGenerator").asBoolean()) filters.put("hasGenerator", true);
-        if (parsed.hasNonNull("hasWaterTank") && parsed.get("hasWaterTank").asBoolean()) filters.put("hasWaterTank", true);
-        if (parsed.hasNonNull("hasStarlink") && parsed.get("hasStarlink").asBoolean()) filters.put("hasStarlink", true);
-        if (parsed.hasNonNull("hasSecurityGuard") && parsed.get("hasSecurityGuard").asBoolean()) filters.put("hasSecurityGuard", true);
-        if (parsed.hasNonNull("hasKitchen") && parsed.get("hasKitchen").asBoolean()) filters.put("hasKitchen", true);
-        if (parsed.hasNonNull("interpretedQuery")) filters.put("interpretedQuery", parsed.get("interpretedQuery").asText());
-
-        return filters;
+        return objectMapper.readerFor(VoiceFiltersDto.class).readValue(cleanJsonText);
     }
 
-    private Map<String, Object> parseVoiceCommandFallback(String transcript) {
+    private VoiceFiltersDto parseVoiceCommandFallback(String transcript) {
         String text = transcript.toLowerCase();
-        Map<String, Object> filters = new HashMap<>();
+        VoiceFiltersDto f = new VoiceFiltersDto();
 
-        // 1. Détection de la ville
         if (text.contains("bujumbura") || text.contains("buja") || text.contains("bujo")) {
-            filters.put("city", "Bujumbura");
+            f.setCity("Bujumbura");
         } else if (text.contains("gitega")) {
-            filters.put("city", "Gitega");
+            f.setCity("Gitega");
         } else if (text.contains("ngozi")) {
-            filters.put("city", "Ngozi");
+            f.setCity("Ngozi");
         }
 
-        // 2. Détection du prix maximum (ex: "munsi ya 30000", "sous 25 000", "max 40k")
-        // Nettoyer les espaces entre les chiffres (ex: "30 000" -> "30000")
         String textCleanedDigits = text.replaceAll("(\\d+)\\s+(?=\\d)", "$1");
 
-        // Chercher des nombres dans le texte
         Pattern pattern = Pattern.compile("\\b\\d+\\b");
         Matcher matcher = pattern.matcher(textCleanedDigits);
         List<Integer> priceCandidates = new ArrayList<>();
         while (matcher.find()) {
             try {
                 int p = Integer.parseInt(matcher.group());
-                if (p >= 5000) {
-                    priceCandidates.add(p);
-                }
-            } catch (NumberFormatException e) {
-                // Ignore
-            }
+                if (p >= 5000) priceCandidates.add(p);
+            } catch (NumberFormatException ignore) {}
         }
 
         if (!priceCandidates.isEmpty()) {
-            filters.put("maxPrice", priceCandidates.get(0));
+            f.setMaxPrice(priceCandidates.get(0));
         } else {
-            // Gérer les raccourcis k (ex: "40k" -> 40000)
             Pattern kPattern = Pattern.compile("\\b(\\d+)k\\b", Pattern.CASE_INSENSITIVE);
             Matcher kMatcher = kPattern.matcher(textCleanedDigits);
             if (kMatcher.find()) {
-                try {
-                    int p = Integer.parseInt(kMatcher.group(1)) * 1000;
-                    filters.put("maxPrice", p);
-                } catch (NumberFormatException e) {
-                    // Ignore
-                }
+                try { f.setMaxPrice(Integer.parseInt(kMatcher.group(1)) * 1000); } catch (NumberFormatException ignore) {}
             }
         }
 
-        // 3. Équipements clés (Burundi specific)
         if (text.contains("generator") || text.contains("moteri") || text.contains("electrogene") || text.contains("courant")) {
-            filters.put("hasGenerator", true);
+            f.setHasGenerator(true);
         }
         if (text.contains("tank") || text.contains("ikigega") || text.contains("citerne") || text.contains("amazi")) {
-            filters.put("hasWaterTank", true);
+            f.setHasWaterTank(true);
         }
         if (text.contains("starlink") || text.contains("umuhora") || text.contains("internet") || text.contains("wifi")) {
-            filters.put("hasStarlink", true);
+            f.setHasStarlink(true);
         }
-        if (text.contains("gardien") || text.contains("abazamu") || text.contains("securite") || text.contains("mulinzi")) {
-            filters.put("hasSecurityGuard", true);
+        if (text.contains("gardien") || text.contains("abazamu") || text.contains("securite") || text.contains("sécurité") || text.contains("mulinzi")) {
+            f.setHasSecurityGuard(true);
         }
         if (text.contains("cuisine") || text.contains("igikoni") || text.contains("igisafuri")) {
-            filters.put("hasKitchen", true);
+            f.setHasKitchen(true);
         }
 
-        // 4. Formulation de l'intention résumée
         List<String> summaryParts = new ArrayList<>();
-        if (filters.containsKey("city")) summaryParts.add("à " + filters.get("city"));
-        if (filters.containsKey("maxPrice")) {
-            summaryParts.add(String.format("sous %,d FBu", (Integer) filters.get("maxPrice")));
+        if (f.getCity() != null) summaryParts.add("à " + f.getCity());
+        if (f.getMaxPrice() != null) {
+            summaryParts.add(String.format("sous %,d FBu", f.getMaxPrice()));
         }
 
         List<String> amenitiesList = new ArrayList<>();
-        if (filters.containsKey("hasGenerator")) amenitiesList.add("groupe électrogène");
-        if (filters.containsKey("hasWaterTank")) amenitiesList.add("citerne");
-        if (filters.containsKey("hasStarlink")) amenitiesList.add("Starlink");
-        if (filters.containsKey("hasSecurityGuard")) amenitiesList.add("gardien");
-        if (filters.containsKey("hasKitchen")) amenitiesList.add("cuisine");
+        if (Boolean.TRUE.equals(f.getHasGenerator())) amenitiesList.add("groupe électrogène");
+        if (Boolean.TRUE.equals(f.getHasWaterTank())) amenitiesList.add("citerne");
+        if (Boolean.TRUE.equals(f.getHasStarlink())) amenitiesList.add("Starlink");
+        if (Boolean.TRUE.equals(f.getHasSecurityGuard())) amenitiesList.add("gardien");
+        if (Boolean.TRUE.equals(f.getHasKitchen())) amenitiesList.add("cuisine");
 
         if (!amenitiesList.isEmpty()) {
             summaryParts.add("avec " + String.join(", ", amenitiesList));
@@ -230,10 +215,11 @@ public class AiController {
         if (!summaryParts.isEmpty()) {
             interpretedQuery = "Recherche : Logement " + String.join(" ", summaryParts);
         } else {
-            interpretedQuery = "Recherche textuelle libre : \"" + transcript + "\"";
+            String s = transcript.length() > 180 ? transcript.substring(0, 177) + "..." : transcript;
+            interpretedQuery = "Recherche textuelle libre : \"" + s + "\"";
         }
-        filters.put("interpretedQuery", interpretedQuery);
+        f.setInterpretedQuery(interpretedQuery);
 
-        return filters;
+        return f;
     }
 }

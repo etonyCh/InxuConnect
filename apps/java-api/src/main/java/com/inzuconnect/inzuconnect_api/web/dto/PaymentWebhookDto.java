@@ -1,18 +1,15 @@
 package com.inzuconnect.inzuconnect_api.web.dto;
 
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
 @Data
-@Valid
-public class OtpVerifyDto {
+public class PaymentWebhookDto {
     @NotBlank
-    @Pattern(regexp = "^\\+?[0-9]{8,16}$")
-    private String phone;
+    private String reference;
 
     @NotBlank
-    @Pattern(regexp = "^\\d{4,6}$")
-    private String code;
+    @Pattern(regexp = "^(SUCCESS|FAILED|PENDING)$")
+    private String status;
 }

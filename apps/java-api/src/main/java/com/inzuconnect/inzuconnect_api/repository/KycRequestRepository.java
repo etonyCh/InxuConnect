@@ -12,4 +12,6 @@ import java.util.Optional;
 public interface KycRequestRepository extends JpaRepository<KycRequest, String> {
     Optional<KycRequest> findByUserId(String userId);
     List<KycRequest> findByStatus(KycStatus status);
+    List<KycRequest> findByStatusOrderByCreatedAtDesc(KycStatus status);
+    long countByStatus(KycStatus status);
 }

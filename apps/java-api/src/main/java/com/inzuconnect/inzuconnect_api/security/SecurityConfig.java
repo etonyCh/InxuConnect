@@ -16,7 +16,13 @@ import org.springframework.security.web.header.writers.StaticHeadersWriter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.util.ContentCachingRequestWrapper;
 
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @Configuration
@@ -33,6 +39,18 @@ public class SecurityConfig {
     public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter, RateLimitingFilter rateLimitingFilter) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.rateLimitingFilter = rateLimitingFilter;
+    }
+
+    @Bean
+    public Filter contentCachingRequestFilter() {
+        return (ServletRequest request, ServletResponse response, FilterChain chain) -> {
+            if (request instanceof HttpServletRequest httpRequest) {
+                ContentCachingRequestWrapper wrapped = new ContentCachingRequestWrapper(httpRequest, 1024 * 1024);
+                chain.doFilter(wrapped, response);
+            } else {
+                chain.doFilter(request, response);
+            }
+        };
     }
 
     @Bean
@@ -56,20 +74,16 @@ public class SecurityConfig {
             )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**", "/api/v1/auth/**").permitAll()
-                .requestMatchers("/ws-chat/**", "/api/v1/chat/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/listings", "/api/listings/*", "/api/listings/*/services", "/api/v1/listings/search", "/api/v1/listings/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/users/*/reviews").permitAll()
                 .requestMatchers("/api/admin/**", "/api/v1/admin/**").hasAnyRole("ADMIN", "B2B")
-                .requestMatchers("/api/listings/media/mock-upload").permitAll()
-                .requestMatchers("/api/payments/mock-callback").permitAll()
-                .requestMatchers("/api/kyc/webhook").permitAll()
                 .requestMatchers("/api/health", "/actuator/health", "/actuator/health/**").permitAll()
                 .requestMatchers("/actuator/info").permitAll()
-                .requestMatchers("/actuator/prometheus").permitAll()
                 .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                .requestMatchers("/api/ai/voice-assistant").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/kyc/webhook", "/api/payments/mock-callback").permitAll()
                 .anyRequest().authenticated()
             )
+            .addFilterBefore(contentCachingRequestFilter(), org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(rateLimitingFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(jwtAuthFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
 

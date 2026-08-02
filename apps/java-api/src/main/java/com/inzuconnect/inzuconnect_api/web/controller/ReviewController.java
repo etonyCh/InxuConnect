@@ -10,6 +10,8 @@ import com.inzuconnect.inzuconnect_api.domain.enums.Role;
 import com.inzuconnect.inzuconnect_api.repository.BookingRepository;
 import com.inzuconnect.inzuconnect_api.repository.ReviewRepository;
 import com.inzuconnect.inzuconnect_api.repository.UserRepository;
+import com.inzuconnect.inzuconnect_api.web.dto.ReviewCreateDto;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -43,16 +45,10 @@ public class ReviewController {
     @Transactional
     public ResponseEntity<?> submitReview(
             @PathVariable String id,
-            @RequestBody Map<String, Object> body
+            @Valid @RequestBody ReviewCreateDto dto
     ) {
-        Number ratingNum = (Number) body.get("rating");
-        String comment = (String) body.get("comment");
-
-        if (ratingNum == null || comment == null || ratingNum.intValue() < 1 || ratingNum.intValue() > 5 || comment.trim().isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "La note (1-5) et le commentaire sont requis."));
-        }
-
-        int rating = ratingNum.intValue();
+        int rating = dto.getRating();
+        String comment = dto.getComment();
 
         User author = getCurrentUser();
         if (author == null) {

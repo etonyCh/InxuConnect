@@ -9,41 +9,53 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 
 @Component
 public class RateLimitingFilter extends OncePerRequestFilter {
 
-    private final Map<String, Integer> requestCounts = new ConcurrentHashMap<>();
-    private final Map<String, Long> lastResetTimes = new ConcurrentHashMap<>();
-    private static final int MAX_REQUESTS_PER_MINUTE = 10;
+    private static final int WINDOW_SECONDS = 60;
+    private static final int MAX_REQUESTS_PER_WINDOW = 10;
+
+    private static final class Window {
+        final Deque<Long> requests = new ArrayDeque<>();
+    }
+
+    private final Map<String, Window> buckets = new ConcurrentHashMap<>();
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
         String path = request.getRequestURI();
-        if (path.contains("/api/v1/auth/login") || path.contains("/api/v1/auth/register")) {
-            String clientIp = getClientIp(request);
-            long currentTime = System.currentTimeMillis();
 
-            lastResetTimes.putIfAbsent(clientIp, currentTime);
-            requestCounts.putIfAbsent(clientIp, 0);
+        Predicate<String> rateLimited = p ->
+                p.startsWith("/api/v1/auth") ||
+                p.startsWith("/api/auth") ||
+                p.startsWith("/api/ai") ||
+                p.startsWith("/actuator/prometheus");
 
-            if (currentTime - lastResetTimes.get(clientIp) > 60000) {
-                lastResetTimes.put(clientIp, currentTime);
-                requestCounts.put(clientIp, 0);
-            }
+        if (rateLimited.test(path)) {
+            String key = getClientIp(request) + "|" + path;
+            long now = System.currentTimeMillis() / 1000L;
+            Window window = buckets.computeIfAbsent(key, k -> new Window());
 
-            int count = requestCounts.get(clientIp) + 1;
-            requestCounts.put(clientIp, count);
-
-            if (count > MAX_REQUESTS_PER_MINUTE) {
-                response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
-                response.setContentType("application/json");
-                response.getWriter().write("{\"error\": \"OWASP Security: Trop de tentatives de connexion. Veuillez réessayer dans 1 minute.\"}");
-                return;
+            synchronized (window) {
+                long cutoff = now - WINDOW_SECONDS;
+                while (!window.requests.isEmpty() && window.requests.peekFirst() < cutoff) {
+                    window.requests.pollFirst();
+                }
+                if (window.requests.size() >= MAX_REQUESTS_PER_WINDOW) {
+                    response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
+                    response.setContentType("application/problem+json;charset=UTF-8");
+                    response.getWriter().write("{\"type\":\"about:blank\",\"title\":\"Too Many Requests\",\"status\":429,\"detail\":\"Trop de requêtes - réessayez dans une minute.\"}");
+                    return;
+                }
+                window.requests.addLast(now);
             }
         }
 
@@ -55,6 +67,6 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         if (xfHeader == null) {
             return request.getRemoteAddr();
         }
-        return xfHeader.split(",")[0];
+        return xfHeader.split(",")[0].trim();
     }
 }

@@ -3,16 +3,16 @@ package com.inzuconnect.inzuconnect_api.web.controller;
 import com.inzuconnect.inzuconnect_api.domain.*;
 import com.inzuconnect.inzuconnect_api.domain.enums.*;
 import com.inzuconnect.inzuconnect_api.repository.*;
+import com.inzuconnect.inzuconnect_api.web.dto.AdminKycReviewDto;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -36,7 +36,6 @@ public class AdminController {
         this.kycRequestRepository = kycRequestRepository;
     }
 
-    // 1. Tableau de bord de l'Administrateur
     @GetMapping("/dashboard")
     public ResponseEntity<?> getDashboard() {
         User currentUser = getCurrentUser();
@@ -47,80 +46,68 @@ public class AdminController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Accès interdit - ADMIN requis"));
         }
 
-        try {
-            long usersCount = userRepository.count();
-            long listingsCount = listingRepository.count();
-            long bookingsCount = bookingRepository.count();
-            long kycCount = kycRequestRepository.findAll().stream()
-                    .filter(k -> k.getStatus() == KycStatus.PENDING)
-                    .count();
+        long usersCount = userRepository.count();
+        long listingsCount = listingRepository.count();
+        long bookingsCount = bookingRepository.count();
+        long kycCount = kycRequestRepository.countByStatus(KycStatus.PENDING);
 
-            List<Map<String, Object>> recentUsers = userRepository.findAll().stream()
-                    .sorted((u1, u2) -> u2.getCreatedAt().compareTo(u1.getCreatedAt()))
-                    .limit(5)
-                    .map(u -> {
-                        Map<String, Object> map = new HashMap<>();
-                        map.put("id", u.getId());
-                        map.put("name", u.getName());
-                        map.put("email", u.getEmail());
-                        map.put("role", u.getRole().name());
-                        map.put("createdAt", u.getCreatedAt());
-                        return map;
-                    }).collect(Collectors.toList());
+        List<User> recentUsers = userRepository.findAllByOrderByCreatedAtDesc(PageRequest.of(0, 5)).getContent();
 
-            List<Map<String, Object>> pendingKyc = kycRequestRepository.findAll().stream()
-                    .filter(k -> k.getStatus() == KycStatus.PENDING)
-                    .sorted((k1, k2) -> k2.getCreatedAt().compareTo(k1.getCreatedAt()))
-                    .limit(5)
-                    .map(k -> {
-                        Map<String, Object> map = new HashMap<>();
-                        map.put("id", k.getId());
-                        map.put("cniUrl", k.getCniUrl());
-                        map.put("selfieUrl", k.getSelfieUrl());
-                        map.put("status", k.getStatus().name());
-                        map.put("createdAt", k.getCreatedAt());
+        List<Map<String, Object>> recentUsersMap = recentUsers.stream().map(u -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", u.getId());
+            map.put("name", u.getName());
+            map.put("email", u.getEmail());
+            map.put("role", u.getRole().name());
+            map.put("createdAt", u.getCreatedAt());
+            return map;
+        }).collect(Collectors.toList());
 
-                        Map<String, Object> userMap = new HashMap<>();
-                        userMap.put("name", k.getUser().getName());
-                        userMap.put("email", k.getUser().getEmail());
-                        map.put("user", userMap);
-
-                        return map;
-                    }).collect(Collectors.toList());
-
-            Map<String, Object> stats = new HashMap<>();
-            stats.put("users", usersCount);
-            stats.put("listings", listingsCount);
-            stats.put("bookings", bookingsCount);
-            stats.put("kycPending", kycCount);
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("stats", stats);
-            response.put("recentUsers", recentUsers);
-            response.put("pendingKyc", pendingKyc);
-
-            return ResponseEntity.ok(response);
-
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Erreur lors du chargement des statistiques admin."));
+        List<KycRequest> pendingKyc = kycRequestRepository.findByStatusOrderByCreatedAtDesc(KycStatus.PENDING);
+        int pendingLimit = 5;
+        if (pendingKyc.size() > pendingLimit) {
+            pendingKyc = pendingKyc.subList(0, pendingLimit);
         }
+
+        List<Map<String, Object>> pendingKycMap = pendingKyc.stream().map(k -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", k.getId());
+            map.put("cniUrl", k.getCniUrl());
+            map.put("selfieUrl", k.getSelfieUrl());
+            map.put("status", k.getStatus().name());
+            map.put("createdAt", k.getCreatedAt());
+
+            Map<String, Object> userMap = new HashMap<>();
+            userMap.put("name", k.getUser().getName());
+            userMap.put("email", k.getUser().getEmail());
+            map.put("user", userMap);
+
+            return map;
+        }).collect(Collectors.toList());
+
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("users", usersCount);
+        stats.put("listings", listingsCount);
+        stats.put("bookings", bookingsCount);
+        stats.put("kycPending", kycCount);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("stats", stats);
+        response.put("recentUsers", recentUsersMap);
+        response.put("pendingKyc", pendingKycMap);
+
+        return ResponseEntity.ok(response);
     }
 
-    // 2. Revue d'un dossier KYC
     @PostMapping("/kyc/{id}/review")
     @Transactional
-    public ResponseEntity<?> reviewKyc(@PathVariable String id, @RequestBody Map<String, String> body) {
+    public ResponseEntity<?> reviewKyc(@PathVariable String id, @Valid @RequestBody AdminKycReviewDto dto) {
         User currentUser = getCurrentUser();
         if (currentUser == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Non authentifié"));
         }
         if (currentUser.getRole() != Role.ADMIN) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Accès interdit - ADMIN requis"));
-        }
-
-        String statusStr = body.get("status");
-        if (statusStr == null || (!statusStr.equalsIgnoreCase("VERIFIED") && !statusStr.equalsIgnoreCase("REJECTED"))) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Status invalide (doit être VERIFIED ou REJECTED)"));
         }
 
         Optional<KycRequest> optionalKyc = kycRequestRepository.findById(id);
@@ -131,8 +118,8 @@ public class AdminController {
         KycRequest kyc = optionalKyc.get();
         User user = kyc.getUser();
 
-        KycStatus status = statusStr.equalsIgnoreCase("VERIFIED") ? KycStatus.VERIFIED : KycStatus.REJECTED;
-        Badge badge = statusStr.equalsIgnoreCase("VERIFIED") ? Badge.VERIFIED : Badge.NONE;
+        KycStatus status = KycStatus.valueOf(dto.getStatus());
+        Badge badge = status == KycStatus.VERIFIED ? Badge.VERIFIED : Badge.NONE;
 
         kyc.setStatus(status);
         kycRequestRepository.save(kyc);
@@ -145,8 +132,13 @@ public class AdminController {
     }
 
     private User getCurrentUser() {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        return userRepository.findByEmail(email)
-                .orElseGet(() -> userRepository.findByPhone(email).orElse(null));
+        var ctx = SecurityContextHolder.getContext();
+        if (ctx == null || ctx.getAuthentication() == null || !ctx.getAuthentication().isAuthenticated()) {
+            return null;
+        }
+        String principal = ctx.getAuthentication().getName();
+        if (principal == null || principal.isBlank()) return null;
+        Optional<User> u = userRepository.findByEmail(principal);
+        return u.orElseGet(() -> userRepository.findByPhone(principal).orElse(null));
     }
 }

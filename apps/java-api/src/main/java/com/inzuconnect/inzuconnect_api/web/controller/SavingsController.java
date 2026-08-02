@@ -1,9 +1,12 @@
 package com.inzuconnect.inzuconnect_api.web.controller;
 
-import com.inzuconnect.inzuconnect_api.domain.*;
-import com.inzuconnect.inzuconnect_api.domain.enums.*;
-import com.inzuconnect.inzuconnect_api.repository.*;
+import com.inzuconnect.inzuconnect_api.domain.User;
+import com.inzuconnect.inzuconnect_api.domain.enums.Role;
+import com.inzuconnect.inzuconnect_api.repository.UserRepository;
+import com.inzuconnect.inzuconnect_api.web.dto.SavingsToggleDto;
+import com.inzuconnect.inzuconnect_api.web.dto.SavingsWithdrawDto;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -22,7 +25,6 @@ public class SavingsController {
         this.userRepository = userRepository;
     }
 
-    // 1. Consulter le solde d'épargne et le statut d'activation
     @GetMapping
     public ResponseEntity<?> getSavings() {
         User currentUser = getCurrentUser();
@@ -40,16 +42,9 @@ public class SavingsController {
         ));
     }
 
-    // 2. Activer / Désactiver la micro-épargne automatique de 10%
     @PostMapping("/toggle")
     @Transactional
-    public ResponseEntity<?> toggleSavings(@RequestBody Map<String, Object> body) {
-        Boolean enabled = (Boolean) body.get("enabled");
-
-        if (enabled == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Le paramètre 'enabled' (true ou false) est requis."));
-        }
-
+    public ResponseEntity<?> toggleSavings(@Valid @RequestBody SavingsToggleDto dto) {
         User currentUser = getCurrentUser();
         if (currentUser == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Non authentifié"));
@@ -59,10 +54,10 @@ public class SavingsController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Accès interdit - Cette fonctionnalité est réservée aux Hôtes."));
         }
 
-        currentUser.setMicroSavingsEnabled(enabled);
+        currentUser.setMicroSavingsEnabled(dto.getEnabled());
         currentUser = userRepository.save(currentUser);
 
-        String stateLabel = enabled ? "activée" : "désactivée";
+        String stateLabel = dto.getEnabled() ? "activée" : "désactivée";
         return ResponseEntity.ok(Map.of(
                 "success", true,
                 "message", "La micro-épargne automatique a été " + stateLabel + " avec succès.",
@@ -71,20 +66,9 @@ public class SavingsController {
         ));
     }
 
-    // 3. Retirer de l'argent vers le compte Lumicash/EcoCash principal
     @PostMapping("/withdraw")
     @Transactional
-    public ResponseEntity<?> withdrawSavings(@RequestBody Map<String, Object> body) {
-        Object amountObj = body.get("amount");
-        if (amountObj == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Le montant du retrait 'amount' doit être fourni."));
-        }
-
-        int amount = ((Number) amountObj).intValue();
-        if (amount <= 0) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Le montant du retrait 'amount' doit être supérieur à 0."));
-        }
-
+    public ResponseEntity<?> withdrawSavings(@Valid @RequestBody SavingsWithdrawDto dto) {
         User currentUser = getCurrentUser();
         if (currentUser == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Non authentifié"));
@@ -94,24 +78,29 @@ public class SavingsController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Accès interdit - Cette fonctionnalité est réservée aux Hôtes."));
         }
 
-        if (currentUser.getSavingsBalance() < amount) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", 
+        if (currentUser.getSavingsBalance() < dto.getAmount()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error",
                     "Solde d'épargne insuffisant. Solde disponible : " + String.format("%,d", currentUser.getSavingsBalance()) + " BIF."));
         }
 
-        currentUser.setSavingsBalance(currentUser.getSavingsBalance() - amount);
+        currentUser.setSavingsBalance(currentUser.getSavingsBalance() - dto.getAmount());
         userRepository.save(currentUser);
 
         return ResponseEntity.ok(Map.of(
                 "success", true,
-                "message", "Le retrait de " + String.format("%,d", amount) + " BIF vers votre compte mobile money (" + (currentUser.getPhone() != null ? currentUser.getPhone() : "par défaut") + ") a été effectué avec succès.",
+                "message", "Le retrait de " + String.format("%,d", dto.getAmount()) + " BIF vers votre compte mobile money (" + (currentUser.getPhone() != null ? currentUser.getPhone() : "par défaut") + ") a été effectué avec succès.",
                 "savingsBalance", currentUser.getSavingsBalance()
         ));
     }
 
     private User getCurrentUser() {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        return userRepository.findByEmail(email)
-                .orElseGet(() -> userRepository.findByPhone(email).orElse(null));
+        var ctx = SecurityContextHolder.getContext();
+        if (ctx == null || ctx.getAuthentication() == null || !ctx.getAuthentication().isAuthenticated()) {
+            return null;
+        }
+        String principal = ctx.getAuthentication().getName();
+        if (principal == null || principal.isBlank()) return null;
+        Optional<User> u = userRepository.findByEmail(principal);
+        return u.orElseGet(() -> userRepository.findByPhone(principal).orElse(null));
     }
 }

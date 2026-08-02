@@ -1,18 +1,15 @@
 package com.inzuconnect.inzuconnect_api.web.dto;
 
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
 @Data
-@Valid
-public class OtpVerifyDto {
+public class KycWebhookDto {
     @NotBlank
-    @Pattern(regexp = "^\\+?[0-9]{8,16}$")
-    private String phone;
+    private String userId;
 
     @NotBlank
-    @Pattern(regexp = "^\\d{4,6}$")
-    private String code;
+    @Pattern(regexp = "^(APPROVED|REJECTED)$")
+    private String result;
 }

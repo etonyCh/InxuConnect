@@ -3,7 +3,12 @@ package com.inzuconnect.inzuconnect_api.web.controller;
 import com.inzuconnect.inzuconnect_api.domain.*;
 import com.inzuconnect.inzuconnect_api.domain.enums.*;
 import com.inzuconnect.inzuconnect_api.repository.*;
+import com.inzuconnect.inzuconnect_api.web.dto.BookingCreateDto;
+import com.inzuconnect.inzuconnect_api.web.dto.BookingSosDto;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -43,62 +48,49 @@ public class BookingController {
         this.agentCommissionRepository = agentCommissionRepository;
     }
 
-    // 1. Créer une nouvelle réservation avec paiement Mobile Money initié
     @PostMapping
     @Transactional
-    public ResponseEntity<?> createBooking(@RequestBody Map<String, Object> body) {
-        String listingId = (String) body.get("listingId");
-        String checkInStr = (String) body.get("checkIn");
-        String checkOutStr = (String) body.get("checkOut");
-        Number totalPriceNum = (Number) body.get("totalPrice");
-        String paymentMethodStr = (String) body.get("paymentMethod");
-        String phone = (String) body.get("phone");
-        List<String> serviceItemIds = (List<String>) body.get("serviceItemIds");
-
-        if (listingId == null || checkInStr == null || checkOutStr == null || totalPriceNum == null || paymentMethodStr == null || phone == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Champs obligatoires manquants (listingId, checkIn, checkOut, totalPrice, paymentMethod, phone)"));
-        }
-
+    public ResponseEntity<?> createBooking(@Valid @RequestBody BookingCreateDto dto) {
         User currentGuest = getCurrentUser();
         if (currentGuest == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Utilisateur non authentifié"));
         }
 
-        Optional<Listing> optionalListing = listingRepository.findById(listingId);
+        Optional<Listing> optionalListing = listingRepository.findById(dto.getListingId());
         if (optionalListing.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Logement introuvable."));
         }
 
         Listing listing = optionalListing.get();
 
-        // Vérifier B2B Company et appliquer la politique de voyage
         B2bCompany b2bCompany = currentGuest.getB2bCompany();
         if (b2bCompany != null) {
             if (listing.getPrice() > b2bCompany.getMaxPricePerNight()) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", 
-                        "Politique de voyage enfreinte : Le prix de ce logement (" + String.format("%,d", listing.getPrice()) + 
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error",
+                        "Politique de voyage enfreinte : Le prix de ce logement (" + String.format("%,d", listing.getPrice()) +
                         " BIF/nuit) dépasse la limite autorisée par votre entreprise (" + String.format("%,d", b2bCompany.getMaxPricePerNight()) + " BIF/nuit)."));
             }
         }
 
-        LocalDateTime checkIn = LocalDateTime.parse(checkInStr.contains("T") ? checkInStr : checkInStr + "T00:00:00");
-        LocalDateTime checkOut = LocalDateTime.parse(checkOutStr.contains("T") ? checkOutStr : checkOutStr + "T00:00:00");
+        String ci = dto.getCheckIn();
+        String co = dto.getCheckOut();
+        LocalDateTime checkIn = LocalDateTime.parse(ci.contains("T") ? ci : ci + "T00:00:00");
+        LocalDateTime checkOut = LocalDateTime.parse(co.contains("T") ? co : co + "T00:00:00");
 
         Booking booking = new Booking();
         booking.setListing(listing);
         booking.setGuest(currentGuest);
         booking.setCheckIn(checkIn);
         booking.setCheckOut(checkOut);
-        booking.setTotalPrice(totalPriceNum.intValue());
+        booking.setTotalPrice(dto.getTotalPrice());
         booking.setStatus(BookingStatus.PENDING);
         booking.setB2bCompany(b2bCompany);
 
         booking = bookingRepository.save(booking);
 
-        // Enregistrer les services commandés
         List<ServiceBooking> serviceBookings = new ArrayList<>();
-        if (serviceItemIds != null) {
-            for (String itemId : serviceItemIds) {
+        if (dto.getServiceItemIds() != null) {
+            for (String itemId : dto.getServiceItemIds()) {
                 Optional<ServiceItem> item = serviceItemRepository.findById(itemId);
                 if (item.isPresent()) {
                     ServiceBooking sb = new ServiceBooking();
@@ -111,25 +103,14 @@ public class BookingController {
             }
         }
 
-        // Simuler ou initier le paiement mobile money via InTouch
         String uniqueRef = "INT-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
-        PaymentMethod paymentMethod = PaymentMethod.valueOf(paymentMethodStr.toUpperCase());
-
-        System.out.println("\n==================================================");
-        System.out.println("📲 [SIMULATEUR INTOUCH] Initialisation Paiement Mobile Money");
-        System.out.println("RÉFÉRENCE : " + uniqueRef);
-        System.out.println("RÉSERVATION ID : " + booking.getId());
-        System.out.println("OPÉRATEUR : " + paymentMethod);
-        System.out.println("NUMÉRO PORTABLE : " + phone);
-        System.out.println("MONTANT : " + String.format("%,d", totalPriceNum.intValue()) + " FBu");
-        System.out.println("👉 Pour confirmer ce paiement, appelez le webhook mock-callback.");
-        System.out.println("==================================================\n");
+        PaymentMethod paymentMethod = dto.getPaymentMethod();
 
         Payment payment = new Payment();
         payment.setBooking(booking);
         payment.setProvider(paymentMethod);
         payment.setReference(uniqueRef);
-        payment.setAmount(totalPriceNum.intValue());
+        payment.setAmount(dto.getTotalPrice());
         payment.setStatus(PaymentStatus.PENDING);
 
         payment = paymentRepository.save(payment);
@@ -147,7 +128,6 @@ public class BookingController {
         return ResponseEntity.status(HttpStatus.CREATED).body(res);
     }
 
-    // 2. Liste des réservations d'un voyageur
     @GetMapping("/user/{userId}")
     public ResponseEntity<?> getUserBookings(@PathVariable String userId) {
         User currentUser = getCurrentUser();
@@ -155,14 +135,28 @@ public class BookingController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Utilisateur non authentifié"));
         }
 
-        if (!currentUser.getId().equals(userId) && currentUser.getRole() != Role.ADMIN) {
+        boolean isSelf = currentUser.getId().equals(userId);
+        boolean isAdmin = currentUser.getRole() == Role.ADMIN;
+        boolean isB2bManager = currentUser.getRole() == Role.B2B
+                && currentUser.getB2bCompany() != null
+                && userId != null;
+
+        List<Booking> bookings;
+        if (isAdmin) {
+            bookings = bookingRepository.findByGuestIdOrListingOwnerId(userId);
+        } else if (isB2bManager) {
+            Optional<User> targetOpt = userRepository.findById(userId);
+            if (targetOpt.isEmpty()
+                    || targetOpt.get().getB2bCompany() == null
+                    || !targetOpt.get().getB2bCompany().getId().equals(currentUser.getB2bCompany().getId())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Interdit - cet utilisateur est hors périmètre de votre entreprise."));
+            }
+            bookings = bookingRepository.findByGuestIdOrListingOwnerId(userId);
+        } else if (isSelf) {
+            bookings = bookingRepository.findByGuestIdOrListingOwnerId(currentUser.getId());
+        } else {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Interdit - Vous n'êtes pas autorisé à accéder aux réservations de cet utilisateur"));
         }
-
-        List<Booking> bookings = bookingRepository.findAll().stream()
-                .filter(b -> b.getGuest().getId().equals(userId))
-                .sorted((b1, b2) -> b2.getCreatedAt().compareTo(b1.getCreatedAt()))
-                .collect(Collectors.toList());
 
         List<Map<String, Object>> resList = bookings.stream().map(b -> {
             Map<String, Object> map = new HashMap<>();
@@ -183,14 +177,12 @@ public class BookingController {
 
             Optional<Payment> payment = paymentRepository.findByBookingId(b.getId());
             map.put("payment", payment.orElse(null));
-
             return map;
         }).collect(Collectors.toList());
 
         return ResponseEntity.ok(resList);
     }
 
-    // 3. Détail d'une réservation
     @GetMapping("/{id}")
     public ResponseEntity<?> getBookingDetails(@PathVariable String id) {
         User currentUser = getCurrentUser();
@@ -204,12 +196,15 @@ public class BookingController {
         }
 
         Booking booking = optionalBooking.get();
-
-        boolean isGuest = booking.getGuest().getId().equals(currentUser.getId());
-        boolean isHost = booking.getListing().getOwner().getId().equals(currentUser.getId());
         boolean isAdmin = currentUser.getRole() == Role.ADMIN;
+        boolean isScoped;
+        if (isAdmin) {
+            isScoped = true;
+        } else {
+            isScoped = bookingRepository.countAccessible(currentUser.getId(), booking.getId()) > 0;
+        }
 
-        if (!isGuest && !isHost && !isAdmin) {
+        if (!isScoped) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Accès interdit à cette réservation"));
         }
 
@@ -241,7 +236,6 @@ public class BookingController {
         return ResponseEntity.ok(res);
     }
 
-    // 4. Validation Check-in & Libération de l'Escrow (Payout)
     @PostMapping("/{id}/check-in")
     @Transactional
     public ResponseEntity<?> checkIn(@PathVariable String id) {
@@ -257,7 +251,9 @@ public class BookingController {
 
         Booking booking = optionalBooking.get();
 
-        if (!booking.getListing().getOwner().getId().equals(currentUser.getId()) && currentUser.getRole() != Role.ADMIN) {
+        boolean isAdmin = currentUser.getRole() == Role.ADMIN;
+        boolean isOwner = bookingRepository.countOwnedByHost(currentUser.getId(), booking.getId()) > 0;
+        if (!isOwner && !isAdmin) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Non autorisé. Seul l'hôte propriétaire de ce logement peut valider l'arrivée."));
         }
 
@@ -278,7 +274,6 @@ public class BookingController {
         bookingRepository.save(booking);
         paymentRepository.save(payment);
 
-        // Distribute referral commissions & micro-savings
         User owner = booking.getListing().getOwner();
         String agentId = owner.getReferredByAgentId();
         int agentCommissionAmount = 0;
@@ -289,9 +284,6 @@ public class BookingController {
             commission.setBookingId(booking.getId());
             commission.setAmount(agentCommissionAmount);
             agentCommissionRepository.save(commission);
-            
-            // Increment Agent balance (if we keep track, but in this schema commissions are tracked via AgentCommission entity)
-            System.out.println("[COMMISSION AGENT PRÉPARÉE] 5% (" + agentCommissionAmount + " BIF) reversés à l'agent " + agentId);
         }
 
         int savingsAmount = 0;
@@ -300,23 +292,19 @@ public class BookingController {
             savingsAmount = (int) Math.floor(ownerShare * 0.10);
             owner.setSavingsBalance(owner.getSavingsBalance() + savingsAmount);
             userRepository.save(owner);
-            System.out.println("[MICRO-ÉPARGNE ACTIVÉE] 10% (" + savingsAmount + " BIF) retenus pour le compte d'épargne de l'hôte.");
         }
-
-        System.out.println("[ESCROW LIBÉRÉ - PAYOUT] Check-in validé pour réservation " + id + ". Fonds reversés à l'hôte " + owner.getId());
 
         return ResponseEntity.ok(Map.of(
                 "success", true,
                 "message", "Check-in validé et reversement des fonds hôte effectué",
-                "booking", booking
+                "bookingId", booking.getId()
         ));
     }
 
-    // 5. SOS Alerte d'urgence
     @PostMapping("/{id}/sos")
     public ResponseEntity<?> triggerSos(
             @PathVariable String id,
-            @RequestBody Map<String, Object> body
+            @Valid @RequestBody BookingSosDto dto
     ) {
         User currentUser = getCurrentUser();
         if (currentUser == null) {
@@ -349,28 +337,25 @@ public class BookingController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Le numéro de téléphone du destinataire est manquant."));
         }
 
-        Double latitude = (Double) body.get("latitude");
-        Double longitude = (Double) body.get("longitude");
         String gpsDetails = "";
-        if (latitude != null && longitude != null) {
-            gpsDetails = "\nPosition GPS actuelle : https://www.google.com/maps?q=" + latitude + "," + longitude;
+        if (dto.getLatitude() != null && dto.getLongitude() != null) {
+            gpsDetails = "\nPosition GPS actuelle : https://www.google.com/maps?q=" + dto.getLatitude() + "," + dto.getLongitude();
         }
 
-        String message = "🚨 [INZUCONNECT - SOS URGENCE] 🚨\nUne alerte de sécurité a été déclenchée par " + senderName + " (" + roleLabel + ") pour la réservation du logement \"" + booking.getListing().getTitle() + "\" (Réf: #" + booking.getId().substring(0, 8) + ")." + gpsDetails + "\nVeuillez le contacter immédiatement ou alerter les secours localement.";
-
-        // Simulate sending SMS
-        System.out.println("\n==================================================");
-        System.out.println("📲 [SIMULATEUR SMS] Fallback Local Activé (Urgence SOS)");
-        System.out.println("POUR : " + receiverPhone);
-        System.out.println("MESSAGE : " + message);
-        System.out.println("==================================================\n");
+        String shortRef = booking.getId().length() >= 8 ? booking.getId().substring(0, 8) : booking.getId();
+        String message = "🚨 [INZUCONNECT - SOS URGENCE] 🚨\nUne alerte de sécurité a été déclenchée par " + senderName + " (" + roleLabel + ") pour la réservation du logement \"" + booking.getListing().getTitle() + "\" (Réf: #" + shortRef + ")." + gpsDetails + "\nVeuillez le contacter immédiatement ou alerter les secours localement.";
 
         return ResponseEntity.ok(Map.of("success", true, "message", "Alerte SOS transmise avec succès aux services et à l'autre participant."));
     }
 
     private User getCurrentUser() {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        return userRepository.findByEmail(email)
-                .orElseGet(() -> userRepository.findByPhone(email).orElse(null));
+        var ctx = SecurityContextHolder.getContext();
+        if (ctx == null || ctx.getAuthentication() == null || !ctx.getAuthentication().isAuthenticated()) {
+            return null;
+        }
+        String principal = ctx.getAuthentication().getName();
+        if (principal == null || principal.isBlank()) return null;
+        Optional<User> u = userRepository.findByEmail(principal);
+        return u.orElseGet(() -> userRepository.findByPhone(principal).orElse(null));
     }
 }

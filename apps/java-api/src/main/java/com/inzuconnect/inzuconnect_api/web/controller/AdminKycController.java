@@ -6,6 +6,8 @@ import com.inzuconnect.inzuconnect_api.domain.enums.Badge;
 import com.inzuconnect.inzuconnect_api.domain.enums.KycStatus;
 import com.inzuconnect.inzuconnect_api.repository.KycRequestRepository;
 import com.inzuconnect.inzuconnect_api.repository.UserRepository;
+import com.inzuconnect.inzuconnect_api.web.dto.AdminKycRejectDto;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -58,7 +60,7 @@ public class AdminKycController {
 
     @PostMapping("/{requestId}/reject")
     @Transactional
-    public ResponseEntity<?> rejectKycRequest(@PathVariable String requestId, @RequestBody Map<String, String> body) {
+    public ResponseEntity<?> rejectKycRequest(@PathVariable String requestId, @Valid @RequestBody AdminKycRejectDto dto) {
         Optional<KycRequest> optional = kycRequestRepository.findById(requestId);
         if (optional.isEmpty()) {
             return ResponseEntity.notFound().build();

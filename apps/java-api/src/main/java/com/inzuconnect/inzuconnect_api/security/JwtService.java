@@ -9,12 +9,13 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Date;
 
 @Service
 public class JwtService {
 
-    @Value("${inzuconnect.security.jwt.secret}")
+    @Value("${inzuconnect.security.jwt.secret:}")
     private String secretKey;
 
     @Value("${inzuconnect.security.jwt.expiration-ms:604800000}")
@@ -23,8 +24,37 @@ public class JwtService {
     @Value("${inzuconnect.security.jwt.refresh-expiration-ms:2592000000}")
     private long refreshExpirationMs;
 
+    private volatile SecretKey cachedKey;
+
     private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
+        SecretKey k = cachedKey;
+        if (k == null) {
+            synchronized (this) {
+                k = cachedKey;
+                if (k == null) {
+                    if (secretKey == null || secretKey.isBlank()) {
+                        throw new IllegalStateException("FATAL: inzuconnect.security.jwt.secret est vide. Définissez JWT_SECRET via variable d'environnement.");
+                    }
+                    byte[] keyBytes;
+                    boolean isBase64 = secretKey.matches("^[A-Za-z0-9+/=]+$") && secretKey.length() >= 32;
+                    if (isBase64 && secretKey.length() % 4 == 0) {
+                        try {
+                            keyBytes = Base64.getDecoder().decode(secretKey);
+                        } catch (IllegalArgumentException ignore) {
+                            keyBytes = secretKey.getBytes(StandardCharsets.UTF_8);
+                        }
+                    } else {
+                        keyBytes = secretKey.getBytes(StandardCharsets.UTF_8);
+                    }
+                    if (keyBytes.length < 48) {
+                        throw new IllegalStateException("FATAL: JWT_SECRET trop court. Minimum 48 octets (>= 384 bits) pour HS384.");
+                    }
+                    cachedKey = Keys.hmacShaKeyFor(keyBytes);
+                    k = cachedKey;
+                }
+            }
+        }
+        return k;
     }
 
     public String extractUserId(String token) {
@@ -63,7 +93,7 @@ public class JwtService {
                 .claim("badge", user.getBadge().name())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + expirationMs))
-                .signWith(getSigningKey(), io.jsonwebtoken.SignatureAlgorithm.HS256)
+                .signWith(getSigningKey(), io.jsonwebtoken.SignatureAlgorithm.HS384)
                 .compact();
     }
 
@@ -73,7 +103,7 @@ public class JwtService {
                 .claim("type", "refresh")
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + refreshExpirationMs))
-                .signWith(getSigningKey(), io.jsonwebtoken.SignatureAlgorithm.HS256)
+                .signWith(getSigningKey(), io.jsonwebtoken.SignatureAlgorithm.HS384)
                 .compact();
     }
 

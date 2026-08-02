@@ -3,7 +3,9 @@ package com.inzuconnect.inzuconnect_api.web.controller;
 import com.inzuconnect.inzuconnect_api.domain.*;
 import com.inzuconnect.inzuconnect_api.domain.enums.*;
 import com.inzuconnect.inzuconnect_api.repository.*;
+import com.inzuconnect.inzuconnect_api.web.dto.MessageSendDto;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -78,14 +80,10 @@ public class MessageController {
     @Transactional
     public ResponseEntity<?> sendMessage(
             @PathVariable String bookingId,
-            @RequestBody Map<String, String> bodyMap
+            @Valid @RequestBody MessageSendDto dto
     ) {
-        String body = bodyMap.get("body");
-        String lang = bodyMap.get("lang");
-
-        if (body == null || lang == null || (!lang.equalsIgnoreCase("FR") && !lang.equalsIgnoreCase("RN"))) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Champs obligatoires manquants ou invalides ('body' requis, 'lang' doit être 'FR' ou 'RN')"));
-        }
+        String body = dto.getContent();
+        String lang = "FR";
 
         User currentUser = getCurrentUser();
         if (currentUser == null) {

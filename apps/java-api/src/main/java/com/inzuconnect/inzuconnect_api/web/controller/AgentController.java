@@ -3,6 +3,8 @@ package com.inzuconnect.inzuconnect_api.web.controller;
 import com.inzuconnect.inzuconnect_api.domain.*;
 import com.inzuconnect.inzuconnect_api.domain.enums.*;
 import com.inzuconnect.inzuconnect_api.repository.*;
+import com.inzuconnect.inzuconnect_api.web.dto.AgentListingCreateDto;
+import com.inzuconnect.inzuconnect_api.web.dto.AgentRegisterHostDto;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -41,19 +43,9 @@ public class AgentController {
         this.passwordEncoder = passwordEncoder;
     }
 
-    // 1. Enregistrer un Hôte sous parrainage Agent
     @PostMapping("/register-host")
     @Transactional
-    public ResponseEntity<?> registerHost(@RequestBody Map<String, String> body) {
-        String name = body.get("name");
-        String email = body.get("email");
-        String password = body.get("password");
-        String phone = body.get("phone");
-
-        if (name == null || email == null || password == null || phone == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Champs requis manquants : name, email, password, phone."));
-        }
-
+    public ResponseEntity<?> registerHost(@Valid @RequestBody AgentRegisterHostDto dto) {
         User currentAgent = getCurrentUser();
         if (currentAgent == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Non authentifié"));
@@ -62,20 +54,20 @@ public class AgentController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Accès refusé. Rôle AGENT requis."));
         }
 
-        Optional<User> existingUser = userRepository.findByEmail(email.toLowerCase());
-        if (existingUser.isEmpty()) {
-            existingUser = userRepository.findByPhone(phone);
+        Optional<User> existing = userRepository.findByEmail(dto.getEmail().toLowerCase());
+        if (existing.isEmpty() && dto.getPhone() != null) {
+            existing = userRepository.findByPhone(dto.getPhone());
         }
 
-        if (existingUser.isPresent()) {
+        if (existing.isPresent()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Un utilisateur avec cet email ou ce numéro de téléphone existe déjà."));
         }
 
         User newHost = new User();
-        newHost.setName(name);
-        newHost.setEmail(email.toLowerCase());
-        newHost.setPassword(passwordEncoder.encode(password));
-        newHost.setPhone(phone);
+        newHost.setName(dto.getName());
+        newHost.setEmail(dto.getEmail().toLowerCase());
+        newHost.setPassword(passwordEncoder.encode(dto.getPassword()));
+        newHost.setPhone(dto.getPhone());
         newHost.setRole(Role.HOST);
         newHost.setReferredByAgentId(currentAgent.getId());
         newHost.setKycStatus(KycStatus.NONE);
@@ -96,27 +88,9 @@ public class AgentController {
         ));
     }
 
-    // 2. Créer une annonce pour le compte d'un Hôte parrainé
     @PostMapping("/listings")
     @Transactional
-    public ResponseEntity<?> createListingForHost(@RequestBody Map<String, Object> body) {
-        String title = (String) body.get("title");
-        String baseDescription = (String) body.get("description");
-        Number priceNum = (Number) body.get("price");
-        String city = (String) body.get("city");
-        String address = (String) body.get("address");
-        String ownerId = (String) body.get("ownerId");
-        Integer bedrooms = (Integer) body.get("bedrooms");
-        Integer bathrooms = (Integer) body.get("bathrooms");
-        Integer taxiMotoDistance = (Integer) body.get("taxiMotoDistance");
-        Integer surchargeGenerator = (Integer) body.get("surchargeGenerator");
-        List<String> photos = (List<String>) body.get("photos");
-        List<String> amenities = (List<String>) body.get("amenities");
-
-        if (title == null || priceNum == null || city == null || ownerId == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Champs requis manquants : title, price, city, ownerId."));
-        }
-
+    public ResponseEntity<?> createListingForHost(@Valid @RequestBody AgentListingCreateDto dto) {
         User currentAgent = getCurrentUser();
         if (currentAgent == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Non authentifié"));
@@ -125,7 +99,7 @@ public class AgentController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Accès refusé. Rôle AGENT requis."));
         }
 
-        Optional<User> optionalHost = userRepository.findById(ownerId);
+        Optional<User> optionalHost = userRepository.findById(dto.getOwnerId());
         if (optionalHost.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Hôte introuvable."));
         }
@@ -138,34 +112,37 @@ public class AgentController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Accès refusé. Cet hôte n'est pas parrainé par votre compte agent."));
         }
 
+        int bedrooms = dto.getBedrooms() != null ? dto.getBedrooms() : 1;
+        int bathrooms = dto.getBathrooms() != null ? dto.getBathrooms() : 1;
+
         String finalDescription = generateFallbackDescription(
-                title,
-                baseDescription,
-                city,
-                address,
-                bedrooms != null ? bedrooms : 1,
-                bathrooms != null ? bathrooms : 1,
-                priceNum.intValue(),
-                amenities != null ? amenities : Collections.emptyList(),
-                taxiMotoDistance
+                dto.getTitle(),
+                dto.getDescription(),
+                dto.getCity(),
+                dto.getAddress(),
+                bedrooms,
+                bathrooms,
+                dto.getPrice(),
+                dto.getAmenities() != null ? dto.getAmenities() : Collections.emptyList(),
+                dto.getTaxiMotoDistance()
         );
 
         Listing listing = new Listing();
-        listing.setTitle(title);
+        listing.setTitle(dto.getTitle());
         listing.setDescription(finalDescription);
-        listing.setPrice(priceNum.intValue());
-        listing.setCity(city);
-        listing.setAddress(address != null ? address : "");
-        listing.setBedrooms(bedrooms != null ? bedrooms : 1);
-        listing.setBathrooms(bathrooms != null ? bathrooms : 1);
-        listing.setTaxiMotoDistance(taxiMotoDistance);
-        listing.setSurchargeGenerator(surchargeGenerator != null ? surchargeGenerator : 0);
+        listing.setPrice(dto.getPrice());
+        listing.setCity(dto.getCity());
+        listing.setAddress(dto.getAddress() != null ? dto.getAddress() : "");
+        listing.setBedrooms(bedrooms);
+        listing.setBathrooms(bathrooms);
+        listing.setTaxiMotoDistance(dto.getTaxiMotoDistance());
+        listing.setSurchargeGenerator(dto.getSurchargeGenerator() != null ? dto.getSurchargeGenerator() : 0);
         listing.setOwner(host);
 
         listing = listingRepository.save(listing);
 
-        if (photos != null) {
-            for (String photoUrl : photos) {
+        if (dto.getPhotos() != null) {
+            for (String photoUrl : dto.getPhotos()) {
                 Photo photo = new Photo();
                 photo.setListing(listing);
                 photo.setUrl(photoUrl);
@@ -174,9 +151,9 @@ public class AgentController {
             }
         }
 
-        if (amenities != null) {
+        if (dto.getAmenities() != null) {
             Set<Amenity> set = new HashSet<>();
-            for (String name : amenities) {
+            for (String name : dto.getAmenities()) {
                 Amenity amenity = amenityRepository.findByName(name)
                         .orElseGet(() -> {
                             Amenity a = new Amenity();
@@ -193,11 +170,16 @@ public class AgentController {
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
                 "success", true,
                 "message", "Annonce créée avec succès pour votre hôte parrainé.",
-                "listing", listing
+                "listing", Map.of(
+                        "id", listing.getId(),
+                        "title", listing.getTitle(),
+                        "city", listing.getCity(),
+                        "price", listing.getPrice(),
+                        "ownerId", listing.getOwner().getId()
+                )
         ));
     }
 
-    // 3. Tableau de bord de l'Agent
     @GetMapping("/dashboard")
     public ResponseEntity<?> getDashboard() {
         User currentAgent = getCurrentUser();
@@ -208,57 +190,62 @@ public class AgentController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Accès refusé. Rôle AGENT requis."));
         }
 
-        try {
-            // Hôtes parrainés
-            List<User> referredHosts = userRepository.findAll().stream()
-                    .filter(u -> currentAgent.getId().equals(u.getReferredByAgentId()))
-                    .collect(Collectors.toList());
+        String agentScopeId = currentAgent.getRole() == Role.ADMIN ? null : currentAgent.getId();
+        List<User> referredHosts = agentScopeId != null
+                ? userRepository.findByReferredByAgentId(agentScopeId)
+                : userRepository.findAll();
 
-            List<Map<String, Object>> hostList = referredHosts.stream().map(h -> {
-                Map<String, Object> map = new HashMap<>();
-                map.put("id", h.getId());
-                map.put("name", h.getName());
-                map.put("email", h.getEmail());
-                map.put("phone", h.getPhone());
-                map.put("badge", h.getBadge().name());
+        Set<String> hostIds = referredHosts.stream().map(User::getId).collect(Collectors.toSet());
 
-                // Find listings of this host
-                List<Listing> listings = listingRepository.findAll().stream()
-                        .filter(l -> l.getOwner().getId().equals(h.getId()))
-                        .collect(Collectors.toList());
+        List<Listing> listings = hostIds.isEmpty()
+                ? Collections.emptyList()
+                : listingRepository.findAllByIdInOwnerIds(hostIds);
 
-                List<Map<String, Object>> listMap = listings.stream().map(l -> {
-                    Map<String, Object> lm = new HashMap<>();
-                    lm.put("id", l.getId());
-                    lm.put("title", l.getTitle());
-                    lm.put("price", l.getPrice());
-                    lm.put("city", l.getCity());
-                    return lm;
-                }).collect(Collectors.toList());
+        Map<String, List<Listing>> listingsByOwner = listings.stream()
+                .collect(Collectors.groupingBy(l -> l.getOwner().getId()));
 
-                map.put("listings", listMap);
-                return map;
+        List<Map<String, Object>> hostList = referredHosts.stream().map(h -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", h.getId());
+            map.put("name", h.getName());
+            map.put("email", h.getEmail());
+            map.put("phone", h.getPhone());
+            map.put("badge", h.getBadge().name());
+
+            List<Listing> hostListings = listingsByOwner.getOrDefault(h.getId(), Collections.emptyList());
+            List<Map<String, Object>> listMap = hostListings.stream().map(l -> {
+                Map<String, Object> lm = new HashMap<>();
+                lm.put("id", l.getId());
+                lm.put("title", l.getTitle());
+                lm.put("price", l.getPrice());
+                lm.put("city", l.getCity());
+                return lm;
             }).collect(Collectors.toList());
 
-            // Commissions
-            List<AgentCommission> commissions = agentCommissionRepository.findByAgentId(currentAgent.getId());
-            int totalEarnedBif = commissions.stream().mapToInt(AgentCommission::getAmount).sum();
+            map.put("listings", listMap);
+            return map;
+        }).collect(Collectors.toList());
 
-            return ResponseEntity.ok(Map.of(
-                    "hosts", hostList,
-                    "hostsCount", hostList.size(),
-                    "commissions", commissions,
-                    "totalEarnedBif", totalEarnedBif
-            ));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Erreur lors du chargement du tableau de bord agent."));
-        }
+        List<AgentCommission> commissions = agentCommissionRepository.findByAgentId(currentAgent.getId());
+        int totalEarnedBif = commissions.stream().mapToInt(AgentCommission::getAmount).sum();
+
+        return ResponseEntity.ok(Map.of(
+                "hosts", hostList,
+                "hostsCount", hostList.size(),
+                "commissions", commissions,
+                "totalEarnedBif", totalEarnedBif
+        ));
     }
 
     private User getCurrentUser() {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        return userRepository.findByEmail(email)
-                .orElseGet(() -> userRepository.findByPhone(email).orElse(null));
+        var ctx = SecurityContextHolder.getContext();
+        if (ctx == null || ctx.getAuthentication() == null || !ctx.getAuthentication().isAuthenticated()) {
+            return null;
+        }
+        String principal = ctx.getAuthentication().getName();
+        if (principal == null || principal.isBlank()) return null;
+        Optional<User> u = userRepository.findByEmail(principal);
+        return u.orElseGet(() -> userRepository.findByPhone(principal).orElse(null));
     }
 
     private String generateFallbackDescription(

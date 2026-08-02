@@ -61,12 +61,12 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus,httptrace,caches,loggers,env,configprops,threaddump,heapdump
+        include: health,info,prometheus
       base-path: /actuator
   endpoint:
     health:
-      show-details: when-authorized
-      show-components: always
+      show-details: never
+      show-components: never
       probes:
         enabled: true
     metrics:
@@ -88,8 +88,8 @@ management:
             requests: 0.5,0.75,0.95,0.99
   tracing:
     sampling:
-      probability: 1.0
-    enabled: true
+      probability: 0.05
+    enabled: false
 
 springdoc:
   api-docs:
@@ -109,9 +109,10 @@ springdoc:
 inzuconnect:
   security:
     jwt:
-      secret: ${JWT_SECRET:8f8a8b8c8d8e8f8a8b8c8d8e8f8a8b8c8d8e8f8a8b8c8d8e8f8a8b8c8d8e8f8a}
+      secret: ${JWT_SECRET:}
       expiration-ms: ${JWT_EXPIRATION_MS:604800000}
       refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:2592000000}
+    webhook-secret: ${WEBHOOK_SECRET:dev-secret-change-me}
   cors:
-    allowed-origins: ${FRONTEND_URL:http://localhost:4200,http://localhost:3000,http://localhost,http://192.168.1.12}
+    allowed-origins: ${FRONTEND_URL:http://localhost:4200,http://localhost:8082,http://localhost,http://192.168.1.12:4200,http://192.168.1.12:8082}
   enforce-https: ${ENFORCE_HTTPS:false}

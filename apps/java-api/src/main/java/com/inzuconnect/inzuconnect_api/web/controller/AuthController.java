@@ -4,10 +4,18 @@ import com.inzuconnect.inzuconnect_api.domain.User;
 import com.inzuconnect.inzuconnect_api.domain.enums.KycStatus;
 import com.inzuconnect.inzuconnect_api.repository.UserRepository;
 import com.inzuconnect.inzuconnect_api.security.JwtService;
+import com.inzuconnect.inzuconnect_api.security.OtpService;
+import com.inzuconnect.inzuconnect_api.service.SmsNotificationService;
+import com.inzuconnect.inzuconnect_api.web.dto.AuthErrorDto;
 import com.inzuconnect.inzuconnect_api.web.dto.AuthResponseDto;
+import com.inzuconnect.inzuconnect_api.web.dto.AuthSuccessDto;
 import com.inzuconnect.inzuconnect_api.web.dto.LoginDto;
+import com.inzuconnect.inzuconnect_api.web.dto.OtpSendDto;
+import com.inzuconnect.inzuconnect_api.web.dto.OtpVerifyDto;
 import com.inzuconnect.inzuconnect_api.web.dto.RegisterDto;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,22 +30,33 @@ import java.util.Optional;
 @RequestMapping("/api/auth")
 public class AuthController {
 
+    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final OtpService otpService;
+    private final SmsNotificationService smsNotificationService;
 
-    public AuthController(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
+    public AuthController(UserRepository userRepository,
+                          PasswordEncoder passwordEncoder,
+                          JwtService jwtService,
+                          OtpService otpService,
+                          SmsNotificationService smsNotificationService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.otpService = otpService;
+        this.smsNotificationService = smsNotificationService;
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginDto dto) {
         Optional<User> optionalUser = userRepository.findByEmail(dto.getEmail());
-        
+
         if (optionalUser.isEmpty() || !passwordEncoder.matches(dto.getPassword(), optionalUser.get().getPassword())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(java.util.Map.of("error", "Identifiants invalides"));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new AuthErrorDto("Identifiants invalides"));
         }
 
         User user = optionalUser.get();
@@ -49,7 +68,8 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterDto dto) {
         if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(java.util.Map.of("error", "Cet email est déjà utilisé"));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new AuthErrorDto("Cet email est déjà utilisé"));
         }
 
         User user = new User();
@@ -58,7 +78,6 @@ public class AuthController {
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
         user.setPhone(dto.getPhone());
         user.setKycStatus(KycStatus.NONE);
-        // Les autres champs utilisent leurs valeurs par défaut définies dans l'Entité (GUEST, etc.)
 
         userRepository.save(user);
         String token = jwtService.generateToken(user);
@@ -67,24 +86,45 @@ public class AuthController {
     }
 
     @PostMapping("/otp/send")
-    public ResponseEntity<?> sendOtp(@RequestBody com.inzuconnect.inzuconnect_api.web.dto.OtpSendDto dto) {
+    public ResponseEntity<?> sendOtp(@Valid @RequestBody OtpSendDto dto) {
         Optional<User> optionalUser = userRepository.findByPhone(dto.getPhone());
         if (optionalUser.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(java.util.Map.of("error", "Aucun compte enregistré avec ce numéro de téléphone."));
+                    .body(new AuthErrorDto("Aucun compte enregistré avec ce numéro de téléphone."));
         }
-        return ResponseEntity.ok(java.util.Map.of("success", true, "message", "OTP envoyé"));
+
+        String code = otpService.generateOtp(dto.getPhone());
+        otpService.storeOtp(dto.getPhone(), code, 10);
+
+        String message = "InzuConnect: Votre code de vérification est " + code + ". Il expire dans 10 minutes.";
+        smsNotificationService.sendSms(dto.getPhone(), message);
+        log.info("[SMS SIMULÉ] OTP envoyé au {}: code={}", dto.getPhone(), code);
+
+        return ResponseEntity.ok(new AuthSuccessDto(true, "OTP envoyé"));
     }
 
     @PostMapping("/otp/verify")
-    public ResponseEntity<?> verifyOtp(@RequestBody com.inzuconnect.inzuconnect_api.web.dto.OtpVerifyDto dto) {
-        Optional<User> optionalUser = userRepository.findByPhone(dto.getPhone());
-        if (optionalUser.isPresent()) {
-            User user = optionalUser.get();
-            String token = jwtService.generateToken(user);
-            return ResponseEntity.ok(buildAuthResponse(user, token));
+    public ResponseEntity<?> verifyOtp(@Valid @RequestBody OtpVerifyDto dto) {
+        boolean otpValid = otpService.verifyOtp(dto.getPhone(), dto.getCode());
+        if (!otpValid) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new AuthErrorDto("Code OTP invalide ou expiré."));
         }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(java.util.Map.of("error", "Utilisateur non trouvé"));
+
+        Optional<User> optionalUser = userRepository.findByPhone(dto.getPhone());
+        if (optionalUser.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new AuthErrorDto("Utilisateur non trouvé"));
+        }
+
+        User user = optionalUser.get();
+        if (!user.isPhoneVerified()) {
+            user.setPhoneVerified(true);
+            userRepository.save(user);
+        }
+
+        String token = jwtService.generateToken(user);
+        return ResponseEntity.ok(buildAuthResponse(user, token));
     }
 
     @org.springframework.web.bind.annotation.GetMapping("/profile")
@@ -92,10 +132,10 @@ public class AuthController {
         String email = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
         Optional<User> user = userRepository.findByEmail(email);
         if (user.isEmpty()) {
-            user = userRepository.findByPhone(email); // fallback if phone was used as principal
+            user = userRepository.findByPhone(email);
         }
         if (user.isEmpty()) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        
+
         AuthResponseDto.UserDto dto = AuthResponseDto.UserDto.builder()
                 .id(user.get().getId())
                 .name(user.get().getName())

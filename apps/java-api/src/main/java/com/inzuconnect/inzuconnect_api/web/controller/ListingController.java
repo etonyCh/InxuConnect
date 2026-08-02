@@ -3,7 +3,7 @@ package com.inzuconnect.inzuconnect_api.web.controller;
 import com.inzuconnect.inzuconnect_api.domain.*;
 import com.inzuconnect.inzuconnect_api.domain.enums.*;
 import com.inzuconnect.inzuconnect_api.repository.*;
-import com.inzuconnect.inzuconnect_api.web.dto.ListingCreateDto;
+import com.inzuconnect.inzuconnect_api.web.dto.*;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.validation.Valid;
@@ -333,7 +333,7 @@ public class ListingController {
     // 4. Mettre à jour une annonce
     @PatchMapping("/api/listings/{id}")
     @Transactional
-    public ResponseEntity<?> updateListing(@PathVariable String id, @RequestBody Map<String, Object> body) {
+    public ResponseEntity<?> updateListing(@PathVariable String id, @Valid @RequestBody ListingUpdateDto dto) {
         User currentUser = getCurrentUser();
         if (currentUser == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Utilisateur non authentifié"));
@@ -350,25 +350,24 @@ public class ListingController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Non autorisé à modifier cette annonce"));
         }
 
-        if (body.containsKey("title")) listing.setTitle((String) body.get("title"));
-        if (body.containsKey("price")) listing.setPrice((Integer) body.get("price"));
-        if (body.containsKey("city")) listing.setCity((String) body.get("city"));
-        if (body.containsKey("country")) listing.setCountry((String) body.get("country"));
-        if (body.containsKey("currency")) listing.setCurrency((String) body.get("currency"));
-        if (body.containsKey("address")) listing.setAddress((String) body.get("address"));
-        if (body.containsKey("bedrooms")) listing.setBedrooms((Integer) body.get("bedrooms"));
-        if (body.containsKey("bathrooms")) listing.setBathrooms((Integer) body.get("bathrooms"));
-        if (body.containsKey("taxiMotoDistance")) listing.setTaxiMotoDistance((Integer) body.get("taxiMotoDistance"));
-        if (body.containsKey("surchargeGenerator")) listing.setSurchargeGenerator((Integer) body.get("surchargeGenerator"));
-        if (body.containsKey("latitude")) listing.setLatitude((Double) body.get("latitude"));
-        if (body.containsKey("longitude")) listing.setLongitude((Double) body.get("longitude"));
+        if (dto.getTitle() != null) listing.setTitle(dto.getTitle());
+        if (dto.getPrice() != null) listing.setPrice(dto.getPrice());
+        if (dto.getCity() != null) listing.setCity(dto.getCity());
+        if (dto.getCountry() != null) listing.setCountry(dto.getCountry());
+        if (dto.getCurrency() != null) listing.setCurrency(dto.getCurrency());
+        if (dto.getAddress() != null) listing.setAddress(dto.getAddress());
+        if (dto.getBedrooms() != null) listing.setBedrooms(dto.getBedrooms());
+        if (dto.getBathrooms() != null) listing.setBathrooms(dto.getBathrooms());
+        if (dto.getTaxiMotoDistance() != null) listing.setTaxiMotoDistance(dto.getTaxiMotoDistance());
+        if (dto.getSurchargeGenerator() != null) listing.setSurchargeGenerator(dto.getSurchargeGenerator());
+        if (dto.getLatitude() != null) listing.setLatitude(dto.getLatitude());
+        if (dto.getLongitude() != null) listing.setLongitude(dto.getLongitude());
 
-        // If core details changed, update fallback description
-        boolean coreChanged = body.containsKey("title") || body.containsKey("city") || body.containsKey("price") || body.containsKey("bedrooms") || body.containsKey("bathrooms") || body.containsKey("description") || body.containsKey("amenities");
+        boolean coreChanged = dto.getTitle() != null || dto.getCity() != null || dto.getPrice() != null || dto.getBedrooms() != null || dto.getBathrooms() != null || dto.getDescription() != null || dto.getAmenities() != null;
         if (coreChanged) {
-            String desc = body.containsKey("description") ? (String) body.get("description") : listing.getDescription();
-            List<String> amenities = body.containsKey("amenities") 
-                ? (List<String>) body.get("amenities") 
+            String desc = dto.getDescription() != null ? dto.getDescription() : listing.getDescription();
+            List<String> amenities = dto.getAmenities() != null
+                ? dto.getAmenities()
                 : listing.getAmenities().stream().map(Amenity::getName).collect(Collectors.toList());
 
             String newDesc = generateFallbackDescription(
@@ -385,11 +384,10 @@ public class ListingController {
             listing.setDescription(newDesc);
         }
 
-        // Photos update
-        if (body.containsKey("photos")) {
-            List<String> photoUrls = (List<String>) body.get("photos");
+        if (dto.getPhotos() != null) {
+            List<String> photoUrls = dto.getPhotos();
             listing.getPhotos().clear();
-            listingRepository.save(listing); // Clear on DB
+            listingRepository.save(listing);
             for (String photoUrl : photoUrls) {
                 Photo photo = new Photo();
                 photo.setListing(listing);
@@ -399,9 +397,8 @@ public class ListingController {
             }
         }
 
-        // Amenities update
-        if (body.containsKey("amenities")) {
-            List<String> names = (List<String>) body.get("amenities");
+        if (dto.getAmenities() != null) {
+            List<String> names = dto.getAmenities();
             Set<Amenity> amenities = new HashSet<>();
             for (String name : names) {
                 Amenity amenity = amenityRepository.findByName(name)
@@ -445,13 +442,9 @@ public class ListingController {
 
     // 6. Obtenir une URL pré-signée pour upload d'une photo
     @PostMapping("/api/listings/media/presigned")
-    public ResponseEntity<?> getPresignedUrl(@RequestBody Map<String, String> body) {
-        String fileName = body.get("fileName");
-        String contentType = body.get("contentType");
-
-        if (fileName == null || contentType == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "fileName et contentType sont requis"));
-        }
+    public ResponseEntity<?> getPresignedUrl(@Valid @RequestBody PresignedUrlRequestDto dto) {
+        String fileName = dto.getFileName();
+        String contentType = dto.getContentType();
 
         User currentUser = getCurrentUser();
         String userId = currentUser != null ? currentUser.getId() : "anonymous";
@@ -520,7 +513,7 @@ public class ListingController {
     @Transactional
     public ResponseEntity<?> requestStaging(
             @PathVariable String id,
-            @RequestBody Map<String, Object> body
+            @Valid @RequestBody StagingRequestDto dto
     ) {
         User currentUser = getCurrentUser();
         if (currentUser == null) {
@@ -538,7 +531,7 @@ public class ListingController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Non autorisé : vous devez être le propriétaire de ce logement"));
         }
 
-        boolean payWithSavings = body.containsKey("payWithSavings") && (boolean) body.get("payWithSavings");
+        boolean payWithSavings = dto.getPayWithSavings() != null && dto.getPayWithSavings();
         int cost = 5000;
 
         if (payWithSavings) {
@@ -548,11 +541,8 @@ public class ListingController {
             currentUser.setSavingsBalance(currentUser.getSavingsBalance() - cost);
             userRepository.save(currentUser);
         } else {
-            String phone = (String) body.get("phone");
-            String provider = (String) body.get("provider");
-            if (phone == null || provider == null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Veuillez spécifier le numéro de téléphone et le fournisseur (ECOCASH/LUMICASH) pour le paiement."));
-            }
+            String phone = dto.getPhone();
+            String provider = dto.getProvider();
             System.out.println("Paiement Mobile Money de " + cost + " BIF initié pour le staging virtuel sur " + phone + " via " + provider);
         }
 
@@ -598,16 +588,13 @@ public class ListingController {
 
     // 10. Suggérer un prix optimal pour un logement
     @PostMapping("/api/listings/price-coach")
-    public ResponseEntity<?> priceCoach(@RequestBody Map<String, Object> body) {
-        String city = (String) body.get("city");
-        if (city == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Le champ 'city' est requis."));
-        }
+    public ResponseEntity<?> priceCoach(@Valid @RequestBody PriceCoachDto dto) {
+        String city = dto.getCity();
 
-        int bedrooms = body.containsKey("bedrooms") ? (int) body.get("bedrooms") : 1;
-        int bathrooms = body.containsKey("bathrooms") ? (int) body.get("bathrooms") : 1;
-        List<String> amenities = body.containsKey("amenities") ? (List<String>) body.get("amenities") : Collections.emptyList();
-        String dateStr = (String) body.get("date");
+        int bedrooms = dto.getBedrooms() != null ? dto.getBedrooms() : 1;
+        int bathrooms = dto.getBathrooms() != null ? dto.getBathrooms() : 1;
+        List<String> amenities = dto.getAmenities() != null ? dto.getAmenities() : Collections.emptyList();
+        String dateStr = dto.getDate();
 
         // 1. Base price
         int calculatedBasePrice = 20000;
@@ -633,9 +620,7 @@ public class ListingController {
         int myBaseCalculated = calculatedBasePrice + roomPriceBonus + bathPriceBonus + amenitiesBonus;
 
         // 2. Competitor Average
-        List<Listing> competitors = listingRepository.findAll().stream()
-                .filter(l -> l.getCity().equalsIgnoreCase(city))
-                .collect(Collectors.toList());
+        List<Listing> competitors = listingRepository.findByCityIgnoreCase(city);
 
         double competitorAverage = myBaseCalculated;
         boolean hasCompetitors = !competitors.isEmpty();
@@ -730,14 +715,10 @@ public class ListingController {
 
     // 12. Ajouter un service additionnel à une annonce (Hôte)
     @PostMapping("/api/listings/{id}/services")
-    public ResponseEntity<?> createService(@PathVariable String id, @RequestBody Map<String, Object> body) {
-        String name = (String) body.get("name");
-        String description = (String) body.get("description");
-        Number priceNum = (Number) body.get("price");
-
-        if (name == null || description == null || priceNum == null || priceNum.intValue() < 0) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Champs obligatoires manquants ou invalides : name, description, price."));
-        }
+    public ResponseEntity<?> createService(@PathVariable String id, @Valid @RequestBody ListingServiceCreateDto dto) {
+        String name = dto.getName();
+        String description = dto.getDescription();
+        Integer price = dto.getPrice();
 
         User currentUser = getCurrentUser();
         if (currentUser == null) {
@@ -759,7 +740,7 @@ public class ListingController {
         serviceItem.setListing(listing);
         serviceItem.setName(name);
         serviceItem.setDescription(description);
-        serviceItem.setPrice(priceNum.intValue());
+        serviceItem.setPrice(price);
 
         serviceItem = serviceItemRepository.save(serviceItem);
 
