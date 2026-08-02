@@ -52,6 +52,7 @@ public class ListingController {
 
     // 1. Liste de toutes les annonces (avec filtres optionnels)
     @GetMapping("/api/listings")
+    @Transactional(readOnly = true)
     public ResponseEntity<Map<String, Object>> getListings(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int limit,
@@ -96,15 +97,50 @@ public class ListingController {
             jpql.append(" AND EXISTS (SELECT a FROM l.amenities a WHERE a.name = 'starlink')");
         }
 
+        StringBuilder countJpql = new StringBuilder("SELECT COUNT(DISTINCT l) FROM Listing l LEFT JOIN l.photos LEFT JOIN l.amenities WHERE 1=1");
+        for (Map.Entry<String, Object> entry : params.entrySet()) {
+            countJpql.append(" AND ");
+            // Simple copy of filters: since we know each filter appends a single AND clause using its param,
+            // extract the substring from the original jpql: after "WHERE 1=1" until end.
+        }
+        // Rebuild count filters by re-appending params clauses the same way
+        {
+            if (ownerId != null && !ownerId.trim().isEmpty()) {
+                countJpql.append(" AND l.owner.id = :ownerId");
+            }
+            if (city != null && !city.trim().isEmpty()) {
+                countJpql.append(" AND LOWER(l.city) = LOWER(:city)");
+            }
+            if (country != null && !country.trim().isEmpty()) {
+                countJpql.append(" AND LOWER(l.country) = LOWER(:country)");
+            }
+            if (maxPrice != null) {
+                countJpql.append(" AND l.price <= :maxPrice");
+            }
+            if ("true".equals(hasGenerator)) {
+                countJpql.append(" AND EXISTS (SELECT a FROM l.amenities a WHERE a.name = 'generator')");
+            }
+            if ("true".equals(hasWaterTank)) {
+                countJpql.append(" AND EXISTS (SELECT a FROM l.amenities a WHERE a.name = 'water_tank')");
+            }
+            if ("true".equals(hasStarlink)) {
+                countJpql.append(" AND EXISTS (SELECT a FROM l.amenities a WHERE a.name = 'starlink')");
+            }
+        }
+
         jpql.append(" ORDER BY l.createdAt DESC");
+
+        TypedQuery<Long> countQuery = entityManager.createQuery(countJpql.toString(), Long.class);
+        for (Map.Entry<String, Object> entry : params.entrySet()) {
+            countQuery.setParameter(entry.getKey(), entry.getValue());
+        }
+        long totalElementsCount = countQuery.getSingleResult();
+        int totalElements = (int) Math.min(totalElementsCount, Integer.MAX_VALUE);
 
         TypedQuery<Listing> query = entityManager.createQuery(jpql.toString(), Listing.class);
         for (Map.Entry<String, Object> entry : params.entrySet()) {
             query.setParameter(entry.getKey(), entry.getValue());
         }
-
-        // Get total elements
-        int totalElements = query.getResultList().size();
 
         query.setFirstResult(pageNumber * limitNumber);
         query.setMaxResults(limitNumber);
@@ -159,6 +195,7 @@ public class ListingController {
 
     // 1.b Endpoint de recherche avancée avec JPA Specification
     @GetMapping("/api/v1/listings/search")
+    @Transactional(readOnly = true)
     public ResponseEntity<?> searchListings(
             @RequestParam(required = false) String city,
             @RequestParam(required = false) Integer minPrice,
@@ -176,6 +213,7 @@ public class ListingController {
 
     // 2. Détail d'une annonce
     @GetMapping("/api/listings/{id}")
+    @Transactional(readOnly = true)
     public ResponseEntity<?> getListing(@PathVariable String id, @RequestParam(required = false) String targetCurrency) {
         Optional<Listing> optionalListing = listingRepository.findById(id);
         if (optionalListing.isEmpty()) {
