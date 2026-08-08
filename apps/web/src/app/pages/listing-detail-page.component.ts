@@ -229,9 +229,9 @@ import { ToastService } from '../services/toast.service';
             <div class="field">
               <label>Voyageurs</label>
               <div class="stepper">
-                <button type="button" class="stepper__btn" (click)="guests.set(Math.max(1, guests() - 1))">−</button>
+                <button type="button" class="stepper__btn" (click)="decGuests()">−</button>
                 <span class="stepper__val mono">{{ guests() }}</span>
-                <button type="button" class="stepper__btn" (click)="guests.set(Math.min(l.guestsCount, guests() + 1))">+</button>
+                <button type="button" class="stepper__btn" (click)="incGuests()">+</button>
               </div>
             </div>
 
@@ -389,6 +389,14 @@ export class ListingDetailPageComponent implements OnInit {
 
   onContact(): void {
     this.toastSvc.show('Message envoyé à l\'hôte');
+  }
+
+  decGuests(): void {
+    this.guests.set(Math.max(1, this.guests() - 1));
+  }
+  incGuests(): void {
+    const cap = (this.listing()?.guestsCount ?? 99) || 99;
+    this.guests.set(Math.min(cap, this.guests() + 1));
   }
 
   formatPrice(n: number): string {

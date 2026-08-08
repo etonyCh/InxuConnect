@@ -116,7 +116,7 @@ interface TopListing {
           <div class="top-list">
             @for (l of topListings; track l.title) {
               <div class="top-list__row">
-                <div class="top-list__img" [style.background-image]="'url(https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=' + encodeURIComponent(l.title + '+modern+burundi+listing+photo') + '&image_size=square)'"></div>
+                <div class="top-list__img" [style.background-image]="topListingImgUrl(l.title)"></div>
                 <div class="top-list__body">
                   <div class="top-list__head">
                     <strong>{{ l.title }}</strong>
@@ -210,5 +210,10 @@ export class HostDashboardPageComponent {
 
   withdraw(): void {
     this.toast.show('Demande de retrait envoyée. Un agent vous contactera sous 24h.');
+  }
+
+  topListingImgUrl(title: string): string {
+    const prompt = encodeURIComponent(title + '+modern+burundi+listing+photo');
+    return 'url(https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=' + prompt + '&image_size=square)';
   }
 }

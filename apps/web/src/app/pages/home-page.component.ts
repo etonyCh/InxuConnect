@@ -400,7 +400,7 @@ interface StatItem { icon: string; value: string; label: string; }
           Recevez nos nouvelles annonces et nos conseils immo.
         </p>
         <form class="footer__newsletter" (submit)="onNewsletterSubmit($event)">
-          <input type="email" required placeholder="Votre email" autocomplete="email" [value]="newsletterEmail()" (input)="newsletterEmail.set(($event.target as HTMLInputElement).value)">
+          <input type="email" required placeholder="Votre email" autocomplete="email" [value]="newsletterEmail()" (input)="setNewsletterEmail($event)">
           <button type="submit" class="btn btn-dark btn-sm" aria-label="S'abonner">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
           </button>
@@ -452,7 +452,7 @@ interface StatItem { icon: string; value: string; label: string; }
           <label class="mono">Prix maximum / nuit</label>
           <span class="mono filter-price-out">{{ formatPrice(priceMax()) }}</span>
         </div>
-        <input type="range" min="15000" max="500000" step="5000" [value]="priceMax()" (input)="priceMax.set(+($event.target as HTMLInputElement).value)">
+        <input type="range" min="15000" max="500000" step="5000" [value]="priceMax()" (input)="setPriceMax($event)">
       </div>
 
       <div class="filter-block">
@@ -523,7 +523,7 @@ interface StatItem { icon: string; value: string; label: string; }
         </div>
         <form class="chat-thread__input" (submit)="sendChatMessage($event)">
           <button type="button" class="icon-btn" aria-label="Joindre un fichier">📎</button>
-          <input type="text" placeholder="Écrire un message…" autocomplete="off" [value]="chatInputText()" (input)="chatInputText.set(($event.target as HTMLInputElement).value)">
+          <input type="text" placeholder="Écrire un message…" autocomplete="off" [value]="chatInputText()" (input)="setChatInputText($event)">
           <button type="submit" class="btn btn-primary btn-sm">Envoyer</button>
         </form>
       </div>
@@ -699,7 +699,7 @@ interface StatItem { icon: string; value: string; label: string; }
       <p class="voice-hint">{{ voiceRecording() ? 'Enregistrement en cours… Parlez maintenant' : 'Appuyez pour parler — Kirundi ou Français (5s)' }}</p>
 
       <div class="field"><label>Ou tapez votre commande</label>
-        <textarea rows="2" placeholder="Ex : Une maison à Gitega avec groupe électrogène, moins de 150 000 FBu" [value]="voiceText()" (input)="voiceText.set(($event.target as HTMLTextAreaElement).value)"></textarea>
+        <textarea rows="2" placeholder="Ex : Une maison à Gitega avec groupe électrogène, moins de 150 000 FBu" [value]="voiceText()" (input)="setVoiceText($event)"></textarea>
       </div>
 
       <div class="voice-result" [hidden]="!voiceResultText()">
@@ -715,7 +715,7 @@ interface StatItem { icon: string; value: string; label: string; }
   </div>
 </div>
 
-<div class="toast" [class.is-show]="toast.state().show"><span class="pulse"></span><span>{{ toast.state().text }}</span></div>
+<div class="toast" [class.is-show]="toastShow()"><span class="pulse"></span><span>{{ toastText() }}</span></div>
 `,
 })
 export class HomePageComponent implements OnInit {
@@ -864,6 +864,26 @@ export class HomePageComponent implements OnInit {
   readonly voiceResultText = signal('');
 
   readonly favoriteListings = computed(() => this.listings().filter((l) => l.isFavorite));
+  readonly toastShow = computed(() => this.toast.state().show);
+  readonly toastText = computed(() => this.toast.state().text);
+
+  // Template wrappers (Angular template parser cannot inline `as HTMLInputElement`)
+  setNewsletterEmail(e: Event): void {
+    const v = (e.target as HTMLInputElement)?.value;
+    if (typeof v === 'string') this.newsletterEmail.set(v);
+  }
+  setPriceMax(e: Event): void {
+    const n = Number((e.target as HTMLInputElement)?.value);
+    if (!Number.isNaN(n)) this.priceMax.set(n);
+  }
+  setChatInputText(e: Event): void {
+    const v = (e.target as HTMLInputElement)?.value;
+    if (typeof v === 'string') this.chatInputText.set(v);
+  }
+  setVoiceText(e: Event): void {
+    const v = (e.target as HTMLTextAreaElement)?.value;
+    if (typeof v === 'string') this.voiceText.set(v);
+  }
 
   // ================= LIFE CYCLE =================
   ngOnInit(): void {
