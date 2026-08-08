@@ -28,34 +28,56 @@ bootstrapApplication(AppComponent, {
       [
         {
           path: '',
-          component: AppComponent,
+          loadComponent: () =>
+            import('./app/pages/home-page.component').then(
+              (m) => m.HomePageComponent,
+            ),
           pathMatch: 'full',
         },
         {
           path: 'login',
-          loadComponent: () => import('./app/app.component').then((m) => m.AppComponent),
+          loadComponent: () =>
+            import('./app/pages/auth-page.component').then((m) => m.AuthPageComponent),
         },
         {
-          path: '403',
-          loadComponent: () => import('./app/app.component').then((m) => m.AppComponent),
+          path: 'listing/:id',
+          loadComponent: () =>
+            import('./app/pages/listing-detail-page.component').then(
+              (m) => m.ListingDetailPageComponent,
+            ),
         },
         {
-          path: 'host',
-          loadComponent: () => import('./app/app.component').then((m) => m.AppComponent),
+          path: 'host-wizard',
+          loadComponent: () =>
+            import('./app/pages/host-wizard-page.component').then(
+              (m) => m.HostWizardPageComponent,
+            ),
+          canActivate: [AuthGuard],
+          canMatch: [AuthGuard],
+        },
+        {
+          path: 'dashboard',
+          loadComponent: () =>
+            import('./app/pages/host-dashboard-page.component').then(
+              (m) => m.HostDashboardPageComponent,
+            ),
           canActivate: [AuthGuard],
           canMatch: [AuthGuard],
         },
         {
           path: 'admin',
-          loadComponent: () => import('./app/app.component').then((m) => m.AppComponent),
+          loadComponent: () =>
+            import('./app/pages/host-dashboard-page.component').then(
+              (m) => m.HostDashboardPageComponent,
+            ),
           canActivate: [AuthGuard, RoleGuard],
           canMatch: [AuthGuard, RoleGuard],
           data: { roles: ['ADMIN'] },
         },
         {
-          path: 'dashboard',
-          loadComponent: () => import('./app/app.component').then((m) => m.AppComponent),
-          canActivate: [AuthGuard],
+          path: '403',
+          loadComponent: () =>
+            import('./app/pages/auth-page.component').then((m) => m.AuthPageComponent),
         },
         {
           path: '**',
