@@ -59,6 +59,7 @@ public class ListingController {
             @RequestParam(required = false) String city,
             @RequestParam(required = false) String country,
             @RequestParam(required = false) Integer maxPrice,
+            @RequestParam(required = false) Integer bedrooms,
             @RequestParam(required = false) String hasGenerator,
             @RequestParam(required = false) String hasWaterTank,
             @RequestParam(required = false) String hasStarlink,
@@ -87,14 +88,21 @@ public class ListingController {
             jpql.append(" AND l.price <= :maxPrice");
             params.put("maxPrice", maxPrice);
         }
+        if (bedrooms != null) {
+            jpql.append(" AND l.bedrooms >= :minBedrooms");
+            params.put("minBedrooms", bedrooms);
+        }
         if ("true".equals(hasGenerator)) {
-            jpql.append(" AND EXISTS (SELECT a FROM l.amenities a WHERE a.name = 'generator')");
+            jpql.append(" AND EXISTS (SELECT a FROM l.amenities a WHERE LOWER(REPLACE(REPLACE(a.name,'_',' '),'-',' ')) LIKE LOWER(CONCAT('%',:genKw,'%')))");
+            params.put("genKw", "generat");
         }
         if ("true".equals(hasWaterTank)) {
-            jpql.append(" AND EXISTS (SELECT a FROM l.amenities a WHERE a.name = 'water_tank')");
+            jpql.append(" AND EXISTS (SELECT a FROM l.amenities a WHERE LOWER(REPLACE(REPLACE(a.name,'_',' '),'-',' ')) LIKE LOWER(CONCAT('%',:tankKw,'%')))");
+            params.put("tankKw", "citerne");
         }
         if ("true".equals(hasStarlink)) {
-            jpql.append(" AND EXISTS (SELECT a FROM l.amenities a WHERE a.name = 'starlink')");
+            jpql.append(" AND EXISTS (SELECT a FROM l.amenities a WHERE LOWER(a.name) LIKE LOWER(CONCAT('%',:starKw,'%')))");
+            params.put("starKw", "starlink");
         }
 
         StringBuilder countJpql = new StringBuilder("SELECT COUNT(DISTINCT l) FROM Listing l LEFT JOIN l.photos LEFT JOIN l.amenities WHERE 1=1");
@@ -117,14 +125,17 @@ public class ListingController {
             if (maxPrice != null) {
                 countJpql.append(" AND l.price <= :maxPrice");
             }
+            if (bedrooms != null) {
+                countJpql.append(" AND l.bedrooms >= :minBedrooms");
+            }
             if ("true".equals(hasGenerator)) {
-                countJpql.append(" AND EXISTS (SELECT a FROM l.amenities a WHERE a.name = 'generator')");
+                countJpql.append(" AND EXISTS (SELECT a FROM l.amenities a WHERE LOWER(REPLACE(REPLACE(a.name,'_',' '),'-',' ')) LIKE LOWER(CONCAT('%',:genKw,'%')))");
             }
             if ("true".equals(hasWaterTank)) {
-                countJpql.append(" AND EXISTS (SELECT a FROM l.amenities a WHERE a.name = 'water_tank')");
+                countJpql.append(" AND EXISTS (SELECT a FROM l.amenities a WHERE LOWER(REPLACE(REPLACE(a.name,'_',' '),'-',' ')) LIKE LOWER(CONCAT('%',:tankKw,'%')))");
             }
             if ("true".equals(hasStarlink)) {
-                countJpql.append(" AND EXISTS (SELECT a FROM l.amenities a WHERE a.name = 'starlink')");
+                countJpql.append(" AND EXISTS (SELECT a FROM l.amenities a WHERE LOWER(a.name) LIKE LOWER(CONCAT('%',:starKw,'%')))");
             }
         }
 
