@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Créer une annonce · InzuConnect</title>
+<link rel="stylesheet" href="../shared/design-system.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="top-bar">
+  <a class="top-bar__back" href="../home/index.html">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    Enregistrer et quitter
+  </a>
+  <div class="progress-track"><div class="progress-track__fill" id="progressFill"></div></div>
+</header>
+
+<main class="wizard" id="wizard">
+
+  <!-- SIDEBAR -->
+  <aside class="wizard-side">
+    <h2>Créer une annonce</h2>
+    <p class="wizard-side__lede">6 étapes rapides pour publier votre logement sur InzuConnect.</p>
+    <ol class="wizard-steps" id="wizardSteps">
+      <li data-step="1" class="is-active"><span class="pulse"></span><div><strong>Infos de base</strong><em>Titre, description, ville</em></div></li>
+      <li data-step="2"><span class="pulse is-dim"></span><div><strong>Caractéristiques</strong><em>Type, lits, capacité</em></div></li>
+      <li data-step="3"><span class="pulse is-dim"></span><div><strong>Prix & disponibilités</strong><em>Tarifs, dates, ménage</em></div></li>
+      <li data-step="4"><span class="pulse is-dim"></span><div><strong>Équipements</strong><em>Solaire, citerne, Starlink…</em></div></li>
+      <li data-step="5"><span class="pulse is-dim"></span><div><strong>Photos</strong><em>Jusqu'à 10 images</em></div></li>
+      <li data-step="6"><span class="pulse is-dim"></span><div><strong>Récapitulatif</strong><em>Vérifier et publier</em></div></li>
+    </ol>
+  </aside>
+
+  <!-- STEP CONTENT -->
+  <section class="wizard-content">
+
+    <div class="wizard-panel is-active" data-panel="1">
+      <h3>Parlez-nous de votre logement</h3>
+      <p class="section-lede">Un bon titre décrit le logement, le quartier et ce qui le rend fiable.</p>
+      <div class="field"><label>Titre de l'annonce</label><input type="text" id="fTitle" placeholder="Ex : Villa calme avec groupe électrogène, Kigobe"></div>
+      <div class="field"><label>Description</label><textarea id="fDesc" rows="5" placeholder="Décrivez le logement, le quartier, l'accès à l'eau et à l'électricité…"></textarea></div>
+      <div class="field"><label>Ville</label>
+        <select id="fCity">
+          <option value="">Sélectionner une ville</option>
+          <option>Bujumbura</option><option>Gitega</option><option>Ngozi</option><option>Bururi</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="wizard-panel" data-panel="2">
+      <h3>Caractéristiques du logement</h3>
+      <div class="field"><label>Type de logement</label>
+        <div class="check-grid">
+          <button type="button" class="chip type-chip is-active" data-type="Maison">🏡 Maison</button>
+          <button type="button" class="chip type-chip" data-type="Studio">🛏️ Studio</button>
+          <button type="button" class="chip type-chip" data-type="Villa">🏛️ Villa</button>
+          <button type="button" class="chip type-chip" data-type="Appartement">🏢 Appartement</button>
+        </div>
+      </div>
+      <div class="two-col">
+        <div class="field"><label>Chambres / lits</label><div class="stepper"><button type="button" class="stepper__btn" data-target="fBeds" data-step="-1">−</button><span class="stepper__val mono" id="fBeds">2</span><button type="button" class="stepper__btn" data-target="fBeds" data-step="1">+</button></div></div>
+        <div class="field"><label>Salles de bain</label><div class="stepper"><button type="button" class="stepper__btn" data-target="fBaths" data-step="-1">−</button><span class="stepper__val mono" id="fBaths">1</span><button type="button" class="stepper__btn" data-target="fBaths" data-step="1">+</button></div></div>
+      </div>
+      <div class="field"><label>Voyageurs maximum</label><div class="stepper"><button type="button" class="stepper__btn" data-target="fGuests" data-step="-1">−</button><span class="stepper__val mono" id="fGuests">4</span><button type="button" class="stepper__btn" data-target="fGuests" data-step="1">+</button></div></div>
+    </div>
+
+    <div class="wizard-panel" data-panel="3">
+      <h3>Prix et disponibilités</h3>
+      <div class="field"><label>Prix par nuit (FBu)</label><input type="number" id="fPrice" placeholder="120000" step="5000"></div>
+      <div class="two-col">
+        <div class="field"><label>Disponible à partir du</label><input type="date" id="fAvailFrom"></div>
+        <div class="field"><label>Jusqu'au</label><input type="date" id="fAvailTo"></div>
+      </div>
+      <div class="field"><label>Frais de ménage (FBu)</label><input type="number" id="fCleaning" placeholder="10000" step="1000"></div>
+    </div>
+
+    <div class="wizard-panel" data-panel="4">
+      <h3>Équipements & résilience</h3>
+      <p class="section-lede">Les logements avec équipements de résilience reçoivent un badge visible sur la carte.</p>
+      <div class="check-grid" id="amenityPicker">
+        <label class="check-pill"><input type="checkbox" value="Solaire"><span>☀️ Panneaux solaires</span></label>
+        <label class="check-pill"><input type="checkbox" value="Citerne" checked><span>💧 Citerne d'eau</span></label>
+        <label class="check-pill"><input type="checkbox" value="Groupe" checked><span>🔌 Groupe électrogène</span></label>
+        <label class="check-pill"><input type="checkbox" value="Starlink"><span>🛰️ Starlink</span></label>
+        <label class="check-pill"><input type="checkbox" value="Cuisine" checked><span>🍳 Cuisine équipée</span></label>
+        <label class="check-pill"><input type="checkbox" value="Parking"><span>🅿️ Parking privé</span></label>
+      </div>
+    </div>
+
+    <div class="wizard-panel" data-panel="5">
+      <h3>Ajoutez vos photos</h3>
+      <p class="section-lede">Jusqu'à 10 photos. La première sera votre photo de couverture.</p>
+      <label class="dropzone" for="fPhotos">
+        <span>📷</span><strong>Cliquez pour ajouter des photos</strong><em>JPG, PNG — 10 Mo max chacune</em>
+      </label>
+      <input type="file" id="fPhotos" multiple accept="image/*" hidden>
+      <div class="photo-grid" id="photoGrid"></div>
+    </div>
+
+    <div class="wizard-panel" data-panel="6">
+      <h3>Vérifiez votre annonce</h3>
+      <div class="recap-card" id="recapCard"></div>
+    </div>
+
+    <div class="wizard-panel wizard-panel--success" data-panel="success">
+      <div class="success-badge"><span class="pulse"></span>✅</div>
+      <h3>Votre annonce est en ligne</h3>
+      <p class="section-lede">Elle apparaît désormais en tête de la grille sur la page d'accueil, avec ses badges de résilience.</p>
+      <a class="btn btn-primary" href="../home/index.html">Voir sur la page d'accueil</a>
+    </div>
+
+    <div class="wizard-nav" id="wizardNav">
+      <button class="btn btn-ghost" id="btnBack">Précédent</button>
+      <button class="btn btn-primary" id="btnNext">Suivant</button>
+    </div>
+
+  </section>
+</main>
+
+<div class="toast" id="toast"><span class="pulse"></span><span id="toastText">Enregistré</span></div>
+
+<script src="script.js"></script>
+</body>
+</html>

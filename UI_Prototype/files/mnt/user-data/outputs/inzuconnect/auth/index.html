@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Connexion · InzuConnect</title>
+<link rel="stylesheet" href="../shared/design-system.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="auth-shell">
+
+  <!-- BRAND PANEL -->
+  <aside class="brand-panel">
+    <a class="logo" href="../home/index.html">
+      <span class="logo__mark"><span class="pulse"></span></span>
+      InzuConnect
+    </a>
+
+    <div class="brand-panel__body">
+      <p class="mono brand-eyebrow">AUTHENTIFICATION SÉCURISÉE</p>
+      <h1>Chaque compte est un signal vérifié.</h1>
+      <p class="brand-lede">Numéro confirmé par OTP, mot de passe chiffré Argon2id, session protégée par cookie HttpOnly. Rejoignez un réseau de logements où l'eau et l'électricité sont garanties.</p>
+
+      <div class="brand-stats">
+        <div><b class="mono">48</b><span>châteaux d'eau financés</span></div>
+        <div><b class="mono">212</b><span>foyers électrifiés</span></div>
+        <div><b class="mono">4.8★</b><span>satisfaction voyageurs</span></div>
+      </div>
+    </div>
+
+    <div class="brand-panel__grid" aria-hidden="true"></div>
+  </aside>
+
+  <!-- FORM PANEL -->
+  <main class="form-panel">
+    <div class="auth-card">
+
+      <div class="auth-tabs">
+        <button class="auth-tab is-active" data-tab="login">Connexion</button>
+        <button class="auth-tab" data-tab="register">Inscription</button>
+      </div>
+
+      <!-- LOGIN -->
+      <form class="auth-view is-active" id="loginView">
+        <h2>Bon retour parmi nous</h2>
+        <p class="section-lede">Connectez-vous avec votre numéro et votre mot de passe.</p>
+
+        <div class="field"><label>Téléphone</label><input type="tel" placeholder="+257 79 000 000" required></div>
+        <div class="field"><label>Mot de passe</label><input type="password" placeholder="••••••••••" required></div>
+
+        <button type="submit" class="btn btn-primary btn-block">Se connecter</button>
+        <p class="auth-switch">Pas encore de compte ? <button type="button" data-goto="register">Créer un compte</button></p>
+      </form>
+
+      <!-- REGISTER -->
+      <div class="auth-view" id="registerView">
+
+        <div class="reg-step is-active" data-reg-step="1">
+          <h2>Créer un compte</h2>
+          <p class="section-lede">Quelques informations pour commencer.</p>
+
+          <div class="two-col">
+            <div class="field"><label>Prénom</label><input type="text" placeholder="Diane"></div>
+            <div class="field"><label>Nom</label><input type="text" placeholder="Ndayishimiye"></div>
+          </div>
+          <div class="field"><label>Téléphone</label><input type="tel" placeholder="+257 79 000 000"></div>
+          <div class="field"><label>Email (optionnel)</label><input type="email" placeholder="diane@example.com"></div>
+
+          <div class="field">
+            <label>Je m'inscris en tant que</label>
+            <div class="role-grid">
+              <button type="button" class="role-chip is-active" data-role="GUEST">🧳<span>Voyageur</span></button>
+              <button type="button" class="role-chip" data-role="HOST">🏠<span>Hôte</span></button>
+              <button type="button" class="role-chip" data-role="AGENT">🤝<span>Agent</span></button>
+              <button type="button" class="role-chip" data-role="B2B">🏢<span>Entreprise</span></button>
+            </div>
+          </div>
+
+          <div class="two-col">
+            <div class="field"><label>Mot de passe</label><input type="password" placeholder="10 caractères min." id="regPass"></div>
+            <div class="field"><label>Confirmer</label><input type="password" placeholder="Confirmer" id="regPassConfirm"></div>
+          </div>
+        </div>
+
+        <div class="reg-step" data-reg-step="2">
+          <h2>Vérifiez votre numéro</h2>
+          <p class="section-lede">Un code à 6 chiffres a été envoyé par SMS à votre numéro.</p>
+          <div class="otp-row" id="otpRow">
+            <input type="text" maxlength="1" inputmode="numeric">
+            <input type="text" maxlength="1" inputmode="numeric">
+            <input type="text" maxlength="1" inputmode="numeric">
+            <input type="text" maxlength="1" inputmode="numeric">
+            <input type="text" maxlength="1" inputmode="numeric">
+            <input type="text" maxlength="1" inputmode="numeric">
+          </div>
+          <button type="button" class="otp-resend" id="btnResendOtp">Renvoyer le code (00:32)</button>
+        </div>
+
+        <div class="reg-step" data-reg-step="3">
+          <div class="success-badge"><span class="pulse"></span>✅</div>
+          <h2 style="text-align:center">Compte créé avec succès</h2>
+          <p class="section-lede" style="text-align:center">Votre session est active. Bienvenue sur InzuConnect.</p>
+          <a class="btn btn-primary btn-block" href="../home/index.html">Aller à l'accueil</a>
+        </div>
+
+        <div class="reg-nav" id="regNav">
+          <button type="button" class="btn btn-ghost" id="btnRegBack">Retour</button>
+          <button type="button" class="btn btn-primary" id="btnRegNext">Envoyer le code</button>
+        </div>
+        <p class="auth-switch" id="regSwitch">Déjà un compte ? <button type="button" data-goto="login">Se connecter</button></p>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"><span class="pulse"></span><span id="toastText">Action confirmée</span></div>
+
+<script src="script.js"></script>
+</body>
+</html>

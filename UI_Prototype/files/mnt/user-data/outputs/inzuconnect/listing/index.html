@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Villa Kigobe vue lac · InzuConnect</title>
+<link rel="stylesheet" href="../shared/design-system.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="top-bar">
+  <a class="top-bar__back" href="../home/index.html">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    InzuConnect
+  </a>
+  <div class="top-bar__actions">
+    <button class="icon-btn" id="btnShare" aria-label="Partager"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><line x1="8.3" y1="10.8" x2="15.7" y2="6.2"/><line x1="8.3" y1="13.2" x2="15.7" y2="17.8"/></svg></button>
+    <button class="icon-btn" id="btnFav" aria-label="Ajouter aux favoris"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M20.8 8.6c0 4.4-8.8 10-8.8 10s-8.8-5.6-8.8-10a5 5 0 0 1 9-3 5 5 0 0 1 8.6 3Z"/></svg></button>
+  </div>
+</header>
+
+<main class="listing-wrap">
+
+  <div class="listing-title-row">
+    <div>
+      <h1>Villa Kigobe vue lac</h1>
+      <p class="listing-sub">★ 4.9 · 62 avis · Kigobe, Bujumbura</p>
+    </div>
+    <div class="listing-badges-row" id="badgesRow"></div>
+  </div>
+
+  <!-- GALLERY -->
+  <section class="gallery" id="gallery">
+    <button class="gallery__main">
+      <img id="galleryMain" src="https://picsum.photos/seed/inzu-1/1000/700" alt="Villa Kigobe — vue principale">
+      <button class="gallery__nav gallery__nav--prev" id="galPrev" aria-label="Photo précédente">‹</button>
+      <button class="gallery__nav gallery__nav--next" id="galNext" aria-label="Photo suivante">›</button>
+      <span class="gallery__count mono" id="galCount">1 / 5</span>
+    </button>
+    <div class="gallery__thumbs" id="galThumbs"></div>
+  </section>
+
+  <div class="listing-grid">
+
+    <!-- LEFT COLUMN -->
+    <div class="listing-main">
+
+      <section class="host-row">
+        <div>
+          <h3>Logement entier hébergé par Diane N.</h3>
+          <p class="listing-sub">4 chambres · 2 salles de bain · 8 voyageurs max</p>
+        </div>
+        <span class="host-avatar">DN</span>
+      </section>
+
+      <hr class="rule">
+
+      <!-- RESILIENCE -->
+      <section>
+        <h3>Résilience & fiabilité — Burundi</h3>
+        <p class="section-lede">Ce logement a été vérifié par InzuConnect pour continuer à fonctionner même en cas de coupure.</p>
+        <div class="infra-grid">
+          <div class="infra-card"><span class="pulse"></span><span class="infra-card__icon">🔌</span><div><strong>Groupe électrogène</strong><p>Bascule automatique en 8 secondes</p></div></div>
+          <div class="infra-card"><span class="pulse"></span><span class="infra-card__icon">💧</span><div><strong>Citerne d'eau 5000L</strong><p>Réserve autonome de 4 jours</p></div></div>
+          <div class="infra-card is-dim"><span class="pulse is-dim"></span><span class="infra-card__icon">🛰️</span><div><strong>Starlink</strong><p>Non disponible sur ce logement</p></div></div>
+          <div class="infra-card"><span class="pulse"></span><span class="infra-card__icon">🍳</span><div><strong>Cuisine équipée</strong><p>Réchaud gaz + électrique</p></div></div>
+        </div>
+      </section>
+
+      <hr class="rule">
+
+      <section>
+        <h3>À propos de ce logement</h3>
+        <p class="section-lede">Villa spacieuse perchée sur les hauteurs de Kigobe, avec vue dégagée sur le lac Tanganyika. Parfaite pour les familles ou les séjours professionnels prolongés — l'électricité et l'eau sont garanties toute l'année grâce au groupe électrogène et à la citerne de secours.</p>
+      </section>
+
+      <hr class="rule">
+
+      <section>
+        <h3>Équipements</h3>
+        <div class="amenity-list">
+          <span>🛏️ 4 chambres</span><span>🚿 2 salles de bain</span><span>📶 WiFi fibre</span>
+          <span>🅿️ Parking privé</span><span>🧺 Blanchisserie</span><span>🔒 Gardien 24h</span>
+        </div>
+      </section>
+
+      <hr class="rule">
+
+      <!-- REVIEWS -->
+      <section>
+        <h3>★ 4.9 · 62 avis</h3>
+        <div class="review-bars">
+          <div class="review-bar"><span>Propreté</span><div><i style="width:96%"></i></div><b>4.9</b></div>
+          <div class="review-bar"><span>Exactitude</span><div><i style="width:94%"></i></div><b>4.8</b></div>
+          <div class="review-bar"><span>Communication</span><div><i style="width:98%"></i></div><b>5.0</b></div>
+          <div class="review-bar"><span>Emplacement</span><div><i style="width:90%"></i></div><b>4.7</b></div>
+        </div>
+        <div class="review-list">
+          <div class="review-item">
+            <span class="host-avatar host-avatar--sm">JN</span>
+            <div><strong>Jeanne N.</strong><p>Séjour impeccable, l'électricité n'a jamais coupé même pendant l'orage. Hôte très réactive.</p></div>
+          </div>
+          <div class="review-item">
+            <span class="host-avatar host-avatar--sm">PM</span>
+            <div><strong>Patrick M.</strong><p>Vue magnifique sur le lac, quartier calme et sécurisé. Je recommande pour un séjour pro.</p></div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- RIGHT COLUMN — BOOKING CARD -->
+    <aside class="booking-card" id="bookingCard">
+      <div class="booking-card__price"><b class="mono">180 000 FBu</b><span>/ nuit</span></div>
+
+      <div class="booking-card__dates">
+        <div class="field"><label>Arrivée</label><input type="date" id="checkIn"></div>
+        <div class="field"><label>Départ</label><input type="date" id="checkOut"></div>
+      </div>
+      <div class="field">
+        <label>Voyageurs</label>
+        <div class="stepper">
+          <button type="button" class="stepper__btn" id="guestMinus">−</button>
+          <span class="stepper__val mono" id="guestVal">2</span>
+          <button type="button" class="stepper__btn" id="guestPlus">+</button>
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-block" id="btnReserve">Réserver maintenant</button>
+      <button class="btn btn-ghost btn-block" id="btnContactHost">💬 Contacter l'hôte</button>
+
+      <div class="price-breakdown" id="priceBreakdown">
+        <div><span class="mono">180 000 FBu × <span id="nightsOut">3</span> nuits</span><span class="mono" id="subtotalOut">540 000 FBu</span></div>
+        <div><span class="mono">Frais de service</span><span class="mono" id="feeOut">27 000 FBu</span></div>
+        <div class="price-breakdown__total"><span>Total</span><span class="mono" id="totalOut">567 000 FBu</span></div>
+      </div>
+    </aside>
+
+  </div>
+</main>
+
+<div class="toast" id="toast"><span class="pulse"></span><span id="toastText">Réservation confirmée</span></div>
+
+<script src="script.js"></script>
+</body>
+</html>

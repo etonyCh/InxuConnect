@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>InzuConnect — Un chez-vous, avec l'eau et le courant garantis</title>
+<link rel="stylesheet" href="../shared/design-system.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app-shell" id="appShell">
+
+  <!-- ============================= HERO / HEADER ============================= -->
+  <header class="hero">
+    <div class="hero__topline">
+      <div class="hero__nav">
+        <button class="logo" id="logoReset" aria-label="Retour à l'accueil, réinitialiser les filtres">
+          <span class="logo__mark"><span class="pulse"></span></span>
+          InzuConnect
+        </button>
+
+        <div class="hero__actions">
+          <button class="icon-btn icon-btn--ghost" id="btnViewToggle" title="Aperçu mobile / web" aria-label="Basculer aperçu mobile">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="10" y1="19" x2="14" y2="19"/></svg>
+          </button>
+          <button class="icon-btn icon-btn--ghost" id="btnChat" title="Messagerie hôte" aria-label="Ouvrir la messagerie">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 11.5a8.4 8.4 0 0 1-8.9 8.4 8.7 8.7 0 0 1-3.8-.9L3 20l1.1-4.3A8.4 8.4 0 1 1 21 11.5Z"/></svg>
+          </button>
+          <button class="icon-btn icon-btn--ghost" id="btnWishlist" title="Mes favoris" aria-label="Ouvrir mes favoris">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M20.8 8.6c0 4.4-8.8 10-8.8 10s-8.8-5.6-8.8-10a5 5 0 0 1 9-3 5 5 0 0 1 8.6 3Z"/></svg>
+          </button>
+          <a class="btn btn-ghost-dark btn-sm" href="../host-wizard/index.html">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Créer une annonce
+          </a>
+          <a class="btn btn-ghost-dark btn-sm" href="../dashboard/index.html">Revenus hôte</a>
+          <button class="profile-pill" id="btnKyc" title="Vérification & Badge">
+            <span class="profile-pill__avatar">DN</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 5v6c0 5 3.4 8.7 8 11 4.6-2.3 8-6 8-11V5l-8-3Z"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <p class="hero__eyebrow mono">RÉSERVATION · EAU · ÉLECTRICITÉ — TROIS SIGNAUX, UN SÉJOUR</p>
+      <h1 class="hero__title">Un logement au Burundi, <span>garanti connecté.</span></h1>
+
+      <!-- SEARCH PILL -->
+      <form class="search-pill" id="searchForm">
+        <div class="search-pill__seg">
+          <label>Où</label>
+          <input type="text" id="searchWhere" placeholder="Bujumbura, Gitega, Ngozi…" autocomplete="off">
+        </div>
+        <div class="search-pill__div"></div>
+        <div class="search-pill__seg">
+          <label>Quand</label>
+          <input type="text" id="searchWhen" placeholder="Ajouter des dates" autocomplete="off">
+        </div>
+        <div class="search-pill__div"></div>
+        <div class="search-pill__seg">
+          <label>Qui</label>
+          <input type="text" id="searchWho" placeholder="Voyageurs" autocomplete="off">
+        </div>
+        <button type="submit" class="search-pill__btn" aria-label="Rechercher">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.6" y2="16.6"/></svg>
+        </button>
+      </form>
+    </div>
+
+    <!-- IKIGEGA IMPACT WIDGET -->
+    <div class="impact-strip">
+      <div class="impact-strip__label">
+        <span class="pulse"></span>
+        <span>Ikigega — impact communautaire, en direct</span>
+      </div>
+      <div class="impact-strip__stats">
+        <div class="impact-stat">
+          <span class="impact-stat__value mono">2 340 500 <small>FBu</small></span>
+          <span class="impact-stat__label">reversés ce mois-ci</span>
+        </div>
+        <div class="impact-stat">
+          <span class="impact-stat__value mono">48</span>
+          <span class="impact-stat__label">châteaux d'eau financés</span>
+        </div>
+        <div class="impact-stat">
+          <span class="impact-stat__value mono">212</span>
+          <span class="impact-stat__label">foyers électrifiés</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============================= MAIN CONTENT ============================= -->
+  <main class="content">
+
+    <!-- CATEGORY BAR -->
+    <nav class="category-bar">
+      <div class="hscroll" id="categoryScroll">
+        <button class="chip is-active" data-category="tous">Tous</button>
+        <button class="chip" data-category="maison">🏡 Maison</button>
+        <button class="chip" data-category="studio">🛏️ Studio</button>
+        <button class="chip" data-category="villa">🏛️ Villa</button>
+        <button class="chip" data-category="appartement">🏢 Appartement</button>
+        <button class="chip" data-city="Bujumbura">Bujumbura</button>
+        <button class="chip" data-city="Gitega">Gitega</button>
+        <button class="chip" data-city="Ngozi">Ngozi</button>
+      </div>
+      <button class="btn btn-ghost btn-sm filter-cta" id="btnOpenFilters">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="12" y1="18" x2="20" y2="18"/><circle cx="6" cy="12" r="1.6" fill="currentColor"/><circle cx="10" cy="18" r="1.6" fill="currentColor"/></svg>
+        Tous les filtres
+      </button>
+    </nav>
+
+    <!-- VOICE ASSISTANT + CREATIVE ACTIONS -->
+    <div class="quickbar">
+      <button class="quickbar__voice" id="btnVoice">
+        <span class="quickbar__voice-icon"><span class="pulse"></span>🎙️</span>
+        <span class="quickbar__voice-text">
+          <strong>Parlez à l'assistant InzuConnect</strong>
+          <em>Kirundi ou Français — « Une maison à Gitega avec groupe électrogène »</em>
+        </span>
+      </button>
+      <div class="quickbar__creative">
+        <button class="creative-chip" id="btnStaging">🪄 AI Staging Déco</button>
+        <button class="creative-chip" id="btnTransfer">🚕 Transfert Aéroport</button>
+      </div>
+    </div>
+
+    <!-- FILTER STATUS BANNER -->
+    <div class="filter-banner" id="filterBanner" hidden>
+      <span class="mono" id="filterBannerText">Filtres actifs</span>
+      <button class="btn btn-ghost btn-sm" id="btnResetFilters">Réinitialiser</button>
+    </div>
+
+    <!-- LISTINGS HEAD -->
+    <div class="listings-head">
+      <h2 id="resultsCount">36 logements disponibles</h2>
+      <button class="btn btn-dark btn-sm" id="btnMapToggle">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 20 3 17V4l6 3m0 13 6-3m-6 3V7m6 10 6 3V7l-6-3m0 16V4m0 3-6-3"/></svg>
+        Voir la carte
+      </button>
+    </div>
+
+    <!-- LISTINGS GRID -->
+    <section class="listings-grid" id="listingsGrid"></section>
+
+    <!-- MAP VIEW (toggle) -->
+    <section class="map-view" id="mapView" hidden>
+      <div class="map-view__canvas" id="mapCanvas"></div>
+    </section>
+
+  </main>
+
+  <!-- MOBILE BOTTOM NAV -->
+  <nav class="mobile-nav">
+    <button class="mobile-nav__tab is-active" data-tab="home" id="navHome">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11 12 4l9 7"/><path d="M5 10v9h14v-9"/></svg>
+      Accueil
+    </button>
+    <button class="mobile-nav__tab" data-tab="search" id="navSearch">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.6" y2="16.6"/></svg>
+      Recherche
+    </button>
+    <a class="mobile-nav__tab mobile-nav__tab--plus" href="../host-wizard/index.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </a>
+    <button class="mobile-nav__tab" data-tab="messages" id="navMessages">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 11.5a8.4 8.4 0 0 1-8.9 8.4 8.7 8.7 0 0 1-3.8-.9L3 20l1.1-4.3A8.4 8.4 0 1 1 21 11.5Z"/></svg>
+      Messages
+    </button>
+    <button class="mobile-nav__tab" data-tab="favorites" id="navFavorites">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.8 8.6c0 4.4-8.8 10-8.8 10s-8.8-5.6-8.8-10a5 5 0 0 1 9-3 5 5 0 0 1 8.6 3Z"/></svg>
+      Favoris
+    </button>
+  </nav>
+
+</div><!-- /app-shell -->
+
+<!-- ============================= OVERLAYS / MODALS ============================= -->
+
+<!-- FILTER MODAL -->
+<div class="overlay overlay--center" id="overlayFilter">
+  <div class="overlay__backdrop" data-close></div>
+  <div class="overlay__panel">
+    <div class="overlay__head">
+      <h3 class="overlay__title">Tous les filtres</h3>
+      <button class="overlay__close" data-close aria-label="Fermer">✕</button>
+    </div>
+    <div class="overlay__body">
+      <div class="filter-block">
+        <div class="filter-block__row">
+          <label class="mono">Prix maximum / nuit</label>
+          <span class="mono filter-price-out" id="priceOut">250 000 FBu</span>
+        </div>
+        <input type="range" id="priceRange" min="15000" max="500000" step="5000" value="250000">
+      </div>
+
+      <div class="filter-block">
+        <label class="mono">Chambres minimum</label>
+        <div class="stepper">
+          <button type="button" class="stepper__btn" data-step="-1">−</button>
+          <span class="stepper__val mono" id="bedroomsVal">1</span>
+          <button type="button" class="stepper__btn" data-step="1">+</button>
+        </div>
+      </div>
+
+      <div class="filter-block">
+        <label class="mono">Commodités</label>
+        <div class="check-grid" id="amenityChecks">
+          <label class="check-pill"><input type="checkbox" value="salle-de-bain"><span>🚿 Salle de bain privée</span></label>
+          <label class="check-pill"><input type="checkbox" value="wifi"><span>📶 WiFi</span></label>
+          <label class="check-pill"><input type="checkbox" value="cuisine"><span>🍳 Cuisine</span></label>
+          <label class="check-pill"><input type="checkbox" value="groupe"><span>🔌 Groupe électrogène</span></label>
+          <label class="check-pill"><input type="checkbox" value="citerne"><span>💧 Citerne d'eau</span></label>
+          <label class="check-pill"><input type="checkbox" value="starlink"><span>🛰️ Starlink</span></label>
+        </div>
+      </div>
+
+      <div class="filter-block">
+        <label class="mono">Accessibilité</label>
+        <div class="check-grid">
+          <label class="check-pill"><input type="checkbox" value="rampe"><span>♿ Rampe d'accès</span></label>
+          <label class="check-pill"><input type="checkbox" value="ascenseur"><span>🛗 Ascenseur</span></label>
+        </div>
+      </div>
+
+      <div class="overlay__footer">
+        <button class="btn btn-ghost btn-block" data-close>Annuler</button>
+        <button class="btn btn-primary btn-block" id="btnApplyFilters">Appliquer les filtres</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CHAT DRAWER -->
+<div class="overlay overlay--drawer" id="overlayChat">
+  <div class="overlay__backdrop" data-close></div>
+  <div class="overlay__panel chat-panel">
+    <div class="overlay__head">
+      <h3 class="overlay__title" id="chatHeadTitle">Messagerie</h3>
+      <button class="overlay__close" data-close aria-label="Fermer">✕</button>
+    </div>
+
+    <div class="chat-list" id="chatList">
+      <button class="chat-row" data-thread="1">
+        <span class="chat-row__avatar">EN</span>
+        <span class="chat-row__body">
+          <strong>Eric N. · Villa Kigobe</strong>
+          <span>Bonjour, votre check-in est confirmé pour 14h 👋</span>
+        </span>
+        <span class="pulse"></span>
+      </button>
+      <button class="chat-row" data-thread="2">
+        <span class="chat-row__avatar">CM</span>
+        <span class="chat-row__body">
+          <strong>Claudine M. · Studio Rohero</strong>
+          <span>Le groupe électrogène est testé et prêt.</span>
+        </span>
+      </button>
+      <button class="chat-row" data-thread="3">
+        <span class="chat-row__avatar">AB</span>
+        <span class="chat-row__body">
+          <strong>Alain B. · Maison Kinindo</strong>
+          <span>Merci pour votre avis 5 étoiles !</span>
+        </span>
+      </button>
+    </div>
+
+    <div class="chat-thread" id="chatThread" hidden>
+      <button class="chat-thread__back" id="btnChatBack">← Retour aux conversations</button>
+      <div class="chat-thread__messages" id="chatMessages"></div>
+      <form class="chat-thread__input" id="chatForm">
+        <button type="button" class="icon-btn" aria-label="Joindre un fichier">📎</button>
+        <input type="text" id="chatInput" placeholder="Écrire un message…" autocomplete="off">
+        <button type="submit" class="btn btn-primary btn-sm">Envoyer</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- WISHLIST MODAL -->
+<div class="overlay overlay--center" id="overlayWishlist">
+  <div class="overlay__backdrop" data-close></div>
+  <div class="overlay__panel">
+    <div class="overlay__head">
+      <h3 class="overlay__title">Mes favoris</h3>
+      <button class="overlay__close" data-close aria-label="Fermer">✕</button>
+    </div>
+    <div class="overlay__body">
+      <div class="wishlist-grid" id="wishlistGrid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- KYC MODAL -->
+<div class="overlay overlay--center" id="overlayKyc">
+  <div class="overlay__backdrop" data-close></div>
+  <div class="overlay__panel">
+    <div class="overlay__head">
+      <h3 class="overlay__title">Vérification KYC & Badge</h3>
+      <button class="overlay__close" data-close aria-label="Fermer">✕</button>
+    </div>
+    <div class="overlay__body">
+      <div class="steps-dots" id="kycDots">
+        <span class="is-active"></span><span></span><span></span><span></span>
+      </div>
+
+      <div class="kyc-step is-active" data-kyc-step="1">
+        <div class="field"><label>Prénom</label><input type="text" placeholder="Diane"></div>
+        <div class="field"><label>Nom</label><input type="text" placeholder="Ndayishimiye"></div>
+        <div class="field"><label>Date de naissance</label><input type="date"></div>
+        <div class="field"><label>N° téléphone</label><input type="tel" placeholder="+257 79 000 000"></div>
+        <div class="field"><label>Adresse postale</label><input type="text" placeholder="Rohero I, Bujumbura"></div>
+      </div>
+
+      <div class="kyc-step" data-kyc-step="2">
+        <div class="dropzone"><span>📄</span><strong>Photo pièce d'identité</strong><em>CIP ou passeport</em></div>
+        <div class="dropzone"><span>🏠</span><strong>Justificatif de domicile</strong><em>Facture eau / électricité</em></div>
+      </div>
+
+      <div class="kyc-step" data-kyc-step="3">
+        <label class="consent-row">
+          <input type="checkbox" id="kycConsent">
+          <span>J'accepte que InzuConnect traite mes données conformément au RGPD à des fins de vérification d'identité.</span>
+        </label>
+      </div>
+
+      <div class="kyc-step" data-kyc-step="4">
+        <div class="kyc-status">
+          <span class="pulse"></span>
+          <div>
+            <strong>En attente de vérification</strong>
+            <p>Votre dossier a été soumis. Statut habituellement mis à jour sous 24h.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="overlay__footer">
+        <button class="btn btn-ghost btn-block" id="btnKycBack">Retour</button>
+        <button class="btn btn-primary btn-block" id="btnKycNext">Continuer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- VIRTUAL STAGING MODAL -->
+<div class="overlay overlay--center" id="overlayStaging">
+  <div class="overlay__backdrop" data-close></div>
+  <div class="overlay__panel">
+    <div class="overlay__head">
+      <h3 class="overlay__title">🪄 AI Staging Déco</h3>
+      <button class="overlay__close" data-close aria-label="Fermer">✕</button>
+    </div>
+    <div class="overlay__body">
+      <div class="dropzone" id="stagingDropzone">
+        <span>📷</span><strong>Charger une photo de pièce vide</strong><em>JPG, PNG — 10 Mo max</em>
+      </div>
+      <div class="field" style="margin-top:1.2rem">
+        <label>Style souhaité</label>
+        <div class="check-grid">
+          <button type="button" class="chip style-chip is-active" data-style="Moderne">Moderne</button>
+          <button type="button" class="chip style-chip" data-style="Africain">Africain</button>
+          <button type="button" class="chip style-chip" data-style="Minimaliste">Minimaliste</button>
+          <button type="button" class="chip style-chip" data-style="Luxueux">Luxueux</button>
+        </div>
+      </div>
+
+      <div class="staging-result" id="stagingResult" hidden>
+        <div class="staging-result__loading" id="stagingLoading">
+          <span class="pulse"></span> Génération de l'image en cours…
+        </div>
+        <img id="stagingImg" alt="Rendu généré par IA" hidden>
+      </div>
+
+      <div class="overlay__footer">
+        <button class="btn btn-ghost btn-block" data-close>Annuler</button>
+        <button class="btn btn-primary btn-block" id="btnGenerateStaging">✨ Générer l'image</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AIRPORT TRANSFER MODAL -->
+<div class="overlay overlay--center" id="overlayTransfer">
+  <div class="overlay__backdrop" data-close></div>
+  <div class="overlay__panel">
+    <div class="overlay__head">
+      <h3 class="overlay__title">🚕 Transfert Aéroport</h3>
+      <button class="overlay__close" data-close aria-label="Fermer">✕</button>
+    </div>
+    <div class="overlay__body">
+      <div class="field"><label>Aéroport de départ</label><input type="text" value="Bujumbura Intl. (BJM)" readonly></div>
+      <div class="field"><label>Adresse d'arrivée</label><input type="text" placeholder="Villa Kigobe, Bujumbura" id="transferAddress"></div>
+      <div class="two-col">
+        <div class="field"><label>Date</label><input type="date"></div>
+        <div class="field"><label>Heure</label><input type="time" value="14:00"></div>
+      </div>
+
+      <div class="field">
+        <label>Véhicule</label>
+        <div class="vehicle-grid" id="vehicleGrid">
+          <button type="button" class="vehicle-card is-active" data-price="15 000">🏍️<span>Moto</span><em class="mono">15 000 FBu</em></button>
+          <button type="button" class="vehicle-card" data-price="45 000">🚗<span>Berline</span><em class="mono">45 000 FBu</em></button>
+          <button type="button" class="vehicle-card" data-price="70 000">🚐<span>Van</span><em class="mono">70 000 FBu</em></button>
+          <button type="button" class="vehicle-card" data-price="90 000">🚙<span>4x4</span><em class="mono">90 000 FBu</em></button>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="field"><label>Bagages</label><input type="number" min="0" value="1"></div>
+        <div class="field"><label>Voyageurs</label><input type="number" min="1" value="1"></div>
+      </div>
+      <div class="field"><label>Nom du chauffeur (optionnel)</label><input type="text" placeholder="Sur demande"></div>
+
+      <div class="overlay__footer">
+        <button class="btn btn-ghost btn-block" data-close>Annuler</button>
+        <button class="btn btn-primary btn-block" id="btnBookTransfer">✅ Réserver le transfert — <span id="transferPriceOut" class="mono">15 000 FBu</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- VOICE ASSISTANT MODAL -->
+<div class="overlay overlay--center" id="overlayVoice">
+  <div class="overlay__backdrop" data-close></div>
+  <div class="overlay__panel voice-panel">
+    <div class="overlay__head">
+      <h3 class="overlay__title">🎙️ Assistant vocal</h3>
+      <button class="overlay__close" data-close aria-label="Fermer">✕</button>
+    </div>
+    <div class="overlay__body">
+      <button class="voice-mic" id="btnMicRecord">
+        <span class="voice-mic__ring"></span>
+        <span class="voice-mic__icon">🎙️</span>
+      </button>
+      <p class="voice-hint" id="voiceHint">Appuyez pour parler — Kirundi ou Français (5s)</p>
+
+      <div class="field"><label>Ou tapez votre commande</label>
+        <textarea id="voiceText" rows="2" placeholder="Ex : Une maison à Gitega avec groupe électrogène, moins de 150 000 FBu"></textarea>
+      </div>
+
+      <div class="voice-result" id="voiceResult" hidden></div>
+
+      <div class="overlay__footer">
+        <button class="btn btn-ghost btn-block" data-close>Fermer</button>
+        <button class="btn btn-primary btn-block" id="btnVoiceSearch">🔍 Lancer la recherche IA</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span class="pulse"></span><span id="toastText">Action confirmée</span></div>
+
+<script src="script.js"></script>
+</body>
+</html>
