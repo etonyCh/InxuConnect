@@ -60,9 +60,21 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginDto dto) {
-        Optional<User> optionalUser = userRepository.findByEmail(dto.getEmail());
+        Optional<User> optionalUser = Optional.empty();
+        String identifierKind = null;
+        String identifierValue = null;
+        if (dto.getEmail() != null && !dto.getEmail().trim().isEmpty()) {
+            identifierKind = "email";
+            identifierValue = dto.getEmail().trim();
+            optionalUser = userRepository.findByEmail(identifierValue);
+        } else if (dto.getPhone() != null && !dto.getPhone().trim().isEmpty()) {
+            identifierKind = "phone";
+            identifierValue = dto.getPhone().trim();
+            optionalUser = userRepository.findByPhone(identifierValue);
+        }
 
         if (optionalUser.isEmpty() || !passwordEncoder.matches(dto.getPassword(), optionalUser.get().getPassword())) {
+            log.debug("[LOGIN FAILED] kind={} value={}", identifierKind, identifierValue);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new AuthErrorDto("Identifiants invalides"));
         }
@@ -78,17 +90,27 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterDto dto) {
-        if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
+        if (dto.getEmail() != null && !dto.getEmail().trim().isEmpty()
+                && userRepository.findByEmail(dto.getEmail().trim()).isPresent()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new AuthErrorDto("Cet email est déjà utilisé"));
+        }
+        if (dto.getPhone() != null && !dto.getPhone().trim().isEmpty()
+                && userRepository.findByPhone(dto.getPhone().trim()).isPresent()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new AuthErrorDto("Ce numéro de téléphone est déjà utilisé"));
         }
 
         User user = new User();
         user.setName(dto.getName());
-        user.setEmail(dto.getEmail());
+        user.setEmail(dto.getEmail() != null ? dto.getEmail().trim() : dto.getPhone().trim() + "@inzuconnect.local");
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
         user.setPhone(dto.getPhone());
         user.setKycStatus(KycStatus.NONE);
+        user.setRole(dto.getRole() != null ? dto.getRole() : com.inzuconnect.inzuconnect_api.domain.enums.Role.GUEST);
+        if (dto.getPhone() != null) {
+            user.setPhoneVerified(true);
+        }
 
         userRepository.save(user);
         String token = jwtService.generateToken(user);

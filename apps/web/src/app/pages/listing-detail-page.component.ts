@@ -395,9 +395,9 @@ export class ListingDetailPageComponent implements OnInit {
     return n.toLocaleString('fr-FR');
   }
 
-  private fallbackListing(id: number): Listing {
+  private fallbackListing(id: string | number): Listing {
     return {
-      id,
+      id: String(id),
       title: 'Villa Kigobe vue lac',
       location: 'Kigobe',
       province: 'Bujumbura',

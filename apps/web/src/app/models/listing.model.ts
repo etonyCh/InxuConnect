@@ -1,5 +1,5 @@
 export interface Listing {
-  id: number;
+  id: string;
   title: string;
   location: string;
   province: string;
@@ -18,6 +18,12 @@ export interface Listing {
   bedroomsCount: number;
   bathroomsCount: number;
   isFavorite?: boolean;
+  city?: string;
+  address?: string;
+  country?: string;
+  owner?: { id: string; name: string; badge: string; phone?: string };
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface TripSummary {

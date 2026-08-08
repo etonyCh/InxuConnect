@@ -148,37 +148,7 @@ public class ListingController {
         List<Listing> listings = query.getResultList();
 
         // Convert currency if needed
-        List<Map<String, Object>> optimizedListings = listings.stream().map(l -> {
-            Map<String, Object> map = new HashMap<>();
-            map.put("id", l.getId());
-            map.put("title", l.getTitle());
-            map.put("description", l.getDescription());
-            map.put("city", l.getCity());
-            map.put("address", l.getAddress());
-            map.put("latitude", l.getLatitude());
-            map.put("longitude", l.getLongitude());
-            map.put("bedrooms", l.getBedrooms());
-            map.put("bathrooms", l.getBathrooms());
-            map.put("taxiMotoDistance", l.getTaxiMotoDistance());
-            map.put("surchargeGenerator", l.getSurchargeGenerator());
-            map.put("country", l.getCountry());
-            map.put("createdAt", l.getCreatedAt());
-            map.put("photos", l.getPhotos());
-            map.put("amenities", l.getAmenities());
-            map.put("owner", l.getOwner());
-
-            double displayPrice = l.getPrice();
-            String displayCurrency = l.getCurrency();
-
-            if (targetCurrency != null && !targetCurrency.trim().isEmpty()) {
-                displayPrice = convertCurrency(l.getPrice(), l.getCurrency(), targetCurrency);
-                displayCurrency = targetCurrency.toUpperCase();
-            }
-
-            map.put("price", displayPrice);
-            map.put("currency", displayCurrency);
-            return map;
-        }).collect(Collectors.toList());
+        List<Map<String, Object>> optimizedListings = listings.stream().map(l -> serializeListingToFrontend(l, targetCurrency)).collect(Collectors.toList());
 
         Map<String, Object> meta = new HashMap<>();
         meta.put("total", totalElements);
@@ -221,37 +191,7 @@ public class ListingController {
         }
 
         Listing l = optionalListing.get();
-
-        Map<String, Object> map = new HashMap<>();
-        map.put("id", l.getId());
-        map.put("title", l.getTitle());
-        map.put("description", l.getDescription());
-        map.put("city", l.getCity());
-        map.put("address", l.getAddress());
-        map.put("latitude", l.getLatitude());
-        map.put("longitude", l.getLongitude());
-        map.put("bedrooms", l.getBedrooms());
-        map.put("bathrooms", l.getBathrooms());
-        map.put("taxiMotoDistance", l.getTaxiMotoDistance());
-        map.put("surchargeGenerator", l.getSurchargeGenerator());
-        map.put("country", l.getCountry());
-        map.put("createdAt", l.getCreatedAt());
-        map.put("photos", l.getPhotos());
-        map.put("amenities", l.getAmenities());
-        map.put("owner", l.getOwner());
-
-        double displayPrice = l.getPrice();
-        String displayCurrency = l.getCurrency();
-
-        if (targetCurrency != null && !targetCurrency.trim().isEmpty()) {
-            displayPrice = convertCurrency(l.getPrice(), l.getCurrency(), targetCurrency);
-            displayCurrency = targetCurrency.toUpperCase();
-        }
-
-        map.put("price", displayPrice);
-        map.put("currency", displayCurrency);
-
-        return ResponseEntity.ok(map);
+        return ResponseEntity.ok(serializeListingToFrontend(l, targetCurrency));
     }
 
     // 3. Créer une nouvelle annonce
@@ -752,6 +692,131 @@ public class ListingController {
     }
 
     // Helpers
+    private Map<String, Object> serializeListingToFrontend(Listing l, String targetCurrency) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", l.getId());
+        map.put("title", l.getTitle());
+        map.put("description", l.getDescription());
+        map.put("city", l.getCity());
+        map.put("address", l.getAddress());
+        map.put("country", l.getCountry());
+
+        String locationValue = new StringJoiner(", ")
+                .add(l.getCity() != null ? l.getCity() : "")
+                .add(l.getCountry() != null ? l.getCountry() : "Burundi")
+                .toString().replaceAll("^,\\s*", "").trim();
+        map.put("location", locationValue);
+        map.put("province", l.getCity() != null ? l.getCity() : "");
+
+        String categoryLabel = guessCategoryFromTitle(l.getTitle());
+        map.put("category", categoryLabel);
+
+        map.put("latitude", l.getLatitude());
+        map.put("longitude", l.getLongitude());
+        map.put("bedrooms", l.getBedrooms());
+        map.put("bathrooms", l.getBathrooms());
+        map.put("bedroomsCount", l.getBedrooms() != null ? l.getBedrooms() : 1);
+        map.put("bathroomsCount", l.getBathrooms() != null ? l.getBathrooms() : 1);
+        map.put("guestsCount", Math.max(2, (l.getBedrooms() != null ? l.getBedrooms() : 1) * 2));
+
+        map.put("taxiMotoDistance", l.getTaxiMotoDistance());
+        map.put("surchargeGenerator", l.getSurchargeGenerator());
+        map.put("createdAt", l.getCreatedAt());
+
+        List<String> amenityNames = l.getAmenities() == null
+                ? Collections.emptyList()
+                : l.getAmenities().stream()
+                    .map(a -> normalizeAmenityKey(a.getName()))
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .collect(Collectors.toList());
+        map.put("amenities", amenityNames);
+
+        List<String> photoUrls = l.getPhotos() == null
+                ? Collections.emptyList()
+                : l.getPhotos().stream()
+                    .map(p -> p.getUrl())
+                    .filter(u -> u != null && !u.isEmpty())
+                    .limit(5)
+                    .collect(Collectors.toList());
+        map.put("photos", photoUrls);
+
+        if (photoUrls.isEmpty()) {
+            List<String> fallbackPicsum = new ArrayList<>();
+            String seed = sanitizeSeed(l.getId() != null ? l.getId() : UUID.randomUUID().toString());
+            for (int i = 0; i < 5; i++) {
+                fallbackPicsum.add("https://picsum.photos/seed/" + seed + "-" + i + "/800/600");
+            }
+            map.put("photos", fallbackPicsum);
+        }
+
+        if (l.getOwner() != null) {
+            Map<String, Object> ownerMap = new HashMap<>();
+            ownerMap.put("id", l.getOwner().getId());
+            ownerMap.put("name", l.getOwner().getName());
+            ownerMap.put("badge", l.getOwner().getBadge() != null ? l.getOwner().getBadge().name() : "NONE");
+            ownerMap.put("phone", l.getOwner().getPhone());
+            map.put("owner", ownerMap);
+            map.put("hostName", l.getOwner().getName());
+            map.put("isVerifiedHost", "VERIFIED".equals(l.getOwner().getBadge() != null ? l.getOwner().getBadge().name() : "NONE")
+                    || "PREMIUM".equals(l.getOwner().getBadge() != null ? l.getOwner().getBadge().name() : "NONE"));
+        } else {
+            map.put("hostName", "Hôte InzuConnect");
+            map.put("isVerifiedHost", false);
+        }
+
+        Double avg = l.getRatingAverageInternal();
+        Integer cnt = l.getReviewCountInternal();
+        map.put("rating", avg != null ? avg : 4.9d);
+        map.put("reviewCount", cnt != null ? cnt : 0);
+        map.put("datesAvailable", "Toute l'année");
+        map.put("isFavorite", false);
+
+        double displayPrice = l.getPrice();
+        String displayCurrency = l.getCurrency();
+
+        if (targetCurrency != null && !targetCurrency.trim().isEmpty()) {
+            displayPrice = convertCurrency(l.getPrice(), l.getCurrency(), targetCurrency);
+            displayCurrency = targetCurrency.toUpperCase();
+        }
+
+        map.put("price", displayPrice);
+        map.put("pricePerNightFbu", Math.round(displayPrice));
+        map.put("currency", displayCurrency);
+
+        return map;
+    }
+
+    private String sanitizeSeed(String s) {
+        return s.replaceAll("[^a-zA-Z0-9\\-]", "-").replaceAll("-{2,}", "-");
+    }
+
+    private String normalizeAmenityKey(String raw) {
+        if (raw == null) return null;
+        String key = raw.trim().toLowerCase().replaceAll("[-_\\s]+", " ");
+        return switch (key) {
+            case "generator", "groupe electrogene", "moteri", "group_electrogene", "group", "solaire" -> "GROUPE ELECTROGENE";
+            case "water_tank", "citerne", "tank", "ikigega c amazi", "citerne d eau", "citerne deau", "citerne 5000l" -> "CITERNE";
+            case "starlink", "wifi", "internet", "internet haut debit", "starlink internet", "umuhora" -> "STARLINK";
+            case "kitchen", "cuisine", "igikoni", "cuisine equipee", "cuisine moderne equipee" -> "CUISINE EQUIPEE";
+            case "security_guard", "gardien", "gardiennage", "abazamu", "securite", "sécurité" -> "GARDIEN 24/7";
+            case "parking", "park", "garage" -> "PARKING";
+            case "hot_water", "eau chaude" -> "EAU CHAUDE";
+            case "ac", "climatisation", "clim" -> "CLIMATISATION";
+            default -> raw.toUpperCase(java.util.Locale.FRENCH);
+        };
+    }
+
+    private String guessCategoryFromTitle(String t) {
+        if (t == null) return "Maison";
+        String low = t.toLowerCase(java.util.Locale.FRENCH);
+        if (low.contains("studio")) return "Studio";
+        if (low.contains("villa")) return "Villa";
+        if (low.contains("appartement") || low.contains("apt")) return "Appartement";
+        if (low.contains("chambre") || low.contains("room")) return "Chambre";
+        return "Maison";
+    }
+
     private User getCurrentUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return userRepository.findByEmail(email)

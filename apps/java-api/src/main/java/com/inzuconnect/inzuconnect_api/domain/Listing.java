@@ -119,6 +119,16 @@ public class Listing {
     @Column(name = "\"monthlyDiscountPercent\"", nullable = false)
     private Integer monthlyDiscountPercent = 0;
 
+    @Transient
+    public Double getRatingAverageInternal() {
+        return null;
+    }
+
+    @Transient
+    public Integer getReviewCountInternal() {
+        return 0;
+    }
+
     @Column(name = "\"extraGuestFee\"", nullable = false)
     private Integer extraGuestFee = 0;
 

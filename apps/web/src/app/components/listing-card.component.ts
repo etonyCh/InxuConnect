@@ -30,7 +30,7 @@ import { Listing } from '../models/listing.model';
 })
 export class ListingCardComponent {
   @Input() listing!: Listing;
-  @Output() clicked = new EventEmitter<number>();
+  @Output() clicked = new EventEmitter<string>();
   @Output() favorited = new EventEmitter<Listing>();
 
   clickEmit(): void {
@@ -44,12 +44,8 @@ export class ListingCardComponent {
 
   hasInfra(): boolean {
     if (!this.listing.amenities) return false;
-    return this.listing.amenities.some(
-      (a) =>
-        a.toLowerCase() === 'groupe' ||
-        a.toLowerCase() === 'citerne' ||
-        a.toLowerCase() === 'starlink',
-    );
+    const s = this.listing.amenities.join('|').toLowerCase();
+    return s.includes('groupe') || s.includes('citerne') || s.includes('starlink');
   }
 
   infraLabel(): string {
