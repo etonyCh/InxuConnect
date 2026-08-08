@@ -1345,3 +1345,345 @@ html[data-theme="mulberry-mint"] .theme-toggle__dot{
   background: linear-gradient(135deg, var(--mulberry) 35%, var(--gold) 60%, var(--mint) 100%);
 }
 
+
+/* ==========================================================================
+   HERO STYLE — ROYAL HOMES (Inspiration template image)
+   Structure: Navbar + BG image luxe villa + onglets 3 modes + searchbar XL blanche
+              + 6 catégories cartes icônes colorées DÉBORDANT vers le bas
+   Compatible DEUX thèmes:
+     · Signal&Grid: accent #50e8f4 (fluor bleu), rouge royal → bleu fluor
+     · Mulberry Mint: accent or #B08C5E, rouge royal → or mat
+   ========================================================================== */
+
+/* ---------- GLOBAL SURCHARGE HERO (classe principale sur le header) ---------- */
+.hero-royal{
+  position: relative;
+  overflow: visible;
+  padding-bottom: 112px; /* espace pour 6 cartes categories qui débordent */
+  background:
+    /* superposition overlay sombre progressif pour lisibilité texte */
+    linear-gradient(180deg, rgba(0,0,0,.28) 0%, rgba(0,0,0,.36) 45%, rgba(3,22,25,.82) 100%),
+    /* image de fond villa luxe piscine palmier (inspiration ROYAL Homes) */
+    url('https://picsum.photos/seed/inzuconnect-royal-hero-villa-lac-tanganyika/1800/1100') center/cover no-repeat;
+  color: var(--white);
+  min-height: 720px;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+/* Thème Mulberry Mint → overlay teinté prune léger */
+html[data-theme="mulberry-mint"] .hero-royal{
+  background:
+    linear-gradient(180deg, rgba(58,32,54,.22) 0%, rgba(58,32,54,.48) 45%, rgba(42,23,40,.90) 100%),
+    url('https://picsum.photos/seed/inzuconnect-mulberry-royal-hero-villa/1800/1100') center/cover no-repeat;
+}
+/* Mobile safe-area */
+@media(max-width: 680px){
+  .hero-royal{ min-height: 780px; padding-bottom: 140px; }
+}
+
+/* ---------- NAVBAR INSPIRE ROYAL HOMES (logo serif + menu + LOGIN carré) ---------- */
+.royal-nav{
+  display:flex; justify-content: space-between; align-items:center;
+  padding: 1.4rem clamp(1rem, 3vw, 2.2rem) 0;
+  position: relative; z-index: 5;
+}
+.royal-nav__menu{ display:flex; gap: 1.4rem; align-items:center; }
+.royal-nav__item{
+  color: #FFFFFFDD; font-family: var(--f-body); font-weight: 500; font-size: .92rem;
+  display:inline-flex; align-items:center; gap:.25rem;
+  padding: .45rem .7rem; border-radius: 10px;
+  transition: all .2s var(--ease);
+  cursor: pointer;
+  background: transparent; border: 0;
+}
+.royal-nav__item:hover{ background: rgba(255,255,255,.09); color:#FFFFFF; }
+@media(max-width: 900px){ .royal-nav__menu{ display:none; } }
+
+/* ROYAL NAV LOGO: style "ROYAL — Homes —" mais InzuConnect + serif */
+.royal-logo{
+  cursor: pointer; background: transparent; border: 0; color: #FFF;
+  display:flex; flex-direction: column; align-items: flex-start; gap:2px;
+  font-family: var(--f-display, serif);
+  padding: .3rem .4rem; border-radius: 10px;
+}
+.royal-logo:hover{ background: rgba(255,255,255,.07); }
+.royal-logo__word{ font-weight: 700; font-size: 1.8rem; letter-spacing: -.01em; line-height:1; }
+html[data-theme="mulberry-mint"] .royal-logo__word{
+  background: linear-gradient(135deg, var(--gold-soft) 0%, #FFFFFF 70%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
+.royal-logo__line{
+  display:flex; align-items: center; gap:.55rem;
+  font-family: var(--f-mono); font-weight: 500; font-size: .68rem; letter-spacing: .2em;
+  color: rgba(255,255,255,.72);
+}
+.royal-logo__line::before, .royal-logo__line::after{
+  content:''; display:block; width: 24px; height: 1px; background: rgba(255,255,255,.5);
+}
+
+/* LOGIN BOUTON CARRÉ ROUGE ROYAL → remplacé par thème accent (fluor/gold) */
+.btn-royal-login{
+  padding: .7rem 1.3rem;
+  border-radius: 6px;
+  background: var(--fluor);
+  color: #001619;
+  font-family: var(--f-body); font-weight: 700; font-size: .88rem; letter-spacing: .02em;
+  border: 0; cursor: pointer;
+  box-shadow: 0 8px 20px -8px var(--fluor-dim);
+  transition: all .2s var(--ease);
+}
+.btn-royal-login:hover{ transform: translateY(-1px); filter: brightness(1.08); }
+html[data-theme="mulberry-mint"] .btn-royal-login{
+  color: #FFF; background: var(--mulberry); border: 1px solid rgba(176,140,94,.45);
+  box-shadow: 0 10px 22px -10px rgba(58,32,54,.7);
+}
+
+/* ---------- HERO CONTENT CENTRE (titre + sous-titre + onglets + searchbar XL) ---------- */
+.royal-hero__core{
+  max-width: 1200px; margin: 3.4rem auto 0;
+  padding: 0 clamp(1rem, 3vw, 2rem);
+  position: relative; z-index: 4;
+  text-align: center;
+}
+.royal-hero__eyebrow{
+  display:inline-block;
+  font-family: var(--f-mono); font-size: .76rem; letter-spacing: .26em; font-weight: 600;
+  color: rgba(255,255,255,.8);
+  padding: .4rem .9rem; border-radius: 999px;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.12);
+  margin-bottom: 1.4rem;
+}
+.royal-hero__eyebrow .royal-accent{
+  color: var(--fluor); margin: 0 .2rem;
+}
+html[data-theme="mulberry-mint"] .royal-hero__eyebrow .royal-accent{ color: var(--gold); }
+
+/* TITRE PRINCIPAL: style exact "Best Place To Find Resident." → accent mot en couleur */
+.royal-hero__title{
+  font-family: var(--f-display, serif);
+  font-size: clamp(2.2rem, 5vw, 4.2rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -.018em;
+  margin: 0 auto 1.1rem;
+  max-width: 1000px;
+  color: #FFFFFF;
+}
+.royal-hero__title .royal-accent{
+  color: var(--fluor);
+  position: relative;
+  font-weight: 700;
+  display: inline-block;
+  padding: 0 .05em;
+}
+html[data-theme="mulberry-mint"] .royal-hero__title .royal-accent{ color: var(--gold); }
+.royal-hero__title .royal-accent::after{
+  content:'.';
+  color: var(--fluor);
+  font-weight: 700;
+}
+html[data-theme="mulberry-mint"] .royal-hero__title .royal-accent::after{ color: var(--gold); }
+
+/* SOUS-TITRE prix */
+.royal-hero__sub{
+  max-width: 720px; margin: 0 auto 2rem;
+  font-family: var(--f-body);
+  font-size: clamp(1rem, 1.4vw, 1.15rem);
+  line-height: 1.45;
+  color: rgba(255,255,255,.86);
+}
+.royal-hero__sub strong{ color: #FFFFFF; font-weight: 600; }
+
+/* ---------- ONGLETS 3 MODES: Rent / Long Term / Sale (ROYAL: Buy/Rent/Sale) ---------- */
+.royal-tabs{
+  display:inline-flex;
+  background: rgba(255,255,255,.06);
+  padding: .35rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.12);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  gap: .4rem;
+  margin-bottom: 1.6rem;
+}
+.royal-tab{
+  padding: .65rem 1.4rem;
+  border-radius: 8px;
+  background: transparent; border:0; cursor: pointer;
+  color: rgba(255,255,255,.8);
+  font-family: var(--f-body); font-weight: 600; font-size: .92rem;
+  position: relative;
+  transition: all .25s var(--ease);
+}
+.royal-tab:hover{ color: #FFFFFF; }
+.royal-tab.is-active{
+  background: var(--fluor);
+  color: #001619;
+  box-shadow: 0 8px 22px -10px var(--fluor-dim);
+}
+html[data-theme="mulberry-mint"] .royal-tab.is-active{
+  background: var(--mulberry);
+  color: #FFFFFF;
+  border: 1px solid rgba(176,140,94,.4);
+}
+/* Petite flèche sous onglet actif (style "pointe vers le bas" exacte template ROYAL) */
+.royal-tab.is-active::after{
+  content:''; position: absolute; left: 50%; bottom: -10px; transform: translateX(-50%);
+  width: 0; height: 0;
+  border-left: 8px solid transparent; border-right: 8px solid transparent;
+  border-top: 8px solid var(--fluor);
+}
+html[data-theme="mulberry-mint"] .royal-tab.is-active::after{ border-top-color: var(--mulberry); }
+
+/* ---------- SEARCH BAR XL BLANCHE (soulève sur le hero: ombre PORTEE) ---------- */
+.royal-searchbar{
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr auto auto;
+  gap: .0rem;
+  align-items: center;
+  background: #FFFFFF;
+  border-radius: 14px;
+  padding: .65rem;
+  border: 1px solid rgba(0,0,0,.06);
+  box-shadow:
+    0 40px 80px -20px rgba(0,0,0,.40),
+    0 0 0 1px rgba(255,255,255,.05) inset;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+@media(max-width: 920px){
+  .royal-searchbar{
+    grid-template-columns: 1fr 1fr;
+    gap: .5rem; padding: 1rem;
+  }
+}
+@media(max-width: 560px){
+  .royal-searchbar{ grid-template-columns: 1fr; }
+}
+
+.royal-searchbar__field{
+  padding: .6rem .9rem;
+  border-right: 1px solid rgba(0,0,0,.08);
+  display: flex; flex-direction: column; gap: 2px;
+  min-width: 0;
+}
+@media(max-width: 920px){
+  .royal-searchbar__field{ border-right: 0; border-bottom: 1px solid rgba(0,0,0,.08); padding: .7rem .6rem; }
+}
+@media(max-width: 560px){
+  .royal-searchbar__field{ border: 0; padding: .2rem 0; }
+}
+.royal-searchbar__field:last-of-type{ border-right: 0; }
+.royal-searchbar label{
+  font-family: var(--f-mono); font-size: .7rem; letter-spacing: .1em; font-weight: 600;
+  color: rgba(0,0,0,.45); text-transform: uppercase;
+  white-space: nowrap;
+}
+.royal-searchbar input, .royal-searchbar select{
+  border: 0; background: transparent; outline: none;
+  font-family: var(--f-body); font-size: .98rem; font-weight: 600;
+  color: var(--charcoal);
+  padding: .2rem 0;
+  width: 100%; min-width: 0;
+}
+.royal-searchbar select{ cursor: pointer; appearance: none; padding-right: 1.2rem;
+  background-image:
+    linear-gradient(45deg, transparent 50%, #333 50%),
+    linear-gradient(135deg, #333 50%, transparent 50%);
+  background-position: calc(100% - 16px) 50%, calc(100% - 10px) 50%;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+}
+.royal-searchbar__divider{ width: 1px; height: 42px; background: rgba(0,0,0,.08); display:block; }
+@media(max-width: 920px){ .royal-searchbar__divider{ display:none; } }
+
+/* Boutons More Options + Search */
+.btn-royal-more, .btn-royal-search{
+  padding: .95rem 1.2rem; border-radius: 10px;
+  font-family: var(--f-body); font-weight: 700; font-size: .9rem;
+  cursor: pointer; border: 0; white-space: nowrap;
+  transition: all .2s var(--ease);
+}
+.btn-royal-more{
+  background: rgba(0,0,0,.03);
+  color: var(--charcoal);
+  border: 1.5px solid var(--fluor);
+  display: inline-flex; align-items: center; gap: .5rem;
+}
+.btn-royal-more:hover{ background: var(--fluor-dim); }
+html[data-theme="mulberry-mint"] .btn-royal-more{
+  border-color: var(--mulberry);
+  color: var(--mulberry);
+}
+.btn-royal-search{
+  background: var(--fluor);
+  color: #001619;
+  margin-left: .5rem;
+  padding: .95rem 1.8rem;
+  border-radius: 8px;
+  box-shadow: 0 10px 22px -10px var(--fluor-dim-2);
+  display: inline-flex; align-items: center; gap: .45rem;
+}
+.btn-royal-search:hover{ transform: translateY(-1px); filter: brightness(1.08); }
+html[data-theme="mulberry-mint"] .btn-royal-search{
+  background: var(--mulberry);
+  color: #FFFFFF;
+}
+@media(max-width: 920px){
+  .btn-royal-search, .btn-royal-more{ width:100%; justify-content: center; margin: 0; }
+}
+
+/* ---------- 6 CARTES CATÉGORIES (DÉBORDENT HERO VERS LE BAS) ---------- */
+.royal-categories{
+  position: relative;
+  z-index: 6;
+  max-width: 1200px; margin: 3.6rem auto 0;
+  padding: 0 clamp(1rem, 3vw, 2rem);
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 1rem;
+}
+@media(max-width: 1100px){ .royal-categories{ grid-template-columns: repeat(3, 1fr); } }
+@media(max-width: 560px){ .royal-categories{ grid-template-columns: repeat(2, 1fr); gap: .75rem; } }
+
+.royal-cat{
+  background: #FFFFFF;
+  border-radius: 14px;
+  padding: 1.35rem 1rem 1.15rem;
+  display: flex; flex-direction: column; align-items: center; gap: .7rem;
+  text-align: center;
+  box-shadow: 0 22px 50px -20px rgba(0,0,0,.25), 0 0 0 1px rgba(0,0,0,.04);
+  cursor: pointer;
+  transition: transform .3s var(--ease), box-shadow .3s var(--ease), border-color .2s var(--ease);
+  border: 2px solid transparent;
+}
+.royal-cat:hover{
+  transform: translateY(-6px) scale(1.01);
+  box-shadow: 0 30px 60px -22px rgba(0,0,0,.34);
+  border-color: var(--fluor);
+}
+html[data-theme="mulberry-mint"] .royal-cat:hover{ border-color: var(--gold); }
+.royal-cat.is-active{
+  border-color: var(--fluor);
+  box-shadow: 0 24px 50px -18px var(--fluor-dim);
+}
+html[data-theme="mulberry-mint"] .royal-cat.is-active{ border-color: var(--mulberry); box-shadow: 0 24px 50px -18px rgba(58,32,54,.4); }
+.royal-cat__icon{
+  font-size: 2.2rem;
+  width: 68px; height: 68px;
+  display:grid; place-items:center;
+  border-radius: 16px;
+  background: var(--thin-air-2);
+  transition: background .3s var(--ease);
+}
+html[data-theme="mulberry-mint"] .royal-cat__icon{ background: rgba(220,235,219,.45); }
+.royal-cat:hover .royal-cat__icon{ background: var(--fluor-dim); }
+html[data-theme="mulberry-mint"] .royal-cat:hover .royal-cat__icon{ background: rgba(176,140,94,.18); }
+.royal-cat__name{
+  font-family: var(--f-body); font-weight: 700; font-size: .94rem;
+  color: var(--charcoal);
+  line-height: 1.2;
+}
+html[data-theme="mulberry-mint"] .royal-cat__name{ color: var(--mulberry); }
+
