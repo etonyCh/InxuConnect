@@ -1034,3 +1034,314 @@ input[type="range"]{ width:100%; accent-color: var(--charcoal); margin-top: .3re
   position: absolute; bottom: calc(100% + .2rem);
   font-family: var(--f-mono); font-size: .62rem; color: var(--charcoal); opacity: .8;
 }
+
+/* ============================================================================
+   THÈME #2 — MULBERRY MINT LUXE (Palette issue de l'image)
+   Inspiré: hospitality haut de gamme / parchemin / luxe éthique
+   Couleurs:
+     · Mulberry  #3A2036 (prune foncé - image gauche carte)
+     · Mint      #DCEBDB (vert menthe pâle - image droite carte)
+     · Paper     #F1EBE3 (parchemin beige fond)
+     · Gold      #B08C5E (accent luxe or subtil)
+   Activation: <html data-theme="mulberry-mint">
+   ========================================================================= */
+
+:root{
+  /* Variables vides safe (par défaut thème Signal&Grid) */
+  --mulberry:      #3A2036;
+  --mulberry-deep: #2A1728;
+  --mulberry-soft: #5A3353;
+  --mint:          #DCEBDB;
+  --mint-soft:     #F0F6F0;
+  --mint-leaf:     #8FB093;
+  --paper:         #F1EBE3;
+  --paper-soft:    #F8F4EE;
+  --gold:          #B08C5E;
+  --gold-soft:     #D4B58A;
+  --ink-parchment: #2E1C2B;
+  --ink-on-mulb:   #F0F3EF;
+}
+
+/* -------- Activation thème Mulberry Mint par attribut html -------- */
+html[data-theme="mulberry-mint"]{
+  /* Surcharge DESIGN SYSTEM entier */
+  --charcoal:      var(--mulberry);
+  --charcoal-1:    #2A1728;
+  --charcoal-2:    #331C30;
+  --charcoal-3:    #452741;
+  --fluor:         var(--gold);
+  --fluor-soft:    var(--gold-soft);
+  --fluor-dim:     rgba(176,140,94,.16);
+  --fluor-dim-2:   rgba(176,140,94,.30);
+  --thin-air:      var(--mint);
+  --thin-air-2:    var(--paper);
+  --white:         var(--paper-soft);
+  --alert:         #BC5F6A;
+  --alert-dim:     rgba(188,95,106,.14);
+  --ok:            #6FA884;
+  --ink-on-dark:    #F0F3EF;
+  --ink-on-dark-70: rgba(240,243,239,.72);
+  --ink-on-dark-45: rgba(240,243,239,.45);
+  --ink-on-light:   #2E1C2B;
+  --ink-on-light-65:rgba(46,28,43,.68);
+  --ink-on-light-40:rgba(46,28,43,.42);
+
+  /* Rayons + luxe: coins plus arrondis, ombres soft */
+  --r-sm: 12px;
+  --r-md: 20px;
+  --r-lg: 28px;
+
+  /* Typographies: serif luxe pour titres + Inter body */
+  --f-display: 'Playfair Display', 'Space Grotesk', serif;
+  --f-body:    'Inter', 'Plus Jakarta Sans', sans-serif;
+
+  /* Ombres: plus profondes & chaudes */
+  --shadow-glow: 0 0 0 1px rgba(176,140,94,.22), 0 18px 56px -14px rgba(58,32,54,.22);
+  --shadow-card: 0 2px 6px rgba(46,28,43,.05), 0 22px 48px -22px rgba(58,32,54,.18);
+}
+
+/* Background body global en mode Mulberry: PARCHEMIN #F1EBE3 */
+html[data-theme="mulberry-mint"] body{
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(220,235,219,.55), transparent 60%),
+    radial-gradient(900px 500px at 110% 10%, rgba(58,32,54,.08), transparent 55%),
+    var(--paper);
+  color: var(--ink-parchment);
+}
+html[data-theme="mulberry-mint"] h1,
+html[data-theme="mulberry-mint"] h2,
+html[data-theme="mulberry-mint"] h3,
+html[data-theme="mulberry-mint"] h4{
+  color: var(--mulberry);
+  letter-spacing: -0.005em;
+}
+html[data-theme="mulberry-mint"] h1{ font-weight: 600; }
+html[data-theme="mulberry-mint"] h2{ font-weight: 600; }
+html[data-theme="mulberry-mint"] h3{ font-weight: 600; }
+/* Barre signature "titre avec underline fin doré / menthe" (comme image sous Mulberry) */
+html[data-theme="mulberry-mint"] h1::after,
+html[data-theme="mulberry-mint"] .serif-rule::after{
+  content:''; display:block; margin-top:.75rem;
+  height:1px; width: min(96px, 26vw);
+  background: linear-gradient(90deg, var(--gold) 0%, var(--mint-leaf) 100%);
+  border-radius: 999px;
+}
+html[data-theme="mulberry-mint"] ::selection{ background: var(--mulberry); color: var(--mint); }
+html[data-theme="mulberry-mint"] :focus-visible{ outline: 2px solid var(--gold); outline-offset: 3px; }
+
+/* Boutons Mulberry Mint (luxe) */
+html[data-theme="mulberry-mint"] .btn-primary{
+  background: linear-gradient(135deg, var(--mulberry) 0%, #4D2B48 100%);
+  color: var(--mint);
+  box-shadow: 0 10px 28px -10px rgba(58,32,54,.55), inset 0 1px 0 rgba(255,255,255,.06);
+  font-weight: 500;
+  letter-spacing: .01em;
+}
+html[data-theme="mulberry-mint"] .btn-primary:hover{
+  background: linear-gradient(135deg, #452741 0%, var(--mulberry-soft) 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 14px 34px -10px rgba(58,32,54,.62);
+}
+html[data-theme="mulberry-mint"] .btn-dark{
+  background: var(--mulberry);
+  color: var(--mint);
+  box-shadow: 0 8px 24px -8px rgba(46,28,43,.5);
+}
+html[data-theme="mulberry-mint"] .btn-dark:hover{ background: #452741; }
+html[data-theme="mulberry-mint"] .btn-ghost{
+  border-color: rgba(58,32,54,.16);
+  color: var(--mulberry);
+}
+html[data-theme="mulberry-mint"] .btn-ghost:hover{
+  border-color: var(--gold);
+  background: rgba(176,140,94,.08);
+}
+html[data-theme="mulberry-mint"] .icon-btn{
+  background: rgba(58,32,54,.06);
+  color: var(--mulberry);
+}
+html[data-theme="mulberry-mint"] .icon-btn:hover{
+  background: rgba(176,140,94,.14);
+  color: var(--gold);
+}
+
+/* Chips/Tags luxe */
+html[data-theme="mulberry-mint"] .chip{
+  background: var(--mint-soft);
+  color: var(--mulberry);
+  border: 1px solid rgba(143,176,147,.35);
+  font-weight: 500;
+}
+html[data-theme="mulberry-mint"] .chip.is-active{
+  background: var(--mulberry);
+  color: var(--mint);
+  border-color: var(--mulberry);
+  box-shadow: var(--shadow-glow);
+}
+html[data-theme="mulberry-mint"] .chip:hover{ background: rgba(220,235,219,.9); }
+html[data-theme="mulberry-mint"] .check-pill{
+  border-color: rgba(58,32,54,.14);
+  background: var(--paper-soft);
+  color: var(--ink-parchment);
+}
+html[data-theme="mulberry-mint"] .check-pill:has(input:checked){
+  border-color: var(--gold);
+  background: rgba(176,140,94,.10);
+  color: var(--mulberry);
+}
+
+/* Pulse BADGE Mulberry: remplace glow bleu par OR LUXE ★ */
+html[data-theme="mulberry-mint"] .pulse{
+  --pulse-color: var(--gold);
+  background: var(--gold);
+  box-shadow:0 0 0 0 var(--gold);
+}
+html[data-theme="mulberry-mint"] .infra-badge{
+  background: linear-gradient(135deg, var(--mulberry), var(--mulberry-soft));
+  color: var(--mint);
+  border: 1px solid rgba(176,140,94,.35);
+  font-family: var(--f-body);
+  letter-spacing: .02em;
+  padding: .35rem .7rem .35rem .55rem;
+}
+html[data-theme="mulberry-mint"] .infra-badge::before{
+  content:'★ ';
+  color: var(--gold);
+  font-weight: 700;
+  margin-right:.1rem;
+}
+html[data-theme="mulberry-mint"] .infra-badge > :first-child:empty,
+html[data-theme="mulberry-mint"] .infra-badge .pulse{ display: none; }
+
+/* Cards surfaces luxe paper */
+html[data-theme="mulberry-mint"] .surface{
+  background: var(--paper-soft);
+  border: 1px solid rgba(58,32,54,.07);
+  box-shadow: var(--shadow-card);
+}
+html[data-theme="mulberry-mint"] .surface-dark{
+  background:
+    linear-gradient(160deg, var(--mulberry) 0%, #261624 100%);
+  color: var(--ink-on-mulb);
+  border: 1px solid rgba(176,140,94,.16);
+}
+
+/* Form fields luxe */
+html[data-theme="mulberry-mint"] .field label{
+  color: rgba(58,32,54,.55);
+  font-weight: 500;
+  letter-spacing: .12em;
+}
+html[data-theme="mulberry-mint"] .field input,
+html[data-theme="mulberry-mint"] .field select,
+html[data-theme="mulberry-mint"] .field textarea{
+  border: 1.5px solid rgba(143,176,147,.45);
+  background: var(--mint-soft);
+  color: var(--ink-parchment);
+  transition: all .25s var(--ease);
+}
+html[data-theme="mulberry-mint"] .field input:focus,
+html[data-theme="mulberry-mint"] .field select:focus,
+html[data-theme="mulberry-mint"] .field textarea:focus{
+  border-color: var(--mulberry);
+  background: #FFFFFF;
+  box-shadow: 0 0 0 4px rgba(58,32,54,.07);
+  outline: none;
+}
+
+/* Status badges (luxe muted) */
+html[data-theme="mulberry-mint"] .status-pending{ background: rgba(188,95,106,.14); color:#8A3E49; }
+html[data-theme="mulberry-mint"] .status-paid{    background: rgba(176,140,94,.18); color:#7A5A35; }
+html[data-theme="mulberry-mint"] .status-checkedin{ background: rgba(143,176,147,.28); color:#4E6E55; }
+html[data-theme="mulberry-mint"] .status-verified{  background: rgba(143,176,147,.28); color:#4E6E55; }
+
+/* listing-card luxe spécifique: cards paper + typo serif + or hover */
+html[data-theme="mulberry-mint"] .listing-card{
+  background: var(--paper-soft);
+  border: 1px solid rgba(58,32,54,.07);
+  border-radius: var(--r-lg);
+  padding: 1rem;
+  transition: transform .35s var(--ease), box-shadow .35s var(--ease), border-color .35s var(--ease);
+}
+html[data-theme="mulberry-mint"] .listing-card:hover{
+  transform: translateY(-4px);
+  box-shadow:
+    0 30px 70px -30px rgba(58,32,54,.32),
+    0 0 0 1px rgba(176,140,94,.22);
+  border-color: rgba(176,140,94,.28);
+}
+html[data-theme="mulberry-mint"] .listing-card h3{
+  font-family: var(--f-display);
+  font-weight: 600;
+  color: var(--mulberry);
+}
+html[data-theme="mulberry-mint"] .listing-card__media{
+  border-radius: var(--r-md) !important;
+  border: 1px solid rgba(58,32,54,.08);
+}
+html[data-theme="mulberry-mint"] .listing-card .mono{
+  color: var(--mulberry);
+  font-weight: 600;
+}
+
+/* Host dashboard savings luxe */
+html[data-theme="mulberry-mint"] .savings-panel__balance{
+  color: var(--mint);
+  background: linear-gradient(90deg, var(--gold-soft), var(--mint));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+html[data-theme="mulberry-mint"] .bookings-table thead th{ background: rgba(176,140,94,.08); }
+html[data-theme="mulberry-mint"] .bookings-table tbody tr:hover td{ background: rgba(220,235,219,.55); }
+html[data-theme="mulberry-mint"] .switch input:checked + span{ background: var(--gold); }
+html[data-theme="mulberry-mint"] .switch input:checked + span::before{ background: var(--mulberry); }
+html[data-theme="mulberry-mint"] .bar i{
+  background: linear-gradient(180deg, var(--mulberry) 0%, var(--mint-leaf) 100%);
+}
+html[data-theme="mulberry-mint"] .top-bar-fill i{
+  background: linear-gradient(90deg, var(--mulberry), var(--gold));
+}
+
+/* ------------------------------
+   BOUTON TOGGLE FLOTTANT THÈME
+   (en bas à droite, non invasif)
+   ------------------------------ */
+.theme-toggle{
+  position: fixed;
+  right: calc(16px + env(safe-area-inset-right));
+  bottom: calc(100px + env(safe-area-inset-bottom));
+  z-index: 70;
+  display:flex; flex-direction:column; align-items:stretch; gap:.5rem;
+  pointer-events: none;
+}
+.theme-toggle__btn{
+  pointer-events: auto;
+  display:inline-flex; align-items:center; gap:.5rem;
+  padding: .7rem .95rem;
+  border-radius: var(--r-pill);
+  font-family: var(--f-mono); font-weight: 600; font-size: .72rem;
+  background: rgba(1,20,24,.90);
+  color: var(--thin-air);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(80,232,244,.22);
+  box-shadow: 0 14px 32px -14px rgba(0,0,0,.55);
+  transition: all .25s var(--ease);
+}
+.theme-toggle__btn:hover{ transform: translateY(-1px); }
+.theme-toggle__dot{
+  display:inline-block; width:10px; height:10px; border-radius:50%;
+  background: linear-gradient(135deg, var(--fluor) 50%, var(--thin-air) 100%);
+}
+.theme-toggle__label{ opacity: .88; white-space: nowrap; }
+/* Thème Mulberry Mint sur le toggle lui-même */
+html[data-theme="mulberry-mint"] .theme-toggle__btn{
+  background: rgba(58,32,54,.92);
+  color: var(--mint);
+  border: 1px solid rgba(176,140,94,.35);
+}
+html[data-theme="mulberry-mint"] .theme-toggle__dot{
+  background: linear-gradient(135deg, var(--mulberry) 35%, var(--gold) 60%, var(--mint) 100%);
+}
+
