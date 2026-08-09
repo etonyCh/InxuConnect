@@ -42,6 +42,13 @@ bootstrapApplication(AppComponent, {
             ),
         },
         {
+          path: 'kyc',
+          loadComponent: () =>
+            import('./app/pages/kyc-page.component').then(
+              (m) => m.KycPageComponent,
+            ),
+        },
+        {
           path: 'login',
           loadComponent: () =>
             import('./app/pages/auth-page.component').then((m) => m.AuthPageComponent),

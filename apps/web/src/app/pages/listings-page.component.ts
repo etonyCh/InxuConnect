@@ -256,7 +256,7 @@ export type TransactionType = 'all' | 'rent' | 'buy' | 'passage';
         <ul>
           <li><a (click)="isAboutOpen.set(true)">À propos d'InzuConnect</a></li>
           <li><a (click)="isContactOpen.set(true)">Formulaire de Contact</a></li>
-          <li><a (click)="isKycOpen.set(true)">Vérification KYC & Badge</a></li>
+          <li><a routerLink="/kyc">Vérification KYC & Badge Hôte</a></li>
         </ul>
       </div>
 

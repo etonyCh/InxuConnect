@@ -384,7 +384,7 @@ interface StatItem { icon: string; value: string; label: string; }
         <ul>
           <li><a (click)="setActiveNav('about')">À propos d'InzuConnect</a></li>
           <li><a (click)="setActiveNav('contact')">Formulaire de Contact</a></li>
-          <li><a (click)="isKycOpen.set(true)">Vérification KYC & Badge</a></li>
+          <li><a routerLink="/kyc">Vérification KYC & Badge Hôte</a></li>
           <li><a (click)="isTransferOpen.set(true)">Services de Transfert</a></li>
           <li><a (click)="isVoiceOpen.set(true)">Assistant Vocal Kirundi</a></li>
         </ul>
