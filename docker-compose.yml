@@ -44,7 +44,7 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       JWT_SECRET: ${JWT_SECRET:-8f8a8b8c8d8e8f8a8b8c8d8e8f8a8b8c8d8e8f8a8b8c8d8e8f8a8b8c8d8e8f8a}
-      FRONTEND_URL: http://localhost,http://localhost:4200,http://192.168.1.12,http://192.168.1.12:4200,http://192.168.1.12:8082
+      FRONTEND_URL: http://localhost:4200,http://192.168.1.12:4200
     ports:
       - "8085:8080"
 
@@ -58,8 +58,9 @@ services:
       - backend
     ports:
       - "4200:80"
-      - "8082:80"
 
 volumes:
   postgres_data:
+    name: inzuconnect_postgres_data
   redis_data:
+    name: inzuconnect_redis_data
