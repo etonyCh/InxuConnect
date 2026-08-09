@@ -381,32 +381,32 @@ interface StatItem { icon: string; value: string; label: string; }
       <button class="overlay__close" (click)="isAboutOpen.set(false)">✕</button>
     </div>
     <div class="overlay__body">
-      <p style="font-size:1rem;color:var(--ink-on-light);line-height:1.6;margin-bottom:1.5rem">
-        <strong>InzuConnect</strong> est la 1ère plateforme immobilière certifiée au Burundi dédiée à l'achat, la location et l'hospitalité haut de gamme.
+      <p style="font-size:1rem;color:var(--c-obsidian);line-height:1.6;margin-bottom:1.5rem;font-weight:500">
+        <strong style="color:var(--c-bronze-dark)">InzuConnect</strong> est la 1ère plateforme immobilière certifiée au Burundi dédiée à l'achat, la location et l'hospitalité haut de gamme.
       </p>
 
       <div class="security-promises" style="margin-bottom:1.5rem">
-        <div class="promise-item" style="background:var(--c-cream);border-color:rgba(166,138,109,0.2)">
-          <span class="promise-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s-8-4.5-8-11.8A7 7 0 0 1 12 3a7 7 0 0 1 8 7.2c0 7.3-8 11.8-8 11.8z"/></svg></span>
+        <div class="promise-item promise-item--dark">
+          <span class="promise-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s-8-4.5-8-11.8A7 7 0 0 1 12 3a7 7 0 0 1 8 7.2c0 7.3-8 11.8-8 11.8z"/></svg></span>
           <div>
-            <strong style="color:var(--c-obsidian)">Eau & Électricité Garanties</strong>
-            <p style="color:var(--ink-on-light-65)">Chaque logement répertorié dispose d'une alimentation électrique et d'eau autonome contrôlée.</p>
+            <strong class="promise-title">Eau & Électricité Garanties</strong>
+            <p class="promise-desc">Chaque logement répertorié dispose d'une alimentation électrique et d'eau autonome contrôlée.</p>
           </div>
         </div>
 
-        <div class="promise-item" style="background:var(--c-cream);border-color:rgba(166,138,109,0.2)">
-          <span class="promise-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 5v6c0 5 3.4 8.7 8 11 4.6-2.3 8-6 8-11V5l-8-3Z"/></svg></span>
+        <div class="promise-item promise-item--dark">
+          <span class="promise-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 5v6c0 5 3.4 8.7 8 11 4.6-2.3 8-6 8-11V5l-8-3Z"/></svg></span>
           <div>
-            <strong style="color:var(--c-obsidian)">Hôtes & Propriétaires Vérifiés (Badge KYC)</strong>
-            <p style="color:var(--ink-on-light-65)">Vérification systématique d'identité et des titres de propriété.</p>
+            <strong class="promise-title">Hôtes & Propriétaires Vérifiés (Badge KYC)</strong>
+            <p class="promise-desc">Vérification systématique d'identité et des titres de propriété.</p>
           </div>
         </div>
 
-        <div class="promise-item" style="background:var(--c-cream);border-color:rgba(166,138,109,0.2)">
-          <span class="promise-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/></svg></span>
+        <div class="promise-item promise-item--dark">
+          <span class="promise-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/></svg></span>
           <div>
-            <strong style="color:var(--c-obsidian)">Couverture Nationale</strong>
-            <p style="color:var(--ink-on-light-65)">Des milliers de biens disponibles à Bujumbura, Gitega, Ngozi et dans tout le Burundi.</p>
+            <strong class="promise-title">Couverture Nationale</strong>
+            <p class="promise-desc">Des milliers de biens disponibles à Bujumbura, Gitega, Ngozi et dans tout le Burundi.</p>
           </div>
         </div>
       </div>
@@ -428,7 +428,7 @@ interface StatItem { icon: string; value: string; label: string; }
       <button class="overlay__close" (click)="isContactOpen.set(false)">✕</button>
     </div>
     <form class="overlay__body" (submit)="onContactSubmit($event)">
-      <p style="font-size:0.9rem;color:var(--ink-on-light-65);margin-bottom:1.5rem">
+      <p style="font-size:0.9rem;color:var(--c-obsidian);margin-bottom:1.5rem">
         Une question sur une annonce, un partenariat ou besoin d'assistance ? Remplissez ce formulaire et notre équipe vous répondra sous 24h.
       </p>
 
@@ -454,7 +454,7 @@ interface StatItem { icon: string; value: string; label: string; }
 
       <div class="field">
         <label>Votre message</label>
-        <textarea rows="4" placeholder="Précisez votre demande..." required style="width:100%;padding:0.85rem 1rem;border:1.5px solid rgba(1,32,38,0.12);border-radius:var(--r-sm);font-family:var(--f-body);font-size:0.95rem" [value]="contactMessage()" (input)="setContactMessage($event)"></textarea>
+        <textarea rows="4" placeholder="Précisez votre demande..." required style="width:100%;padding:0.85rem 1rem;border:1.5px solid rgba(166,138,109,0.3);border-radius:var(--r-sm);font-family:var(--f-body);font-size:0.95rem;color:var(--c-obsidian)" [value]="contactMessage()" (input)="setContactMessage($event)"></textarea>
       </div>
 
       <div class="overlay__footer">
@@ -538,7 +538,7 @@ interface StatItem { icon: string; value: string; label: string; }
       <button class="overlay__close" (click)="isKycOpen.set(false)">✕</button>
     </div>
     <div class="overlay__body">
-      <p style="margin-bottom:1rem">Téléversez votre pièce d'identité pour obtenir le badge Vérifié.</p>
+      <p style="margin-bottom:1rem;color:var(--c-obsidian)">Téléversez votre pièce d'identité pour obtenir le badge Vérifié.</p>
       <div class="dropzone">
         <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
         <strong>Photo pièce d'identité (CIP / Passeport)</strong>
@@ -602,7 +602,7 @@ interface StatItem { icon: string; value: string; label: string; }
       <button class="overlay__close" (click)="isVoiceOpen.set(false)">✕</button>
     </div>
     <div class="overlay__body">
-      <p style="margin-bottom:1rem">Appuyez pour parler en Kirundi ou tapez votre recherche.</p>
+      <p style="margin-bottom:1rem;color:var(--c-obsidian)">Appuyez pour parler en Kirundi ou tapez votre recherche.</p>
       <div class="overlay__footer">
         <button class="btn btn-ghost" (click)="isVoiceOpen.set(false)">Fermer</button>
         <button class="btn btn-primary" (click)="runVoiceSearch()">Lancer la recherche</button>
