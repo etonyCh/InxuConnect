@@ -48,10 +48,6 @@ interface StatItem { icon: string; value: string; label: string; }
     </div>
 
     <div class="topnav__actions">
-      <button class="icon-btn" title="Favoris" (click)="isWishlistOpen.set(true)">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.8 8.6c0 4.4-8.8 10-8.8 10s-8.8-5.6-8.8-10a5 5 0 0 1 9-3 5 5 0 0 1 8.6 3Z"/></svg>
-      </button>
-
       @if (user()) {
         <button class="btn btn-ghost btn-sm" (click)="navigateDashboard()">
           <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
@@ -211,7 +207,6 @@ interface StatItem { icon: string; value: string; label: string; }
           <app-listing-card
             [listing]="l"
             (clicked)="openListingDetail($event)"
-            (favorited)="toggleFavorite($event)"
           />
         </div>
       }
@@ -239,7 +234,6 @@ interface StatItem { icon: string; value: string; label: string; }
           <app-listing-card
             [listing]="l"
             (clicked)="openListingDetail($event)"
-            (favorited)="toggleFavorite($event)"
           />
         </div>
       }
@@ -267,7 +261,6 @@ interface StatItem { icon: string; value: string; label: string; }
           <app-listing-card
             [listing]="l"
             (clicked)="openListingDetail($event)"
-            (favorited)="toggleFavorite($event)"
           />
         </div>
       }
@@ -326,7 +319,7 @@ interface StatItem { icon: string; value: string; label: string; }
   </section>
 
   <!-- ============================================================
-       9. FOOTER
+       9. FOOTER (CLEANED - NO REDUNDANT NAVIGATION COLUMN)
        ============================================================ -->
   <footer class="footer" id="footer">
     <div class="footer__cols">
@@ -342,18 +335,7 @@ interface StatItem { icon: string; value: string; label: string; }
       </div>
 
       <div class="footer__col">
-        <h5>Navigation</h5>
-        <ul>
-          <li><a (click)="scrollToHero()">Accueil</a></li>
-          <li><a (click)="scrollTo('section-buy')">Acheter</a></li>
-          <li><a (click)="scrollTo('section-rent')">Louer</a></li>
-          <li><a (click)="scrollTo('section-passage')">Maisons de passage</a></li>
-          <li><a (click)="navigateHostWizard()">Publier une annonce</a></li>
-        </ul>
-      </div>
-
-      <div class="footer__col">
-        <h5>Informations</h5>
+        <h5>Informations & Services</h5>
         <ul>
           <li><a (click)="isAboutOpen.set(true)">À propos d'InzuConnect</a></li>
           <li><a (click)="isContactOpen.set(true)">Formulaire de Contact</a></li>
@@ -548,29 +530,6 @@ interface StatItem { icon: string; value: string; label: string; }
   </div>
 </div>
 
-<div class="overlay overlay--center" [class.is-open]="isWishlistOpen()">
-  <div class="overlay__backdrop" (click)="isWishlistOpen.set(false)"></div>
-  <div class="overlay__panel">
-    <div class="overlay__head">
-      <h3 class="overlay__title">Mes favoris</h3>
-      <button class="overlay__close" (click)="isWishlistOpen.set(false)">✕</button>
-    </div>
-    <div class="overlay__body">
-      <div class="featured-grid" style="grid-template-columns:1fr">
-        @for (listing of favoriteListings(); track listing.id) {
-          <div (click)="openListingDetail(listing.id); isWishlistOpen.set(false)" style="cursor:pointer;padding:1rem;border:1px solid #eee;border-radius:12px">
-            <h4>{{ listing.title }}</h4>
-            <p>{{ formatPrice(listing.pricePerNightFbu) }} / nuit</p>
-          </div>
-        }
-        @if (favoriteListings().length === 0) {
-          <p style="text-align:center;padding:2rem 0;color:var(--ink-on-light-65);">Aucun favori pour le moment.</p>
-        }
-      </div>
-    </div>
-  </div>
-</div>
-
 <div class="overlay overlay--center" [class.is-open]="isKycOpen()">
   <div class="overlay__backdrop" (click)="isKycOpen.set(false)"></div>
   <div class="overlay__panel">
@@ -680,7 +639,7 @@ export class HomePageComponent implements OnInit {
     { icon:  '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2 4 5v6c0 5 3.4 8.7 8 11 4.6-2.3 8-6 8-11V5l-8-3Z"/><path d="m9 12 2 2 4-4"/></svg>',
       title: 'Annonces vérifiées', desc: 'Des annonces de qualité vérifiées par nos équipes.' },
     { icon:  '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.8 8.6c0 4.4-8.8 10-8.8 10s-8.8-5.6-8.8-10a5 5 0 0 1 9-3 5 5 0 0 1 8.6 3Z"/></svg>',
-      title: 'Coup de cœur',   desc: 'Enregistrez vos biens préférés et retrouvez-les facilement.' },
+      title: 'Confiance & Qualité', desc: 'Des critères stricts pour votre tranquillité.' },
     { icon:  '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>',
       title: 'Accompagnement', desc: 'Nos conseillers vous accompagnent à chaque étape.' },
     { icon:  '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4M12 15v3"/></svg>',
@@ -709,7 +668,6 @@ export class HomePageComponent implements OnInit {
 
   readonly listings = signal<Listing[]>([]);
 
-  // DEDICATED SECTIONS COMPUTED
   readonly rentListings = computed<Listing[]>(() => {
     return this.listings().filter((l) => ['appartement','studio','chambre'].includes((l.category || '').toLowerCase()) || l.pricePerNightFbu < 180000);
   });
@@ -726,7 +684,6 @@ export class HomePageComponent implements OnInit {
   readonly showMap = signal(false);
   readonly isFilterOpen = signal(false);
   readonly isChatOpen = signal(false);
-  readonly isWishlistOpen = signal(false);
   readonly isKycOpen = signal(false);
   readonly isStagingOpen = signal(false);
   readonly isTransferOpen = signal(false);
@@ -758,8 +715,6 @@ export class HomePageComponent implements OnInit {
     { id: 1, name: 'Eric N. · Villa Kigobe', lastMessage: 'Bonjour, votre check-in est confirmé pour 14h' },
     { id: 2, name: 'Claudine M. · Studio Rohero', lastMessage: 'Le groupe électrogène est testé et prêt.' },
   ];
-
-  readonly favoriteListings = computed(() => this.listings().filter((l) => l.isFavorite));
 
   setNewsletterEmail(e: Event): void {
     const v = (e.target as HTMLInputElement)?.value;
@@ -865,23 +820,8 @@ export class HomePageComponent implements OnInit {
     this.toast.show(`Inscription newsletter effectuée — ${email}`);
   }
 
-  listingSurfaceEstimate(l: Listing): string {
-    const bedrooms = Math.max(1, l.bedroomsCount ?? 1);
-    return `${bedrooms * 28 + 20} m²`;
-  }
-
   openListingDetail(id: string | number): void {
     this.router.navigate(['/listing', String(id)]);
-  }
-
-  toggleFavorite(listing: Listing): void {
-    const all = this.listings().slice();
-    const idx = all.findIndex((l) => l.id === listing.id);
-    if (idx >= 0) {
-      all[idx] = { ...all[idx], isFavorite: !all[idx].isFavorite };
-      this.listings.set(all);
-    }
-    this.toast.show(listing.isFavorite ? `Retiré des favoris` : `${listing.title} ajouté aux favoris`);
   }
 
   resetFilters(): void {
