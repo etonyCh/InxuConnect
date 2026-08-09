@@ -8,8 +8,6 @@ import { ToastService } from '../services/toast.service';
 import { AuthService } from '../services/auth.service';
 import { Listing } from '../models/listing.model';
 
-export type SearchTab = 'buy' | 'rent' | 'new';
-
 interface CategoryCard {
   key: string;
   label: string;
@@ -42,10 +40,10 @@ interface StatItem { icon: string; value: string; label: string; }
 
     <div class="topnav__menu">
       <a class="topnav__link is-active" (click)="scrollToHero()">Accueil</a>
-      <a class="topnav__link" (click)="setSearchTab('buy'); scrollToHero()">Acheter</a>
-      <a class="topnav__link" (click)="setSearchTab('rent'); scrollToHero()">Louer</a>
-      <a class="topnav__link" (click)="setSearchTab('new'); scrollToHero()">Neuf</a>
-      <a class="topnav__link" (click)="scrollTo('about')">À propos</a>
+      <a class="topnav__link" (click)="scrollTo('section-buy')">Acheter</a>
+      <a class="topnav__link" (click)="scrollTo('section-rent')">Louer</a>
+      <a class="topnav__link" (click)="scrollTo('section-passage')">Maisons de passage</a>
+      <a class="topnav__link" (click)="isAboutOpen.set(true)">À propos</a>
       <a class="topnav__link" (click)="isContactOpen.set(true)">Contact</a>
     </div>
 
@@ -71,38 +69,24 @@ interface StatItem { icon: string; value: string; label: string; }
   </nav>
 
   <!-- ============================================================
-       2. HERO BANNER + SEARCH TABS
+       2. HERO BANNER + SEARCH BAR
        ============================================================ -->
   <header id="hero" class="hero hero--v2">
     <div class="hero__content">
       <p class="hero__eyebrow mono">RÉSERVATION · EAU · ÉLECTRICITÉ — TROIS SIGNAUX, UN SÉJOUR</p>
       <h1 class="hero__title">Un logement au Burundi, <span>garanti connecté.</span></h1>
       <p class="hero__sub">
-        Maisons, appartements, villas, terrains… Trouvez le bien qui vous correspond parmi
-        des milliers d'annonces <strong>vérifiées InzuConnect</strong> — eau, électricité, hôte.
+        Maisons, appartements, villas, résidences meublées… Trouvez le bien qui vous correspond parmi
+        des milliers d'annonces <strong>vérifiées InzuConnect</strong> avec garantie d'eau et d'électricité.
       </p>
       <div class="hero__cta-row">
-        <button class="btn btn-primary" (click)="scrollToFeatured()">Découvrir les biens</button>
+        <button class="btn btn-primary" (click)="scrollTo('section-rent')">Découvrir les logements</button>
         <button class="btn btn-ghost-dark" (click)="navigateHostWizard()">Je suis hôte</button>
       </div>
     </div>
 
-    <!-- SEARCH BOX WITH TABS -->
+    <!-- CLEAN SINGLE SEARCH BAR -->
     <div class="search-box">
-      <div class="search-box__tabs" role="tablist">
-        @for (t of searchTabs; track t.key) {
-          <button
-            role="tab"
-            class="search-box__tab"
-            [class.is-active]="activeTab() === t.key"
-            (click)="setSearchTab(t.key)"
-          >
-            <span class="search-box__tab-icon" [innerHTML]="t.icon"></span>
-            {{ t.label }}
-          </button>
-        }
-      </div>
-
       <form class="search-box__fields" (ngSubmit)="onHeroSearchSubmit()">
         <div class="field search-field">
           <label>Localisation</label>
@@ -167,7 +151,7 @@ interface StatItem { icon: string; value: string; label: string; }
   </header>
 
   <!-- ============================================================
-       3. TRUST BADGES (4 ICÔNES)
+       3. TRUST BADGES
        ============================================================ -->
   <section class="trust-strip">
     @for (b of trustBadges; track b.title) {
@@ -190,7 +174,7 @@ interface StatItem { icon: string; value: string; label: string; }
         <p class="section-eyebrow mono">PAR CATÉGORIE</p>
         <h2>Explorez par type de bien</h2>
       </div>
-      <button class="btn btn-ghost btn-sm" (click)="scrollTo('listings')">Tous les biens →</button>
+      <button class="btn btn-ghost btn-sm" (click)="isFilterOpen.set(true)">Filtres avancés →</button>
     </header>
 
     <div class="category-grid">
@@ -210,82 +194,93 @@ interface StatItem { icon: string; value: string; label: string; }
   </section>
 
   <!-- ============================================================
-       5. SECTION BIENS À LA UNE
+       5. HORIZONTAL CARDS SECTION 1: À LOUER
        ============================================================ -->
-  <section id="featured" class="featured-section">
+  <section id="section-rent" class="horizontal-section">
     <header class="section-head">
       <div>
-        <p class="section-eyebrow mono">NOS SÉLECTIONS</p>
-        <h2>Biens à la une</h2>
+        <p class="section-eyebrow mono">LOCATIONS DISPONIBLES</p>
+        <h2>Biens à louer</h2>
       </div>
-      <button class="btn btn-ghost btn-sm" (click)="scrollTo('listings')">Voir toutes les annonces →</button>
+      <button class="btn btn-ghost btn-sm" (click)="scrollTo('section-buy')">Voir à acheter →</button>
     </header>
 
-    <div class="featured-grid">
-      @if (featuredListings().length === 0) {
-        <p style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--ink-on-light-65);">Chargement des biens à la une…</p>
-      }
-      @for (l of featuredListings(); track l.id) {
-        <div class="featured-card" (click)="openListingDetail(l.id)" style="cursor:pointer">
-          <div class="featured-card__media">
-            <span class="featured-card__badge" [class.is-rent]="rentTabActive()">
-              {{ rentTabActive() ? 'À louer' : 'À vendre' }}
-            </span>
-            <button class="featured-card__heart" (click)="$event.stopPropagation(); toggleFavorite(l)" aria-label="Favori">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.8 8.6c0 4.4-8.8 10-8.8 10s-8.8-5.6-8.8-10a5 5 0 0 1 9-3 5 5 0 0 1 8.6 3Z"/></svg>
-            </button>
-            @if (l.photos[0]) {
-              <img [src]="l.photos[0]" [alt]="l.title" loading="lazy">
-            }
-            <div class="featured-card__meta-row">
-              <small>{{ l.bedroomsCount }} pièces</small>
-              <small>{{ l.guestsCount }} pers.</small>
-              <small>{{ (l.amenities[0] || 'Confort') }}</small>
-            </div>
-          </div>
-          <div class="featured-card__body">
-            <h3 class="featured-card__price"><strong>{{ formatPrice(l.pricePerNightFbu) }}</strong><span>/nuit</span></h3>
-            <h4 class="featured-card__title">{{ l.title }}</h4>
-            <p class="featured-card__loc">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s-7-6.3-7-12a7 7 0 1 1 14 0c0 5.7-7 12-7 12Z"/></svg>
-              {{ l.location || 'Bujumbura, Burundi' }}
-            </p>
-            <div class="featured-card__tags">
-              <span>{{ l.bedroomsCount }} chambres</span>
-              <span>{{ listingSurfaceEstimate(l) }}</span>
-              <span>{{ (l.bathroomsCount || 1) }} salle(s) de bain</span>
-            </div>
-          </div>
+    <div class="horizontal-card-row">
+      @for (l of rentListings(); track l.id) {
+        <div class="card-item-wrap">
+          <app-listing-card
+            [listing]="l"
+            (clicked)="openListingDetail($event)"
+            (favorited)="toggleFavorite($event)"
+          />
         </div>
+      }
+      @if (rentListings().length === 0) {
+        <p style="padding:2rem;color:var(--ink-on-light-65);">Chargement des biens à louer…</p>
       }
     </div>
   </section>
 
   <!-- ============================================================
-       6. MAIN LISTINGS & QUICKBAR
+       6. HORIZONTAL CARDS SECTION 2: À ACHETER
        ============================================================ -->
-  <main id="listings" class="content">
-    <nav class="category-bar">
-      <div class="hscroll">
-        @for (cat of categories; track cat) {
-          <button class="chip" [class.is-active]="activeCategory()===cat" (click)="activeCategory.set(cat); loadByCategory(cat)">
-            @if (cat === 'tous') { Tous les biens }
-            @if (cat === 'maison') { Maison }
-            @if (cat === 'studio') { Studio }
-            @if (cat === 'villa') { Villa }
-            @if (cat === 'appartement') { Appartement }
-            @if (cat === 'Bujumbura') { Bujumbura }
-            @if (cat === 'Gitega') { Gitega }
-            @if (cat === 'Ngozi') { Ngozi }
-          </button>
-        }
+  <section id="section-buy" class="horizontal-section">
+    <header class="section-head">
+      <div>
+        <p class="section-eyebrow mono">VENTES IMMOBILIÈRES</p>
+        <h2>Biens & Maisons à acheter</h2>
       </div>
-      <button class="btn btn-ghost btn-sm filter-cta" (click)="isFilterOpen.set(true)">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="12" y1="18" x2="20" y2="18"/><circle cx="6" cy="12" r="1.6" fill="currentColor"/><circle cx="10" cy="18" r="1.6" fill="currentColor"/></svg>
-        Tous les filtres
-      </button>
-    </nav>
+      <button class="btn btn-ghost btn-sm" (click)="scrollTo('section-passage')">Voir maisons de passage →</button>
+    </header>
 
+    <div class="horizontal-card-row">
+      @for (l of buyListings(); track l.id) {
+        <div class="card-item-wrap">
+          <app-listing-card
+            [listing]="l"
+            (clicked)="openListingDetail($event)"
+            (favorited)="toggleFavorite($event)"
+          />
+        </div>
+      }
+      @if (buyListings().length === 0) {
+        <p style="padding:2rem;color:var(--ink-on-light-65);">Chargement des biens à acheter…</p>
+      }
+    </div>
+  </section>
+
+  <!-- ============================================================
+       7. HORIZONTAL CARDS SECTION 3: MAISONS DE PASSAGE
+       ============================================================ -->
+  <section id="section-passage" class="horizontal-section">
+    <header class="section-head">
+      <div>
+        <p class="section-eyebrow mono">SÉJOURS & RÉSIDENCES MEUBLÉES</p>
+        <h2>Maisons de passage</h2>
+      </div>
+      <button class="btn btn-ghost btn-sm" (click)="isFilterOpen.set(true)">Tous les filtres →</button>
+    </header>
+
+    <div class="horizontal-card-row">
+      @for (l of passageListings(); track l.id) {
+        <div class="card-item-wrap">
+          <app-listing-card
+            [listing]="l"
+            (clicked)="openListingDetail($event)"
+            (favorited)="toggleFavorite($event)"
+          />
+        </div>
+      }
+      @if (passageListings().length === 0) {
+        <p style="padding:2rem;color:var(--ink-on-light-65);">Chargement des maisons de passage…</p>
+      }
+    </div>
+  </section>
+
+  <!-- ============================================================
+       8. QUICKBAR & STATS BANNER
+       ============================================================ -->
+  <main class="content" style="margin-top:2rem">
     <div class="quickbar">
       <button class="quickbar__voice" (click)="isVoiceOpen.set(true)">
         <span class="quickbar__voice-icon">
@@ -308,36 +303,8 @@ interface StatItem { icon: string; value: string; label: string; }
         </button>
       </div>
     </div>
-
-    <div class="listings-head">
-      <h2>{{ resultsCount() }}</h2>
-      <button class="btn btn-dark btn-sm" (click)="showMap.set(!showMap())">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 20 3 17V4l6 3m0 13 6-3m-6 3V7m6 10 6 3V7l-6-3m0 16V4m0 3-6-3"/></svg>
-        {{ showMap() ? 'Voir la liste' : 'Voir la carte' }}
-      </button>
-    </div>
-
-    <section class="listings-grid" [hidden]="showMap()">
-      @for (listing of listings(); track listing.id) {
-        <app-listing-card
-          [listing]="listing"
-          (clicked)="openListingDetail($event)"
-          (favorited)="toggleFavorite($event)"
-        />
-      }
-      @if (listings().length === 0) {
-        <p style="grid-column:1/-1;text-align:center;padding:3rem 0;color:var(--ink-on-light-65);">Aucun logement ne correspond à vos critères — élargissez votre recherche.</p>
-      }
-    </section>
-
-    <section class="map-view" [hidden]="!showMap()">
-      <div class="map-view__canvas"></div>
-    </section>
   </main>
 
-  <!-- ============================================================
-       7. STATS CTA BANNER
-       ============================================================ -->
   <section class="stats-cta">
     <div class="stats-cta__left">
       <h2>Vous avez un bien<br>à vendre ou à louer ?</h2>
@@ -359,7 +326,7 @@ interface StatItem { icon: string; value: string; label: string; }
   </section>
 
   <!-- ============================================================
-       8. FOOTER WITH FULL WORKING REDIRECTIONS
+       9. FOOTER
        ============================================================ -->
   <footer class="footer" id="footer">
     <div class="footer__cols">
@@ -375,20 +342,20 @@ interface StatItem { icon: string; value: string; label: string; }
       </div>
 
       <div class="footer__col">
-        <h5>Liens rapides</h5>
+        <h5>Navigation</h5>
         <ul>
           <li><a (click)="scrollToHero()">Accueil</a></li>
-          <li><a (click)="setSearchTab('buy'); scrollToHero()">Acheter</a></li>
-          <li><a (click)="setSearchTab('rent'); scrollToHero()">Louer</a></li>
-          <li><a (click)="setSearchTab('new'); scrollToHero()">Vendre</a></li>
+          <li><a (click)="scrollTo('section-buy')">Acheter</a></li>
+          <li><a (click)="scrollTo('section-rent')">Louer</a></li>
+          <li><a (click)="scrollTo('section-passage')">Maisons de passage</a></li>
           <li><a (click)="navigateHostWizard()">Publier une annonce</a></li>
         </ul>
       </div>
 
       <div class="footer__col">
-        <h5>Informations & Contact</h5>
+        <h5>Informations</h5>
         <ul>
-          <li><a (click)="scrollTo('about')">Qui sommes-nous ?</a></li>
+          <li><a (click)="isAboutOpen.set(true)">À propos d'InzuConnect</a></li>
           <li><a (click)="isContactOpen.set(true)">Formulaire de Contact</a></li>
           <li><a (click)="isKycOpen.set(true)">Vérification KYC & Badge</a></li>
           <li><a (click)="isTransferOpen.set(true)">Services de Transfert</a></li>
@@ -415,15 +382,62 @@ interface StatItem { icon: string; value: string; label: string; }
   <!-- MOBILE NAV -->
   <nav class="mobile-nav">
     <button class="mobile-nav__tab is-active" (click)="scrollToHero()">Accueil</button>
-    <button class="mobile-nav__tab" (click)="scrollTo('listings')">Recherche</button>
+    <button class="mobile-nav__tab" (click)="scrollTo('section-rent')">Louer</button>
     <button class="mobile-nav__tab mobile-nav__tab--plus" (click)="navigateHostWizard()">+</button>
-    <button class="mobile-nav__tab" (click)="isChatOpen.set(true)">Messages</button>
+    <button class="mobile-nav__tab" (click)="isAboutOpen.set(true)">À propos</button>
     <button class="mobile-nav__tab" (click)="isContactOpen.set(true)">Contact</button>
   </nav>
 </div>
 
 <!-- ==================== MODALS ==================== -->
-<!-- CONTACT MODAL -->
+<!-- MODAL À PROPOS -->
+<div class="overlay overlay--center" [class.is-open]="isAboutOpen()">
+  <div class="overlay__backdrop" (click)="isAboutOpen.set(false)"></div>
+  <div class="overlay__panel">
+    <div class="overlay__head">
+      <h3 class="overlay__title">À propos d'InzuConnect</h3>
+      <button class="overlay__close" (click)="isAboutOpen.set(false)">✕</button>
+    </div>
+    <div class="overlay__body">
+      <p style="font-size:1rem;color:var(--ink-on-light);line-height:1.6;margin-bottom:1.5rem">
+        <strong>InzuConnect</strong> est la 1ère plateforme immobilière certifiée au Burundi dédiée à l'achat, la location et l'hospitalité haut de gamme.
+      </p>
+
+      <div class="security-promises" style="margin-bottom:1.5rem">
+        <div class="promise-item" style="background:var(--c-cream);border-color:rgba(166,138,109,0.2)">
+          <span class="promise-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s-8-4.5-8-11.8A7 7 0 0 1 12 3a7 7 0 0 1 8 7.2c0 7.3-8 11.8-8 11.8z"/></svg></span>
+          <div>
+            <strong style="color:var(--c-obsidian)">Eau & Électricité Garanties</strong>
+            <p style="color:var(--ink-on-light-65)">Chaque logement répertorié dispose d'une alimentation électrique et d'eau autonome contrôlée.</p>
+          </div>
+        </div>
+
+        <div class="promise-item" style="background:var(--c-cream);border-color:rgba(166,138,109,0.2)">
+          <span class="promise-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 5v6c0 5 3.4 8.7 8 11 4.6-2.3 8-6 8-11V5l-8-3Z"/></svg></span>
+          <div>
+            <strong style="color:var(--c-obsidian)">Hôtes & Propriétaires Vérifiés (Badge KYC)</strong>
+            <p style="color:var(--ink-on-light-65)">Vérification systématique d'identité et des titres de propriété.</p>
+          </div>
+        </div>
+
+        <div class="promise-item" style="background:var(--c-cream);border-color:rgba(166,138,109,0.2)">
+          <span class="promise-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/></svg></span>
+          <div>
+            <strong style="color:var(--c-obsidian)">Couverture Nationale</strong>
+            <p style="color:var(--ink-on-light-65)">Des milliers de biens disponibles à Bujumbura, Gitega, Ngozi et dans tout le Burundi.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="overlay__footer">
+        <button type="button" class="btn btn-ghost" (click)="isAboutOpen.set(false)">Fermer</button>
+        <button type="button" class="btn btn-primary" (click)="isAboutOpen.set(false); isContactOpen.set(true)">Nous contacter</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONTACT -->
 <div class="overlay overlay--center" [class.is-open]="isContactOpen()">
   <div class="overlay__backdrop" (click)="isContactOpen.set(false)"></div>
   <div class="overlay__panel">
@@ -645,14 +659,7 @@ export class HomePageComponent implements OnInit {
   private readonly authSvc = inject(AuthService);
   private readonly router = inject(Router);
 
-  readonly activeTab = signal<SearchTab>('rent');
   readonly activeCategoryKey = signal<string>('');
-
-  readonly searchTabs: { key: SearchTab; label: string; icon: string }[] = [
-    { key: 'buy',  label: 'Acheter',  icon: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 11 12 4l9 7"/><path d="M5 10v9h14v-9"/></svg>' },
-    { key: 'rent', label: 'Louer',   icon: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M7 10h10M7 14h10M5 21V6l7-3 7 3v15M3 8h18"/></svg>' },
-    { key: 'new',  label: 'Neuf',    icon: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 18V9a8 8 0 0 1 16 0v9"/><path d="M2 18h20M9 18v-4h6v4"/></svg>' },
-  ];
 
   readonly searchCity = signal('');
   readonly searchType = signal('');
@@ -661,7 +668,8 @@ export class HomePageComponent implements OnInit {
   readonly searchPieces = signal<number>(0);
   readonly newsletterEmail = signal('');
 
-  // CONTACT FORM SIGNALS
+  // MODALS SIGNALS
+  readonly isAboutOpen = signal(false);
   readonly isContactOpen = signal(false);
   readonly contactName = signal('');
   readonly contactEmail = signal('');
@@ -699,15 +707,22 @@ export class HomePageComponent implements OnInit {
       value: '15+',    label: 'Années d\'expérience' },
   ];
 
-  readonly rentTabActive = computed(() => this.activeTab() === 'rent');
-
   readonly listings = signal<Listing[]>([]);
-  readonly featuredListings = computed<Listing[]>(() => {
-    return this.listings().slice(0, 4);
+
+  // DEDICATED SECTIONS COMPUTED
+  readonly rentListings = computed<Listing[]>(() => {
+    return this.listings().filter((l) => ['appartement','studio','chambre'].includes((l.category || '').toLowerCase()) || l.pricePerNightFbu < 180000);
+  });
+
+  readonly buyListings = computed<Listing[]>(() => {
+    return this.listings().filter((l) => ['villa','maison','terrain'].includes((l.category || '').toLowerCase()) || l.pricePerNightFbu >= 180000);
+  });
+
+  readonly passageListings = computed<Listing[]>(() => {
+    return this.listings().slice(0, 5);
   });
 
   readonly resultsCount = computed(() => `${this.listings().length} logements disponibles`);
-  readonly activeCategory = signal('tous');
   readonly showMap = signal(false);
   readonly isFilterOpen = signal(false);
   readonly isChatOpen = signal(false);
@@ -722,8 +737,6 @@ export class HomePageComponent implements OnInit {
   readonly transferPrice = signal('15 000 FBu');
   readonly selectedVehicle = signal(1);
   readonly user = computed(() => this.authSvc.user());
-
-  readonly categories = ['tous', 'maison', 'studio', 'villa', 'appartement', 'Bujumbura', 'Gitega', 'Ngozi'];
 
   readonly amenityOptions = [
     { value: 'salle-de-bain', label: 'Salle de bain privée' },
@@ -789,7 +802,6 @@ export class HomePageComponent implements OnInit {
     this.toast.show('Message transmis à l\'équipe InzuConnect. Réponse sous 24h.');
   }
 
-  // REDIRECTIONS INTELLIGENTES & AUTHENTIFICATION
   navigateHostWizard(): void {
     if (this.authSvc.user()) {
       this.router.navigate(['/host-wizard']);
@@ -807,12 +819,7 @@ export class HomePageComponent implements OnInit {
     }
   }
 
-  setSearchTab(t: SearchTab): void {
-    this.activeTab.set(t);
-  }
-
   scrollToHero(): void { this.scrollTo('hero'); }
-  scrollToFeatured(): void { this.scrollTo('featured'); }
   scrollTo(id: string): void {
     try {
       document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -827,7 +834,7 @@ export class HomePageComponent implements OnInit {
       this.listings.set(data);
       this.toast.show(`${cat.label} · ${data.length} biens`);
     });
-    this.scrollTo('listings');
+    this.scrollTo('section-rent');
   }
 
   onHeroSearchSubmit(): void {
@@ -846,7 +853,7 @@ export class HomePageComponent implements OnInit {
     }).subscribe((data) => {
       this.listings.set(data);
       this.toast.show(`${data.length} biens trouvés`);
-      this.scrollTo('listings');
+      this.scrollTo('section-rent');
     });
   }
 
@@ -861,12 +868,6 @@ export class HomePageComponent implements OnInit {
   listingSurfaceEstimate(l: Listing): string {
     const bedrooms = Math.max(1, l.bedroomsCount ?? 1);
     return `${bedrooms * 28 + 20} m²`;
-  }
-
-  loadByCategory(cat: string): void {
-    this.listingSvc.getListings(cat, this.searchCity()).subscribe((data) => {
-      this.listings.set(data);
-    });
   }
 
   openListingDetail(id: string | number): void {
@@ -884,7 +885,6 @@ export class HomePageComponent implements OnInit {
   }
 
   resetFilters(): void {
-    this.activeCategory.set('tous');
     this.activeCategoryKey.set('');
     this.searchCity.set('');
     this.searchType.set('');
@@ -939,7 +939,7 @@ export class HomePageComponent implements OnInit {
     this.listingSvc.getListings('Gitega').subscribe((data) => this.listings.set(data));
     this.isVoiceOpen.set(false);
     this.toast.show('Recherche Kirundi appliquée (Gitega)');
-    this.scrollTo('listings');
+    this.scrollTo('section-rent');
   }
 
   formatPrice(value: number): string {
