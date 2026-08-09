@@ -11,23 +11,56 @@ import { ToastService } from '../services/toast.service';
   imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterLink],
   template: `
     <div class="auth-shell">
+      <!-- BRAND & SECURITY PANEL -->
       <aside class="brand-panel">
         <a class="logo" routerLink="/">
           <span class="logo__mark"><span class="pulse"></span></span>
           InzuConnect
         </a>
         <div class="brand-panel__body">
-          <p class="mono brand-eyebrow">AUTHENTIFICATION SÉCURISÉE</p>
-          <h1>Chaque compte est un signal vérifié.</h1>
-          <p class="brand-lede">Numéro confirmé par OTP, mot de passe chiffré Argon2id, session protégée par cookie HttpOnly. Rejoignez un réseau de logements où l'eau et l'électricité sont garanties.</p>
-          <div class="brand-stats">
-            <div><b class="mono">48</b><span>châteaux d'eau financés</span></div>
-            <div><b class="mono">212</b><span>foyers électrifiés</span></div>
-            <div><b class="mono">4.8★</b><span>satisfaction voyageurs</span></div>
+          <p class="mono brand-eyebrow">PLATEFORME IMMOBILIÈRE CERTIFIÉE BURUNDI</p>
+          <h1>Votre cadre de vie idéal, en toute sérénité.</h1>
+          <p class="brand-lede">
+            Rejoignez la référence immobilière au Burundi. Que vous cherchiez un logement de standing,
+            une résidence de vacances ou la mise en location de votre bien, accédez à un réseau
+            rigoureusement vérifié avec garantie d'eau, d'électricité et de sécurité.
+          </p>
+
+          <div class="security-promises">
+            <div class="promise-item">
+              <span class="promise-icon">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4M12 15v3"/></svg>
+              </span>
+              <div>
+                <strong>Sécurité des données & Authentification OTP</strong>
+                <p>Vos accès sont protégés par chiffrement bancaire et vérification par SMS.</p>
+              </div>
+            </div>
+
+            <div class="promise-item">
+              <span class="promise-icon">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 5v6c0 5 3.4 8.7 8 11 4.6-2.3 8-6 8-11V5l-8-3Z"/><path d="m9 12 2 2 4-4"/></svg>
+              </span>
+              <div>
+                <strong>Hôtes & Logements Certifiés KYC</strong>
+                <p>Chaque partenaire fait l'objet d'une vérification d'identité préalable.</p>
+              </div>
+            </div>
+
+            <div class="promise-item">
+              <span class="promise-icon">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              </span>
+              <div>
+                <strong>Transparence & Zéro Frais Cachés</strong>
+                <p>Des tarifs clairs en Francs Burundais (FBu) sans mauvaise surprise à l'arrivée.</p>
+              </div>
+            </div>
           </div>
         </div>
       </aside>
 
+      <!-- FORM PANEL -->
       <main class="form-panel">
         <div class="auth-card">
           <div class="auth-tabs">
@@ -42,103 +75,132 @@ import { ToastService } from '../services/toast.service';
               [class.is-active]="activeTab() === 'register'"
               type="button"
               (click)="switchTab('register')"
-            >Inscription</button>
+            >Créer un compte</button>
           </div>
 
+          <!-- FORMULAR CONNEXION -->
           <form
             class="auth-view"
             [class.is-active]="activeTab() === 'login'"
             [formGroup]="loginForm"
             (ngSubmit)="onLoginSubmit()"
           >
-            <h2>Bon retour parmi nous</h2>
-            <p class="section-lede">Connectez-vous avec votre numéro et votre mot de passe.</p>
+            <h2>Ravi de vous revoir !</h2>
+            <p class="section-lede">Accédez à votre espace sécurisé en saisissant vos identifiants.</p>
+
             <div class="field">
-              <label>Téléphone</label>
+              <label>Numéro de téléphone</label>
               <input type="tel" placeholder="+257 79 000 000" formControlName="phone" required>
             </div>
+
             <div class="field">
               <label>Mot de passe</label>
               <input type="password" placeholder="••••••••••" formControlName="password" required>
             </div>
+
             <button type="submit" class="btn btn-primary btn-block" [disabled]="loading()">
-              {{ loading() ? 'Connexion...' : 'Se connecter' }}
+              {{ loading() ? 'Connexion sécurisée en cours...' : 'Se connecter en toute sécurité' }}
             </button>
-            <p class="auth-switch">Pas encore de compte ?
-              <button type="button" class="link-btn" (click)="switchTab('register')">Créer un compte</button>
+
+            <div class="security-badge-sub">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s-8-4.5-8-11.8A7 7 0 0 1 12 3a7 7 0 0 1 8 7.2c0 7.3-8 11.8-8 11.8z"/></svg>
+              <span>Connexion chiffrée SSL 256-bit</span>
+            </div>
+
+            <p class="auth-switch">Vous n'avez pas encore de compte ?
+              <button type="button" class="link-btn" (click)="switchTab('register')">S'inscrire gratuitement</button>
             </p>
           </form>
 
+          <!-- FORMULAIRE INSCRIPTION -->
           <div class="auth-view" [class.is-active]="activeTab() === 'register'">
             <div class="reg-step" [class.is-active]="regStep() === 1">
-              <h2>Créer un compte</h2>
-              <p class="section-lede">Quelques informations pour commencer.</p>
+              <h2>Bienvenue sur InzuConnect</h2>
+              <p class="section-lede">Créez votre compte en 1 minute. Vos informations restent confidentielles.</p>
+
               <div [formGroup]="regForm">
                 <div class="two-col">
                   <div class="field">
                     <label>Prénom</label>
-                    <input type="text" placeholder="Diane" formControlName="firstName">
+                    <input type="text" placeholder="Prénom" formControlName="firstName">
                   </div>
                   <div class="field">
                     <label>Nom</label>
-                    <input type="text" placeholder="Ndayishimiye" formControlName="lastName">
+                    <input type="text" placeholder="Nom de famille" formControlName="lastName">
                   </div>
-                </div>
-                <div class="field">
-                  <label>Téléphone</label>
-                  <input type="tel" placeholder="+257 79 000 000" formControlName="phone">
-                </div>
-                <div class="field">
-                  <label>Email (optionnel)</label>
-                  <input type="email" placeholder="diane@example.com" formControlName="email">
                 </div>
 
                 <div class="field">
-                  <label>Je m'inscris en tant que</label>
+                  <label>Numéro de téléphone</label>
+                  <input type="tel" placeholder="+257 79 000 000" formControlName="phone">
+                </div>
+
+                <div class="field">
+                  <label>Adresse e-mail (facultatif)</label>
+                  <input type="email" placeholder="adresse@exemple.bi" formControlName="email">
+                </div>
+
+                <div class="field">
+                  <label>Type de compte</label>
                   <div class="role-grid">
                     <button
                       type="button"
                       class="role-chip"
                       [class.is-active]="selectedRole() === 'GUEST'"
                       (click)="setRole('GUEST')"
-                    >🧳<span>Voyageur</span></button>
+                    >
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+                      <span>Voyageur</span>
+                    </button>
+
                     <button
                       type="button"
                       class="role-chip"
                       [class.is-active]="selectedRole() === 'HOST'"
                       (click)="setRole('HOST')"
-                    >🏠<span>Hôte</span></button>
+                    >
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                      <span>Hôte</span>
+                    </button>
+
                     <button
                       type="button"
                       class="role-chip"
                       [class.is-active]="selectedRole() === 'AGENT'"
                       (click)="setRole('AGENT')"
-                    >🤝<span>Agent</span></button>
+                    >
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                      <span>Agent</span>
+                    </button>
+
                     <button
                       type="button"
                       class="role-chip"
                       [class.is-active]="selectedRole() === 'B2B'"
                       (click)="setRole('B2B')"
-                    >🏢<span>Entreprise</span></button>
+                    >
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12h12M6 16h12"/></svg>
+                      <span>Entreprise</span>
+                    </button>
                   </div>
                 </div>
 
                 <div class="two-col">
                   <div class="field">
                     <label>Mot de passe</label>
-                    <input type="password" placeholder="10 caractères min." formControlName="password">
+                    <input type="password" placeholder="10 car. minimum" formControlName="password">
                   </div>
                   <div class="field">
                     <label>Confirmer</label>
-                    <input type="password" placeholder="Confirmer" formControlName="confirm">
+                    <input type="password" placeholder="Répéter mot de passe" formControlName="confirm">
                   </div>
                 </div>
               </div>
             </div>
 
             <div class="reg-step" [class.is-active]="regStep() === 2">
-              <h2>Vérifiez votre numéro</h2>
-              <p class="section-lede">Un code à 6 chiffres a été envoyé par SMS à votre numéro.</p>
+              <h2>Vérification par SMS</h2>
+              <p class="section-lede">Un code de sécurité à 6 chiffres a été envoyé par SMS à votre numéro.</p>
               <div class="otp-row">
                 @for (digit of otpDigits(); track $index; let i = $index) {
                   <input
@@ -155,14 +217,14 @@ import { ToastService } from '../services/toast.service';
                 class="otp-resend"
                 (click)="onResendOtp()"
                 [disabled]="otpCountdown() > 0"
-              >Renvoyer le code ({{ formatCountdown() }})</button>
+              >Renvoyer le code SMS ({{ formatCountdown() }})</button>
             </div>
 
             <div class="reg-step" [class.is-active]="regStep() === 3">
               <div class="success-badge"><span class="pulse"></span>✅</div>
-              <h2 style="text-align:center">Compte créé avec succès</h2>
-              <p class="section-lede" style="text-align:center">Votre session est active. Bienvenue sur InzuConnect.</p>
-              <button type="button" class="btn btn-primary btn-block" (click)="goHome()">Aller à l'accueil</button>
+              <h2 style="text-align:center">Compte vérifié et créé avec succès</h2>
+              <p class="section-lede" style="text-align:center">Votre session est maintenant active. Bienvenue dans la communauté InzuConnect.</p>
+              <button type="button" class="btn btn-primary btn-block" (click)="goHome()">Accéder à l'accueil</button>
             </div>
 
             @if (regStep() !== 3) {
@@ -173,25 +235,28 @@ import { ToastService } from '../services/toast.service';
                   (click)="onRegBack()"
                   [disabled]="regStep() === 1"
                 >Retour</button>
+
                 @if (regStep() === 1) {
                   <button
                     type="button"
                     class="btn btn-primary"
                     (click)="onRegStep1Submit()"
                     [disabled]="loading()"
-                  >{{ loading() ? 'Envoi...' : 'Envoyer le code' }}</button>
+                  >{{ loading() ? 'Vérification...' : 'Continuer vers la vérification OTP' }}</button>
                 }
+
                 @if (regStep() === 2) {
                   <button
                     type="button"
                     class="btn btn-primary"
                     (click)="onVerifyOtp()"
                     [disabled]="loading()"
-                  >{{ loading() ? 'Vérification...' : 'Vérifier' }}</button>
+                  >{{ loading() ? 'Vérification du code...' : 'Valider le compte' }}</button>
                 }
               </div>
             }
-            <p class="auth-switch">Déjà un compte ?
+
+            <p class="auth-switch">Vous possédez déjà un compte ?
               <button type="button" class="link-btn" (click)="switchTab('login')">Se connecter</button>
             </p>
           </div>
@@ -250,10 +315,6 @@ export class AuthPageComponent implements OnInit {
     }
   }
 
-  setStep(n: 1 | 2 | 3): void {
-    this.regStep.set(n);
-  }
-
   setRole(r: 'GUEST' | 'HOST' | 'AGENT' | 'B2B'): void {
     this.selectedRole.set(r);
   }
@@ -290,12 +351,12 @@ export class AuthPageComponent implements OnInit {
     this.authSvc.sendOtp(phone as string).subscribe({
       next: (resp) => {
         if (resp.success) {
-          this.toastSvc.show('Code OTP envoyé');
+          this.toastSvc.show('Code OTP envoyé par SMS');
           this.regStep.set(2);
           this.otpCountdown.set(32);
           this.startCountdown();
         } else {
-          this.toastSvc.show(resp.message || 'Erreur envoi OTP');
+          this.toastSvc.show(resp.message || 'Erreur d\'envoi OTP');
         }
         this.loading.set(false);
       },
@@ -328,7 +389,7 @@ export class AuthPageComponent implements OnInit {
   onVerifyOtp(): void {
     const code = this.otpDigits().join('');
     if (code.length !== 6) {
-      this.toastSvc.show('Code incomplet');
+      this.toastSvc.show('Code SMS incomplet');
       return;
     }
     this.loading.set(true);
@@ -370,7 +431,7 @@ export class AuthPageComponent implements OnInit {
     const phone = this.regForm.value.phone as string;
     this.authSvc.sendOtp(phone).subscribe({
       next: () => {
-        this.toastSvc.show('Code renvoyé');
+        this.toastSvc.show('Code SMS renvoyé');
         this.otpCountdown.set(32);
         this.startCountdown();
       },
