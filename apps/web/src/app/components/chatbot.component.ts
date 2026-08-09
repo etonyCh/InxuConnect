@@ -2,7 +2,7 @@ import {
   Component, signal, ElementRef, ViewChild, AfterViewChecked, effect,
   PLATFORM_ID, Inject, OnInit, OnDestroy, Renderer2,
   ApplicationRef, createComponent, EnvironmentInjector, Injector,
-  ComponentRef,
+  ComponentRef, ViewEncapsulation,
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -33,6 +33,7 @@ export interface ChatMessage {
   selector: 'inzu-chatbot-portal',
   standalone: true,
   imports: [CommonModule, FormsModule],
+  encapsulation: ViewEncapsulation.None,
   template: `
 <div class="chatbot-widget">
   <ng-container *ngIf="!isOpen()">
@@ -835,6 +836,40 @@ export class ChatbotComponent implements AfterViewChecked, OnInit, OnDestroy {
     this.renderer2.setAttribute(domElem, 'data-inzu-chatbot-portal', '1');
 
     document.body.appendChild(domElem);
+
+    // Bouclier 2e couche : forcer EN JAVASCRIPT les styles de .chatbot-widget
+    // (1er enfant direct du portail) en position fixed bottom right z-index MAX.
+    // Même si ViewEncapsulation.None était cassé par un autre CSS global,
+    // ce style inline override tout.
+    try {
+      const widget = domElem.querySelector<HTMLElement>(':scope > .chatbot-widget');
+      if (widget) {
+        const forceStyles = new Map<string, string>([
+          ['position',       'fixed'],
+          ['bottom',         '24px'],
+          ['right',          '24px'],
+          ['top',            'auto'],
+          ['left',           'auto'],
+          ['width',          'auto'],
+          ['maxWidth',       'calc(100vw - 24px)'],
+          ['zIndex',         '2147483647'],
+          ['transform',      'none'],
+          ['filter',         'none'],
+          ['perspective',    'none'],
+          ['backdropFilter', 'none'],
+          ['clipPath',       'none'],
+          ['display',        'block'],
+          ['pointerEvents',  'none'],
+          ['margin',         '0'],
+          ['padding',        '0'],
+          ['isolation',      'isolate'],
+        ]);
+        forceStyles.forEach((v, p) => this.renderer2.setStyle(widget, p, v));
+      }
+    } catch {
+      /* ignore querySelector failure (very unlikely) */
+    }
+
     this.portalRef = portalRef;
 
     this.bindPortalApi(portalRef.instance);
