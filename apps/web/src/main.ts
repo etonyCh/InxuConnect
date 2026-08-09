@@ -40,6 +40,11 @@ bootstrapApplication(AppComponent, {
             import('./app/pages/auth-page.component').then((m) => m.AuthPageComponent),
         },
         {
+          path: 'register',
+          loadComponent: () =>
+            import('./app/pages/auth-page.component').then((m) => m.AuthPageComponent),
+        },
+        {
           path: 'listing/:id',
           loadComponent: () =>
             import('./app/pages/listing-detail-page.component').then(

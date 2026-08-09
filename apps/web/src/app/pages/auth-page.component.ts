@@ -1,7 +1,7 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule, FormBuilder, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { ToastService } from '../services/toast.service';
 
@@ -26,7 +26,6 @@ import { ToastService } from '../services/toast.service';
             <div><b class="mono">4.8★</b><span>satisfaction voyageurs</span></div>
           </div>
         </div>
-        <div class="brand-panel__grid" aria-hidden="true"></div>
       </aside>
 
       <main class="form-panel">
@@ -66,7 +65,7 @@ import { ToastService } from '../services/toast.service';
               {{ loading() ? 'Connexion...' : 'Se connecter' }}
             </button>
             <p class="auth-switch">Pas encore de compte ?
-              <button type="button" (click)="switchTab('register')">Créer un compte</button>
+              <button type="button" class="link-btn" (click)="switchTab('register')">Créer un compte</button>
             </p>
           </form>
 
@@ -193,16 +192,11 @@ import { ToastService } from '../services/toast.service';
               </div>
             }
             <p class="auth-switch">Déjà un compte ?
-              <button type="button" (click)="switchTab('login')">Se connecter</button>
+              <button type="button" class="link-btn" (click)="switchTab('login')">Se connecter</button>
             </p>
           </div>
         </div>
       </main>
-    </div>
-
-    <div class="toast" [class.is-show]="toastSvc.state().show">
-      <span class="pulse"></span>
-      <span>{{ toastSvc.state().text }}</span>
     </div>
   `,
 })
@@ -211,6 +205,7 @@ export class AuthPageComponent implements OnInit {
   authSvc = inject(AuthService);
   toastSvc = inject(ToastService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   activeTab = signal<'login' | 'register'>('login');
   regStep = signal<1 | 2 | 3>(1);
@@ -236,12 +231,23 @@ export class AuthPageComponent implements OnInit {
   private countdownTimer: ReturnType<typeof setInterval> | null = null;
 
   ngOnInit(): void {
+    const currentUrl = this.router.url;
+    if (currentUrl.includes('/register')) {
+      this.activeTab.set('register');
+    } else {
+      this.activeTab.set('login');
+    }
     this.startCountdown();
   }
 
   switchTab(tab: 'login' | 'register'): void {
     this.activeTab.set(tab);
     this.regStep.set(1);
+    if (tab === 'register') {
+      window.history.replaceState(null, '', '/register');
+    } else {
+      window.history.replaceState(null, '', '/login');
+    }
   }
 
   setStep(n: 1 | 2 | 3): void {
