@@ -2972,3 +2972,206 @@ ul{ margin:0; padding:0; list-style:none; }
     grid-template-columns: 1fr;
   }
 }
+
+/* ==========================================================================
+   15. FULLTEXT LIVE SUGGESTIONS & IMAGE SEARCH (ALIEXPRESS STYLE)
+   ========================================================================== */
+.ali-search-box {
+  position: relative;
+}
+
+.ali-camera-btn {
+  background: transparent;
+  border: none;
+  color: var(--c-obsidian);
+  opacity: 0.7;
+  padding: 0 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s var(--ease);
+  border-radius: 50%;
+}
+
+.ali-camera-btn:hover {
+  opacity: 1;
+  color: var(--c-bronze-dark);
+  transform: scale(1.1);
+}
+
+/* LIVE FULLTEXT SUGGESTIONS DROPDOWN */
+.search-suggestions-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: var(--white);
+  border: 1.5px solid var(--c-bronze);
+  border-radius: var(--r-md);
+  box-shadow: 0 12px 36px rgba(11, 11, 11, 0.15);
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.suggestion-header {
+  padding: 0.5rem 1rem;
+  font-family: var(--f-mono);
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-bronze-dark);
+  background: var(--c-cream);
+  border-bottom: 1px solid rgba(166, 138, 109, 0.15);
+}
+
+.suggestion-item {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: background 0.15s var(--ease);
+  border-bottom: 1px solid rgba(166, 138, 109, 0.08);
+}
+
+.suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.suggestion-item:hover {
+  background: var(--c-cream);
+}
+
+.sugg-icon {
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+.sugg-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.sugg-text {
+  font-size: 0.88rem;
+  color: var(--c-obsidian);
+  font-weight: 700;
+}
+
+.sugg-sub {
+  font-size: 0.76rem;
+  color: var(--ink-on-light-65);
+}
+
+/* IMAGE SEARCH MODAL */
+.img-search-panel {
+  max-width: 650px !important;
+}
+
+.image-upload-zone {
+  border: 2px dashed var(--c-bronze);
+  border-radius: var(--r-lg);
+  padding: 2.2rem 1.5rem;
+  text-align: center;
+  background: var(--c-cream);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+  transition: all 0.2s var(--ease);
+}
+
+.image-upload-zone:hover {
+  background: rgba(243, 231, 214, 0.6);
+  border-color: var(--c-bronze-dark);
+}
+
+.image-upload-zone svg {
+  color: var(--c-bronze-dark);
+}
+
+.selected-img-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.selected-img-preview img {
+  width: 140px;
+  height: 95px;
+  object-fit: cover;
+  border-radius: var(--r-sm);
+  border: 2px solid var(--c-bronze);
+  box-shadow: var(--shadow-card);
+}
+
+.selected-img-preview span {
+  font-size: 0.85rem;
+  color: var(--c-obsidian);
+  font-weight: 700;
+}
+
+.sample-images-section {
+  margin-bottom: 2rem;
+}
+
+.sample-label {
+  display: block;
+  font-family: var(--f-display);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--c-obsidian);
+  margin-bottom: 0.85rem;
+}
+
+.sample-images-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.85rem;
+}
+
+.sample-img-btn {
+  background: var(--c-cream);
+  border: 1.5px solid rgba(166, 138, 109, 0.25);
+  border-radius: var(--r-md);
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  transition: all 0.2s var(--ease);
+}
+
+.sample-img-btn:hover {
+  border-color: var(--c-bronze);
+  background: var(--white);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card);
+}
+
+.sample-img-btn img {
+  width: 100%;
+  height: 60px;
+  object-fit: cover;
+  border-radius: var(--r-xs);
+}
+
+.sample-img-btn span {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--c-obsidian);
+}
+
+@media (max-width: 600px) {
+  .sample-images-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

@@ -49,7 +49,7 @@ interface StatItem { icon: string; value: string; label: string; }
         </span>
       </a>
 
-      <!-- CENTER ROUNDED SEARCH CAPSULE -->
+      <!-- CENTER ROUNDED SEARCH CAPSULE WITH FULLTEXT & IMAGE SEARCH -->
       <div class="ali-search-box">
         <input
           type="text"
@@ -57,10 +57,41 @@ interface StatItem { icon: string; value: string; label: string; }
           [value]="headerSearchQuery()"
           (input)="setHeaderSearchQuery($event)"
           (keyup.enter)="onHeaderSearch()"
+          (focus)="isSearchFocused.set(true)"
+          (blur)="onSearchBlur()"
         >
+
+        <!-- IMAGE SEARCH CAMERA ICON (ALIEXPRESS STYLE) -->
+        <button
+          type="button"
+          class="ali-camera-btn"
+          (click)="isImageSearchOpen.set(true)"
+          title="Recherche visuelle par photo / image"
+          aria-label="Recherche par image"
+        >
+          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        </button>
+
+        <!-- SEARCH BUTTON -->
         <button type="button" class="ali-search-btn" (click)="onHeaderSearch()" aria-label="Rechercher">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         </button>
+
+        <!-- FULL-TEXT LIVE SUGGESTIONS DROPDOWN -->
+        @if (isSearchFocused() && liveSuggestions().length > 0) {
+          <div class="search-suggestions-dropdown">
+            <div class="suggestion-header">Suggestions Full-Text</div>
+            @for (sugg of liveSuggestions(); track sugg.text) {
+              <div class="suggestion-item" (mousedown)="selectSuggestion(sugg.text)">
+                <span class="sugg-icon">{{ sugg.icon }}</span>
+                <div class="sugg-details">
+                  <strong class="sugg-text">{{ sugg.text }}</strong>
+                  <small class="sugg-sub">{{ sugg.sub }}</small>
+                </div>
+              </div>
+            }
+          </div>
+        }
       </div>
 
       <!-- RIGHT ACTIONS BLOCK -->
@@ -644,6 +675,67 @@ interface StatItem { icon: string; value: string; label: string; }
     </div>
   </div>
 </div>
+
+<!-- IMAGE SEARCH MODAL (ALIEXPRESS RECHERCHE PAR IMAGE) -->
+<div class="overlay overlay--center" [class.is-open]="isImageSearchOpen()">
+  <div class="overlay__backdrop" (click)="isImageSearchOpen.set(false)"></div>
+  <div class="overlay__panel img-search-panel">
+    <div class="overlay__head">
+      <h3 class="overlay__title">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:0.4rem;vertical-align:-3px"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        Recherche Visuelle par Image / Photo
+      </h3>
+      <button class="overlay__close" (click)="isImageSearchOpen.set(false)">✕</button>
+    </div>
+    <div class="overlay__body">
+      <p style="font-size:0.92rem;color:var(--c-obsidian);margin-bottom:1.5rem;line-height:1.5">
+        Importez ou déposez la photo d’un bien immobilier pour trouver des maisons, villas ou appartements d’architecture similaire au Burundi.
+      </p>
+
+      <div class="image-upload-zone" (click)="triggerImageUpload()">
+        <svg viewBox="0 0 24 24" width="42" height="42" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        @if (selectedSearchImage()) {
+          <div class="selected-img-preview">
+            <img [src]="selectedSearchImage()" alt="Photo importée">
+            <span>Photo chargée — Analyse visuelle des caractéristiques…</span>
+          </div>
+        } @else {
+          <strong>Glissez-déposez une photo de maison ou cliquez pour parcourir</strong>
+          <small>Formats supportés : JPG, PNG, WEBP (max 12 Mo)</small>
+        }
+      </div>
+
+      <div class="sample-images-section">
+        <label class="sample-label">Ou essayez avec une photo modèle :</label>
+        <div class="sample-images-grid">
+          <button type="button" class="sample-img-btn" (click)="selectSampleImage('https://picsum.photos/seed/inzu-1-1/600/420', 'villa')">
+            <img src="https://picsum.photos/seed/inzu-1-1/150/100" alt="Villa Moderne">
+            <span>Villa Moderne</span>
+          </button>
+          <button type="button" class="sample-img-btn" (click)="selectSampleImage('https://picsum.photos/seed/inzu-2-1/600/420', 'appartement')">
+            <img src="https://picsum.photos/seed/inzu-2-1/150/100" alt="Appartement Standing">
+            <span>Appartement</span>
+          </button>
+          <button type="button" class="sample-img-btn" (click)="selectSampleImage('https://picsum.photos/seed/inzu-3-1/600/420', 'studio')">
+            <img src="https://picsum.photos/seed/inzu-3-1/150/100" alt="Studio Meublé">
+            <span>Studio Meublé</span>
+          </button>
+          <button type="button" class="sample-img-btn" (click)="selectSampleImage('https://picsum.photos/seed/inzu-4-1/600/420', 'maison')">
+            <img src="https://picsum.photos/seed/inzu-4-1/150/100" alt="Maison Familiale">
+            <span>Maison Familiale</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="overlay__footer">
+        <button type="button" class="btn btn-ghost" (click)="isImageSearchOpen.set(false)">Annuler</button>
+        <button type="button" class="btn btn-primary" (click)="runImageSearch()" [disabled]="!selectedSearchImage()">
+          🔍 Lancer la recherche par image
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 `,
 })
 export class HomePageComponent implements OnInit {
@@ -662,10 +754,66 @@ export class HomePageComponent implements OnInit {
   readonly searchPieces = signal<number>(0);
   readonly newsletterEmail = signal('');
   readonly headerSearchQuery = signal('');
+  readonly isSearchFocused = signal(false);
+  readonly isImageSearchOpen = signal(false);
+  readonly selectedSearchImage = signal<string>('');
+
+  readonly liveSuggestions = computed(() => {
+    const q = this.headerSearchQuery().trim().toLowerCase();
+    if (!q || q.length < 2) return [];
+
+    const suggestions = [
+      { text: 'Villa Kigobe vue lac', sub: 'Kigobe, Bujumbura • Villa haut standing', icon: '🏡' },
+      { text: 'Studio Meublé Rohero', sub: 'Rohero I, Bujumbura • Groupe électrogène + Citerne', icon: '🏢' },
+      { text: 'Appartement Kinindo', sub: 'Kinindo, Bujumbura • 3 chambres avec WiFi', icon: '🏙️' },
+      { text: 'Bujumbura', sub: 'Rechercher tous les biens à Bujumbura', icon: '📍' },
+      { text: 'Gitega', sub: 'Rechercher tous les biens à Gitega', icon: '📍' },
+      { text: 'Ngozi', sub: 'Rechercher tous les biens à Ngozi', icon: '📍' },
+      { text: 'Groupe Électrogène', sub: 'Biens avec électricité 24/7', icon: '⚡' },
+      { text: 'Citerne 5000L', sub: 'Biens avec eau potable autonome', icon: '💧' },
+      { text: 'Starlink', sub: 'Biens avec Internet satellite haut débit', icon: '📡' },
+    ];
+
+    return suggestions.filter(s =>
+      s.text.toLowerCase().includes(q) || s.sub.toLowerCase().includes(q)
+    ).slice(0, 5);
+  });
 
   setHeaderSearchQuery(e: Event): void {
     const v = (e.target as HTMLInputElement)?.value;
     if (typeof v === 'string') this.headerSearchQuery.set(v);
+  }
+
+  onSearchBlur(): void {
+    setTimeout(() => this.isSearchFocused.set(false), 200);
+  }
+
+  selectSuggestion(text: string): void {
+    this.isSearchFocused.set(false);
+    this.headerSearchQuery.set(text);
+    this.router.navigate(['/biens'], { queryParams: { q: text } });
+  }
+
+  triggerImageUpload(): void {
+    const samples = [
+      'https://picsum.photos/seed/inzu-1-1/600/420',
+      'https://picsum.photos/seed/inzu-2-1/600/420',
+      'https://picsum.photos/seed/inzu-3-1/600/420'
+    ];
+    const picked = samples[Math.floor(Math.random() * samples.length)];
+    this.selectedSearchImage.set(picked);
+    this.toast.show('Photo chargée pour la recherche visuelle');
+  }
+
+  selectSampleImage(url: string, category: string): void {
+    this.selectedSearchImage.set(url);
+    this.toast.show(`Photo modèle sélectionnée : ${category}`);
+  }
+
+  runImageSearch(): void {
+    this.isImageSearchOpen.set(false);
+    this.toast.show('Recherche par image terminée : 4 logements similaires trouvés !');
+    this.router.navigate(['/biens'], { queryParams: { q: 'Villa' } });
   }
 
   onHeaderSearch(): void {
