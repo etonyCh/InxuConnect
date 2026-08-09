@@ -43,6 +43,9 @@
                 "styles": {
                   "inlineCritical": false,
                   "minify": true
+                },
+                "fonts": {
+                  "inline": false
                 }
               },
               "outputHashing": "all",
