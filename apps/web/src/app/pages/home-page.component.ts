@@ -39,12 +39,12 @@ interface StatItem { icon: string; value: string; label: string; }
     </button>
 
     <div class="topnav__menu">
-      <a class="topnav__link is-active" (click)="scrollToHero()">Accueil</a>
-      <a class="topnav__link" (click)="scrollTo('section-buy')">Acheter</a>
-      <a class="topnav__link" (click)="scrollTo('section-rent')">Louer</a>
-      <a class="topnav__link" (click)="scrollTo('section-passage')">Maisons de passage</a>
-      <a class="topnav__link" (click)="isAboutOpen.set(true)">À propos</a>
-      <a class="topnav__link" (click)="isContactOpen.set(true)">Contact</a>
+      <a class="topnav__link" [class.is-active]="activeNav() === 'accueil'" (click)="setActiveNav('accueil')">Accueil</a>
+      <a class="topnav__link" [class.is-active]="activeNav() === 'buy'" (click)="setActiveNav('buy')">Acheter</a>
+      <a class="topnav__link" [class.is-active]="activeNav() === 'rent'" (click)="setActiveNav('rent')">Louer</a>
+      <a class="topnav__link" [class.is-active]="activeNav() === 'passage'" (click)="setActiveNav('passage')">Maisons de passage</a>
+      <a class="topnav__link" [class.is-active]="activeNav() === 'about'" (click)="setActiveNav('about')">À propos</a>
+      <a class="topnav__link" [class.is-active]="activeNav() === 'contact'" (click)="setActiveNav('contact')">Contact</a>
     </div>
 
     <div class="topnav__actions">
@@ -76,7 +76,7 @@ interface StatItem { icon: string; value: string; label: string; }
         des milliers d'annonces <strong>vérifiées InzuConnect</strong> avec garantie d'eau et d'électricité.
       </p>
       <div class="hero__cta-row">
-        <button class="btn btn-primary" (click)="scrollTo('section-rent')">Découvrir les logements</button>
+        <button class="btn btn-primary" (click)="setActiveNav('rent')">Découvrir les logements</button>
         <button class="btn btn-ghost-dark" (click)="navigateHostWizard()">Je suis hôte</button>
       </div>
     </div>
@@ -198,7 +198,7 @@ interface StatItem { icon: string; value: string; label: string; }
         <p class="section-eyebrow mono">LOCATIONS DISPONIBLES</p>
         <h2>Biens à louer</h2>
       </div>
-      <button class="btn btn-ghost btn-sm" (click)="scrollTo('section-buy')">Voir à acheter →</button>
+      <button class="btn btn-ghost btn-sm" (click)="setActiveNav('buy')">Voir à acheter →</button>
     </header>
 
     <div class="horizontal-card-row">
@@ -225,7 +225,7 @@ interface StatItem { icon: string; value: string; label: string; }
         <p class="section-eyebrow mono">VENTES IMMOBILIÈRES</p>
         <h2>Biens & Maisons à acheter</h2>
       </div>
-      <button class="btn btn-ghost btn-sm" (click)="scrollTo('section-passage')">Voir maisons de passage →</button>
+      <button class="btn btn-ghost btn-sm" (click)="setActiveNav('passage')">Voir maisons de passage →</button>
     </header>
 
     <div class="horizontal-card-row">
@@ -319,7 +319,7 @@ interface StatItem { icon: string; value: string; label: string; }
   </section>
 
   <!-- ============================================================
-       9. FOOTER (CLEANED - NO REDUNDANT NAVIGATION COLUMN)
+       9. FOOTER
        ============================================================ -->
   <footer class="footer" id="footer">
     <div class="footer__cols">
@@ -337,8 +337,8 @@ interface StatItem { icon: string; value: string; label: string; }
       <div class="footer__col">
         <h5>Informations & Services</h5>
         <ul>
-          <li><a (click)="isAboutOpen.set(true)">À propos d'InzuConnect</a></li>
-          <li><a (click)="isContactOpen.set(true)">Formulaire de Contact</a></li>
+          <li><a (click)="setActiveNav('about')">À propos d'InzuConnect</a></li>
+          <li><a (click)="setActiveNav('contact')">Formulaire de Contact</a></li>
           <li><a (click)="isKycOpen.set(true)">Vérification KYC & Badge</a></li>
           <li><a (click)="isTransferOpen.set(true)">Services de Transfert</a></li>
           <li><a (click)="isVoiceOpen.set(true)">Assistant Vocal Kirundi</a></li>
@@ -363,11 +363,11 @@ interface StatItem { icon: string; value: string; label: string; }
 
   <!-- MOBILE NAV -->
   <nav class="mobile-nav">
-    <button class="mobile-nav__tab is-active" (click)="scrollToHero()">Accueil</button>
-    <button class="mobile-nav__tab" (click)="scrollTo('section-rent')">Louer</button>
+    <button class="mobile-nav__tab" [class.is-active]="activeNav() === 'accueil'" (click)="setActiveNav('accueil')">Accueil</button>
+    <button class="mobile-nav__tab" [class.is-active]="activeNav() === 'rent'" (click)="setActiveNav('rent')">Louer</button>
     <button class="mobile-nav__tab mobile-nav__tab--plus" (click)="navigateHostWizard()">+</button>
-    <button class="mobile-nav__tab" (click)="isAboutOpen.set(true)">À propos</button>
-    <button class="mobile-nav__tab" (click)="isContactOpen.set(true)">Contact</button>
+    <button class="mobile-nav__tab" [class.is-active]="activeNav() === 'about'" (click)="setActiveNav('about')">À propos</button>
+    <button class="mobile-nav__tab" [class.is-active]="activeNav() === 'contact'" (click)="setActiveNav('contact')">Contact</button>
   </nav>
 </div>
 
@@ -413,7 +413,7 @@ interface StatItem { icon: string; value: string; label: string; }
 
       <div class="overlay__footer">
         <button type="button" class="btn btn-ghost" (click)="isAboutOpen.set(false)">Fermer</button>
-        <button type="button" class="btn btn-primary" (click)="isAboutOpen.set(false); isContactOpen.set(true)">Nous contacter</button>
+        <button type="button" class="btn btn-primary" (click)="isAboutOpen.set(false); setActiveNav('contact')">Nous contacter</button>
       </div>
     </div>
   </div>
@@ -618,6 +618,7 @@ export class HomePageComponent implements OnInit {
   private readonly authSvc = inject(AuthService);
   private readonly router = inject(Router);
 
+  readonly activeNav = signal<string>('accueil');
   readonly activeCategoryKey = signal<string>('');
 
   readonly searchCity = signal('');
@@ -715,6 +716,16 @@ export class HomePageComponent implements OnInit {
     { id: 1, name: 'Eric N. · Villa Kigobe', lastMessage: 'Bonjour, votre check-in est confirmé pour 14h' },
     { id: 2, name: 'Claudine M. · Studio Rohero', lastMessage: 'Le groupe électrogène est testé et prêt.' },
   ];
+
+  setActiveNav(key: string): void {
+    this.activeNav.set(key);
+    if (key === 'accueil') this.scrollToHero();
+    else if (key === 'buy') this.scrollTo('section-buy');
+    else if (key === 'rent') this.scrollTo('section-rent');
+    else if (key === 'passage') this.scrollTo('section-passage');
+    else if (key === 'about') this.isAboutOpen.set(true);
+    else if (key === 'contact') this.isContactOpen.set(true);
+  }
 
   setNewsletterEmail(e: Event): void {
     const v = (e.target as HTMLInputElement)?.value;
@@ -825,6 +836,7 @@ export class HomePageComponent implements OnInit {
   }
 
   resetFilters(): void {
+    this.activeNav.set('accueil');
     this.activeCategoryKey.set('');
     this.searchCity.set('');
     this.searchType.set('');
