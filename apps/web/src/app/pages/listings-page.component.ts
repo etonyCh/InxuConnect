@@ -18,40 +18,86 @@ export type TransactionType = 'all' | 'rent' | 'buy' | 'passage';
 <div class="app-shell">
 
   <!-- ============================================================
-       TOP NAVIGATION BAR
+       TOP ANNOUNCEMENT STRIP
        ============================================================ -->
-  <nav class="topnav">
-    <button class="topnav__logo" routerLink="/" aria-label="Accueil InzuConnect">
-      <span class="logo__mark"><span class="pulse"></span></span>
-      <span>
-        <strong>InzuConnect</strong>
-        <small>Trouvez votre chez-vous</small>
-      </span>
-    </button>
-
-    <div class="topnav__menu">
-      <a class="topnav__link" routerLink="/">Accueil</a>
-      <a class="topnav__link is-active" routerLink="/biens">Nos biens</a>
-      <a class="topnav__link" (click)="isAboutOpen.set(true)">À propos</a>
-      <a class="topnav__link" (click)="isContactOpen.set(true)">Contact</a>
+  <div class="ali-strip">
+    <div class="ali-strip__inner">
+      <span>⚡ <strong>Garantie InzuConnect :</strong> Électricité 24/7 & Eau Potable autonomes sur tous les logements certifiés au Burundi</span>
     </div>
+  </div>
 
-    <div class="topnav__actions">
-      @if (user()) {
-        <button class="btn btn-ghost btn-sm" (click)="navigateDashboard()">
-          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
-          {{ user()?.name || 'Mon Compte' }}
+  <!-- ============================================================
+       ALIEXPRESS-INSPIRED TOP NAVIGATION HEADER
+       ============================================================ -->
+  <header class="ali-topnav">
+    <div class="ali-topnav__main">
+      <!-- LOGO -->
+      <a class="ali-topnav__logo" routerLink="/" aria-label="Accueil InzuConnect">
+        <span class="logo__mark"><span class="pulse"></span></span>
+        <span>
+          <strong>InzuConnect</strong>
+          <small>Immobilier Burundi</small>
+        </span>
+      </a>
+
+      <!-- CENTER ROUNDED SEARCH CAPSULE -->
+      <div class="ali-search-box">
+        <input
+          type="text"
+          placeholder="Rechercher par ville, quartier (Bujumbura, Gitega...)"
+          [value]="searchCity()"
+          (input)="setSearchCity($event)"
+        >
+        <button type="button" class="ali-search-btn" (click)="applyFilters()" aria-label="Rechercher">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         </button>
-      } @else {
-        <a class="btn btn-ghost btn-sm" routerLink="/login">Connexion</a>
-      }
+      </div>
 
-      <button class="btn btn-primary btn-sm" (click)="navigateHostWizard()">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Publier une annonce
-      </button>
+      <!-- RIGHT ACTIONS BLOCK -->
+      <div class="ali-topnav__right">
+        <div class="currency-chip" title="Monnaie officielle Burundi">
+          <span class="flag">🇧🇮</span>
+          <span class="curr mono">FBu</span>
+        </div>
+
+        @if (user()) {
+          <button class="user-btn" (click)="navigateDashboard()">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+            <span class="user-name">{{ user()?.name || 'Mon Compte' }}</span>
+          </button>
+        } @else {
+          <a class="user-btn" routerLink="/login">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+            <span>Connexion</span>
+          </a>
+        }
+
+        <button class="btn btn-primary btn-sm cta-pub-btn" (click)="navigateHostWizard()">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span>Publier</span>
+        </button>
+      </div>
     </div>
-  </nav>
+
+    <!-- SECONDARY SUB-NAVBAR CATEGORIES ROW -->
+    <div class="ali-subnav">
+      <div class="ali-subnav__inner">
+        <button class="cat-dropdown-btn" (click)="resetFilters()">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          <span>Tous les biens</span>
+        </button>
+
+        <div class="ali-subnav__links">
+          <a class="subnav-link highlight" (click)="selectedTransaction.set('all')">🔥 Offres Vérifiées</a>
+          <a class="subnav-link" [class.is-active]="selectedTransaction() === 'rent'" (click)="selectedTransaction.set('rent')">À louer</a>
+          <a class="subnav-link" [class.is-active]="selectedTransaction() === 'buy'" (click)="selectedTransaction.set('buy')">À acheter</a>
+          <a class="subnav-link" [class.is-active]="selectedTransaction() === 'passage'" (click)="selectedTransaction.set('passage')">Maisons de passage</a>
+          <a class="subnav-link" (click)="isAboutOpen.set(true)">À propos</a>
+          <a class="subnav-link" (click)="isContactOpen.set(true)">Contact</a>
+        </div>
+      </div>
+    </div>
+  </header>
 
   <!-- ============================================================
        PAGE HEADER
