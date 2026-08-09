@@ -65,11 +65,6 @@ interface StatItem { icon: string; value: string; label: string; }
 
       <!-- RIGHT ACTIONS BLOCK -->
       <div class="ali-topnav__right">
-        <div class="currency-chip" title="Monnaie officielle Burundi">
-          <span class="flag">🇧🇮</span>
-          <span class="curr mono">FBu</span>
-        </div>
-
         @if (user()) {
           <button class="user-btn" (click)="navigateDashboard()">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
@@ -92,18 +87,12 @@ interface StatItem { icon: string; value: string; label: string; }
     <!-- SECONDARY SUB-NAVBAR CATEGORIES ROW -->
     <div class="ali-subnav">
       <div class="ali-subnav__inner">
-        <a class="cat-dropdown-btn" routerLink="/biens">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-          <span>Tous les biens</span>
-        </a>
-
         <div class="ali-subnav__links">
-          <a class="subnav-link highlight" routerLink="/biens">🔥 Offres Vérifiées</a>
-          <a class="subnav-link" routerLink="/biens">À louer</a>
-          <a class="subnav-link" routerLink="/biens">À acheter</a>
-          <a class="subnav-link" routerLink="/biens">Maisons de passage</a>
-          <a class="subnav-link" (click)="isAboutOpen.set(true)">À propos</a>
-          <a class="subnav-link" (click)="isContactOpen.set(true)">Contact</a>
+          <a class="subnav-link" routerLink="/biens" [queryParams]="{ type: 'all' }">Tous les biens</a>
+          <a class="subnav-link highlight" routerLink="/biens" [queryParams]="{ type: 'all' }">🔥 Offres Vérifiées</a>
+          <a class="subnav-link" routerLink="/biens" [queryParams]="{ type: 'rent' }">À louer</a>
+          <a class="subnav-link" routerLink="/biens" [queryParams]="{ type: 'buy' }">À acheter</a>
+          <a class="subnav-link" routerLink="/biens" [queryParams]="{ type: 'passage' }">Maisons de passage</a>
         </div>
       </div>
     </div>

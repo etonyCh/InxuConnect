@@ -1,6 +1,6 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, Router } from '@angular/router';
+import { RouterLink, Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ListingCardComponent } from '../components/listing-card.component';
 import { ListingService } from '../services/listing.service';
@@ -55,11 +55,6 @@ export type TransactionType = 'all' | 'rent' | 'buy' | 'passage';
 
       <!-- RIGHT ACTIONS BLOCK -->
       <div class="ali-topnav__right">
-        <div class="currency-chip" title="Monnaie officielle Burundi">
-          <span class="flag">🇧🇮</span>
-          <span class="curr mono">FBu</span>
-        </div>
-
         @if (user()) {
           <button class="user-btn" (click)="navigateDashboard()">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
@@ -82,18 +77,12 @@ export type TransactionType = 'all' | 'rent' | 'buy' | 'passage';
     <!-- SECONDARY SUB-NAVBAR CATEGORIES ROW -->
     <div class="ali-subnav">
       <div class="ali-subnav__inner">
-        <button class="cat-dropdown-btn" (click)="resetFilters()">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-          <span>Tous les biens</span>
-        </button>
-
         <div class="ali-subnav__links">
+          <a class="subnav-link" [class.is-active]="selectedTransaction() === 'all'" (click)="selectedTransaction.set('all')">Tous les biens</a>
           <a class="subnav-link highlight" (click)="selectedTransaction.set('all')">🔥 Offres Vérifiées</a>
           <a class="subnav-link" [class.is-active]="selectedTransaction() === 'rent'" (click)="selectedTransaction.set('rent')">À louer</a>
           <a class="subnav-link" [class.is-active]="selectedTransaction() === 'buy'" (click)="selectedTransaction.set('buy')">À acheter</a>
           <a class="subnav-link" [class.is-active]="selectedTransaction() === 'passage'" (click)="selectedTransaction.set('passage')">Maisons de passage</a>
-          <a class="subnav-link" (click)="isAboutOpen.set(true)">À propos</a>
-          <a class="subnav-link" (click)="isContactOpen.set(true)">Contact</a>
         </div>
       </div>
     </div>
@@ -460,9 +449,23 @@ export class ListingsPageComponent implements OnInit {
     return result;
   });
 
+  private readonly route = inject(ActivatedRoute);
+
   ngOnInit(): void {
     this.listingSvc.getListings().subscribe((data) => {
       this.listings.set(data);
+    });
+
+    this.route.queryParams.subscribe((params) => {
+      if (params['type']) {
+        const t = params['type'] as TransactionType;
+        if (['all', 'rent', 'buy', 'passage'].includes(t)) {
+          this.selectedTransaction.set(t);
+        }
+      }
+      if (params['q']) {
+        this.searchCity.set(params['q']);
+      }
     });
   }
 
