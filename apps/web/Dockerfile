@@ -25,8 +25,6 @@ RUN npm install -g pnpm@^9.0.0 && \
 COPY apps/web/tsconfig*.json ./apps/web/
 COPY apps/web/angular.json ./apps/web/
 COPY apps/web/src ./apps/web/src/
-COPY apps/web/environments* ./apps/web/ 2>/dev/null || true
-COPY apps/web/tsconfig* ./apps/web/ 2>/dev/null || true
 
 # 5. Production build (Angular 18 output: dist/web/browser)
 RUN pnpm --filter web exec ng build --configuration production
