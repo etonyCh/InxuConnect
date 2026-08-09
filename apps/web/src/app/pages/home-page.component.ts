@@ -8,6 +8,8 @@ import { ToastService } from '../services/toast.service';
 import { AuthService } from '../services/auth.service';
 import { Listing } from '../models/listing.model';
 
+import { ChatbotComponent } from '../components/chatbot.component';
+
 interface CategoryCard {
   key: string;
   label: string;
@@ -22,7 +24,7 @@ interface StatItem { icon: string; value: string; label: string; }
 @Component({
   selector: 'app-home-page',
   standalone: true,
-  imports: [CommonModule, RouterLink, ListingCardComponent, FormsModule],
+  imports: [CommonModule, RouterLink, ListingCardComponent, FormsModule, ChatbotComponent],
   template: `
 <div class="app-shell" id="appShell">
 
@@ -406,7 +408,6 @@ interface StatItem { icon: string; value: string; label: string; }
           <li><a (click)="setActiveNav('contact')">Formulaire de Contact</a></li>
           <li><a routerLink="/kyc">Vérification KYC & Badge Hôte</a></li>
           <li><a (click)="isTransferOpen.set(true)">Services de Transfert</a></li>
-          <li><a (click)="isVoiceOpen.set(true)">Assistant Vocal Kirundi</a></li>
         </ul>
       </div>
 
@@ -736,6 +737,8 @@ interface StatItem { icon: string; value: string; label: string; }
     </div>
   </div>
 </div>
+
+<app-chatbot></app-chatbot>
 `,
 })
 export class HomePageComponent implements OnInit {

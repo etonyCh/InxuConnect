@@ -8,12 +8,14 @@ import { ToastService } from '../services/toast.service';
 import { AuthService } from '../services/auth.service';
 import { Listing } from '../models/listing.model';
 
+import { ChatbotComponent } from '../components/chatbot.component';
+
 export type TransactionType = 'all' | 'rent' | 'buy' | 'passage';
 
 @Component({
   selector: 'app-listings-page',
   standalone: true,
-  imports: [CommonModule, RouterLink, ListingCardComponent, FormsModule],
+  imports: [CommonModule, RouterLink, ListingCardComponent, FormsModule, ChatbotComponent],
   template: `
 <div class="app-shell">
 
@@ -449,6 +451,8 @@ export type TransactionType = 'all' | 'rent' | 'buy' | 'passage';
     </div>
   </div>
 </div>
+
+<app-chatbot></app-chatbot>
   `,
 })
 export class ListingsPageComponent implements OnInit {

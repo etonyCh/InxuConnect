@@ -4,11 +4,12 @@ import { RouterLink, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ToastService } from '../services/toast.service';
 import { AuthService } from '../services/auth.service';
+import { ChatbotComponent } from '../components/chatbot.component';
 
 @Component({
   selector: 'app-kyc-page',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule],
+  imports: [CommonModule, RouterLink, FormsModule, ChatbotComponent],
   template: `
 <div class="app-shell">
 
@@ -253,6 +254,7 @@ import { AuthService } from '../services/auth.service';
   </footer>
 
 </div>
+<app-chatbot></app-chatbot>
   `,
 })
 export class KycPageComponent {
