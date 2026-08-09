@@ -863,102 +863,185 @@ export class ChatbotComponent implements AfterViewChecked, OnInit, OnDestroy {
           ['margin',         '0'],
           ['padding',        '0'],
           ['isolation',      'isolate'],
+          ['contain',        'layout style size'],
         ]);
         forceStyles.forEach((v, p) => this.renderer2.setStyle(widget, p, v));
 
-        // ─── styles forcés : TRIGGER BTN ───
-        const trigger = widget.querySelector<HTMLElement>('.chatbot-trigger-btn');
-        if (trigger) {
-          const triggerStyles = new Map<string, string>([
-            ['display',          'inline-flex'],
-            ['alignItems',       'center'],
-            ['justifyContent',   'center'],
-            ['width',            '62px'],
-            ['height',           '62px'],
-            ['borderRadius',     '50%'],
-            ['border',           '2.5px solid #a68a6d'],
-            ['background',       'linear-gradient(135deg,#0b0b0b 0%,#2B2B2B 100%)'],
-            ['color',            '#fff'],
-            ['cursor',           'pointer'],
-            ['position',         'relative'],
-            ['boxShadow',        '0 12px 32px rgba(11,11,11,0.38),inset 0 0 0 1px rgba(255,255,255,0.06)'],
-            ['flexShrink',       '0'],
-            ['transition',       'transform 0.25s'],
-            ['pointerEvents',    'auto'],
-            ['padding',          '0'],
-            ['margin',           '0'],
-            ['font',             'inherit'],
-          ]);
-          triggerStyles.forEach((v, p) => this.renderer2.setStyle(trigger, p, v));
-          if (trigger.childElementCount === 0) {
-            this.renderer2.setProperty(trigger, 'innerHTML',
-              '<span aria-hidden="true" style="font-size:1.85rem;line-height:1;">🤖</span>'+
-              '<span aria-hidden="true" style="position:absolute;top:4px;right:4px;width:13px;height:13px;border-radius:50%;background:#10b981;border:2.5px solid #0b0b0b;box-shadow:0 0 0 2px rgba(16,185,129,0.35);"></span>');
-          }
-        }
-        const wrapper = widget.querySelector<HTMLElement>('.chatbot-trigger-wrapper');
-        if (wrapper) {
-          const wStyles = new Map<string, string>([
-            ['display',         'flex'],
-            ['alignItems',      'center'],
-            ['justifyContent',  'flex-end'],
-            ['gap',             '0.75rem'],
-            ['pointerEvents',   'none'],
-          ]);
-          wStyles.forEach((v,p)=>this.renderer2.setStyle(wrapper, p, v));
-          wrapper.querySelectorAll<HTMLElement>('*').forEach(el => {
-            this.renderer2.setStyle(el, 'pointerEvents', 'auto');
-          });
-        }
+        // ─────────────────────────────────────────────────────────────
+        // NUKE-AND-PAVE: on jette le rendu Angular du trigger
+        // (évite: SVG robot Angular vide / status bar hors template
+        //  / polices emoji non-rendues / flex-direction erronée)
+        // ─────────────────────────────────────────────────────────────
+        const EMOJI_FONT = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Segoe UI Symbol",system-ui,sans-serif';
+        widget.innerHTML = '';
 
-        // ─── styles forcés : CHAT PANEL ───
-        const panel = widget.querySelector<HTMLElement>('.chatbot-panel');
-        if (panel) {
-          const panelStyles = new Map<string, string>([
-            ['width',      'min(430px, calc(100vw - 48px))'],
-            ['height',     'min(640px, calc(100vh - 120px))'],
-            ['minHeight',  '520px'],
-            ['background', '#ffffff'],
-            ['border',     '2px solid #a68a6d'],
-            ['borderRadius', '22px'],
-            ['boxShadow',  '0 28px 80px rgba(11,11,11,0.38),inset 0 0 0 1px rgba(255,255,255,0.06)'],
-            ['display',    'flex'],
-            ['flexDirection', 'column'],
-            ['overflow',   'hidden'],
-            ['pointerEvents','auto'],
-            ['zIndex',     '2147483647'],
-          ]);
-          panelStyles.forEach((v, p) => this.renderer2.setStyle(panel, p, v));
-        }
+        // ---- (A) trigger-wrapper : [texte "Besoin d'aide ?"] ─── [🤖 btn 62x62]
+        const wrap = this.renderer2.createElement('div');
+        [
+          ['display',         'flex'],
+          ['flexDirection', 'row'],
+          ['flexWrap',      'nowrap'],
+          ['alignItems',   'center'],
+          ['justifyContent', 'flex-end'],
+          ['gap',           '12px'],
+          ['marginBottom',   '0'],
+          ['padding',       '0'],
+          ['pointerEvents', 'none'],
+          ['lineHeight',    '1'],
+        ].forEach(([p,v]) => this.renderer2.setStyle(wrap, p, v));
+        this.renderer2.addClass(wrap, 'chatbot-trigger-wrapper');
+        this.renderer2.appendChild(widget, wrap);
 
-        // ─── styles forcés : CHAT INPUT + SEND BTN + CHIPS ───
-        const input = widget.querySelector<HTMLElement>('.chatbot-input');
-        if (input) {
-          ['flex:1','border:1.5px solid #a68a6d','borderRadius:999px','padding:0.7rem 1rem','font:inherit',
-           'outline:none','background:#fff','color:#0b0b0b'].forEach(s => {
-            const [k,v] = s.split(':');
-            this.renderer2.setStyle(input, k.trim(), v.trim());
+        //  (A.1) Tooltip Badge "Besoin d'aide ? 🤖" ─────────────────
+        const badge = this.renderer2.createElement('div');
+        [
+          ['display',          'inline-flex'],
+          ['alignItems',       'center'],
+          ['gap',              '8px'],
+          ['padding',          '10px 16px'],
+          ['borderRadius',   '999px'],
+          ['background',     '#0b0b0b'],
+          ['color',          '#F3E7D6'],
+          ['border',         '1.5px solid #a68a6d'],
+          ['fontFamily',     "'Playfair Display', Georgia, serif"],
+          ['fontSize',       '0.85rem'],
+          ['fontWeight',     '700'],
+          ['boxShadow',      '0 6px 22px rgba(0,0,0,0.28)'],
+          ['whiteSpace',     'nowrap'],
+          ['cursor',         'default'],
+          ['userSelect',     'none'],
+          ['animation',      'chatbotPulse 2.4s infinite ease-in-out'],
+        ].forEach(([p,v]) => this.renderer2.setStyle(badge, p, v));
+        const badgeLabel = this.renderer2.createElement('span');
+        this.renderer2.setProperty(badgeLabel, 'textContent', "Besoin d'aide ?");
+        const badgeRobot = this.renderer2.createElement('span');
+        this.renderer2.setProperty(badgeRobot, 'textContent', '🤖');
+        [
+          ['fontFamily', EMOJI_FONT],
+          ['fontSize',   '1rem'],
+          ['lineHeight', '1'],
+          ['display',    'inline-block'],
+        ].forEach(([p,v]) => this.renderer2.setStyle(badgeRobot, p, v));
+        this.renderer2.appendChild(badge, badgeLabel);
+        this.renderer2.appendChild(badge, badgeRobot);
+        this.renderer2.appendChild(wrap, badge);
+
+        //  (A.2) Bouton trigger ROND 62x62 ─────────────────────────
+        const trigger = this.renderer2.createElement('button');
+        this.renderer2.setAttribute(trigger, 'type', 'button');
+        this.renderer2.setAttribute(trigger, 'aria-label', "Ouvrir l'assistant InzuBot");
+        [
+          ['display',          'inline-flex'],
+          ['alignItems',       'center'],
+          ['justifyContent',   'center'],
+          ['width',            '62px'],
+          ['height',           '62px'],
+          ['borderRadius',     '50%'],
+          ['border',           '2.5px solid #a68a6d'],
+          ['background',       'linear-gradient(135deg,#0b0b0b 0%,#2B2B2B 100%)'],
+          ['color',            '#fff'],
+          ['cursor',           'pointer'],
+          ['position',         'relative'],
+          ['boxShadow',        '0 12px 32px rgba(11,11,11,0.38),inset 0 0 0 1px rgba(255,255,255,0.06)'],
+          ['flexShrink',       '0'],
+          ['transition',       'transform 0.25s cubic-bezier(0.16,1,0.3,1),background 0.25s,box-shadow 0.25s'],
+          ['pointerEvents',    'auto'],
+          ['padding',          '0'],
+          ['margin',           '0'],
+          ['font',             'inherit'],
+          ['zIndex',           '2147483647'],
+          ['outline',          'none'],
+        ].forEach(([p,v]) => this.renderer2.setStyle(trigger, p, v));
+        // hover/active styles inline via events micro-attach
+        const enter = () => {
+          Object.assign(trigger.style, {
+            transform: 'scale(1.06)',
+            background: '#a68a6d',
+            borderColor: '#0b0b0b',
+            boxShadow: '0 14px 36px rgba(166,138,109,0.45)'
           });
-        }
-        const close = widget.querySelector<HTMLElement>('.chatbot-close-btn');
-        if (close) {
-          const c = new Map<string,string>([
-            ['background','transparent'],['border','0'],['color','#F3E7D6'],['fontSize','2rem'],
-            ['cursor','pointer'],['width','40px'],['height','40px'],['display','inline-flex'],
-            ['alignItems','center'],['justifyContent','center'],['borderRadius','50%'],
-          ]);
-          c.forEach((v,p)=>this.renderer2.setStyle(close, p, v));
-        }
-        widget.querySelectorAll<HTMLElement>('.chip-btn').forEach(chip => {
-          const s = new Map<string,string>([
-            ['background','rgba(166,138,109,0.14)'],['border','1.5px solid rgba(166,138,109,0.45)'],
-            ['borderRadius','999px'],['padding','0.45rem 0.85rem'],['cursor','pointer'],
-            ['color','#0b0b0b'],['fontWeight','600'],['fontSize','0.85rem'],['whiteSpace','nowrap'],
-          ]);
-          s.forEach((v,p)=>this.renderer2.setStyle(chip, p, v));
+        };
+        const leave = () => {
+          Object.assign(trigger.style, {
+            transform: 'scale(1)',
+            background: 'linear-gradient(135deg,#0b0b0b 0%,#2B2B2B 100%)',
+            borderColor: '#a68a6d',
+            boxShadow: '0 12px 32px rgba(11,11,11,0.38),inset 0 0 0 1px rgba(255,255,255,0.06)'
+          });
+        };
+        const down = () => trigger.style.transform = 'scale(0.97)';
+        trigger.addEventListener('mouseenter', enter);
+        trigger.addEventListener('mouseleave', leave);
+        trigger.addEventListener('mousedown', down);
+        trigger.addEventListener('mouseup', leave);
+
+        //  (A.2.1) Emoji robot FORCÉ police emoji couleur (Windows Chrome ok)
+        const robot = this.renderer2.createElement('span');
+        this.renderer2.setProperty(robot, 'textContent', '🤖');
+        [
+          ['fontFamily', EMOJI_FONT],
+          ['fontSize',   '34px'],
+          ['fontWeight', '400'],
+          ['lineHeight', '1'],
+          ['display',    'inline-block'],
+          ['userSelect', 'none'],
+          ['textAlign', 'center'],
+          ['color',     '#fff'],
+        ].forEach(([p,v]) => this.renderer2.setStyle(robot, p, v));
+        this.renderer2.appendChild(trigger, robot);
+
+        //  (A.2.2) Online dot (vert)
+        const dot = this.renderer2.createElement('span');
+        [
+          ['position',     'absolute'],
+          ['top',          '4px'],
+          ['right',        '4px'],
+          ['width',        '13px'],
+          ['height',       '13px'],
+          ['borderRadius', '50%'],
+          ['background',   '#10b981'],
+          ['border',       '2.5px solid #0b0b0b'],
+          ['boxShadow',    '0 0 0 2px rgba(16,185,129,0.35)'],
+          ['pointerEvents', 'none'],
+        ].forEach(([p,v]) => this.renderer2.setStyle(dot, p, v));
+        this.renderer2.appendChild(trigger, dot);
+        this.renderer2.appendChild(wrap, trigger);
+
+        // on re-bind click → toggle()
+        trigger.addEventListener('click', () => {
+          const s = this.isOpen;
+          s.set(!s());
         });
+
+        // ---- (B) Chat PANEL (ajouté dans le widget, masqué par défaut)
+        const panel = this.renderer2.createElement('div');
+        this.renderer2.addClass(panel, 'chatbot-panel');
+        [
+          ['marginTop',      '14px'],
+          ['width',        'min(430px, calc(100vw - 48px))'],
+          ['maxWidth',     'calc(100vw - 48px)'],
+          ['height',       'min(640px, calc(100vh - 120px))'],
+          ['minHeight',    '520px'],
+          ['background',   '#ffffff'],
+          ['border',       '2px solid #a68a6d'],
+          ['borderRadius', '22px'],
+          ['boxShadow',    '0 28px 80px rgba(11,11,11,0.38),inset 0 0 0 1px rgba(255,255,255,0.06)'],
+          ['display',      'none'],
+          ['flexDirection', 'column'],
+          ['overflow',     'hidden'],
+          ['pointerEvents', 'auto'],
+          ['zIndex',       '2147483647'],
+        ].forEach(([p,v]) => this.renderer2.setStyle(panel, p, v));
+        // Cacher / montrer selon signal
+        const syncPanel = () => {
+          panel.style.display = this.isOpen() ? 'flex' : 'none';
+        };
+        syncPanel();
+        const cleanup = effect(syncPanel, { manualCleanup: true, injector: this.injector });
+        this.syncCleanupFn.push(() => cleanup.destroy());
+        this.renderer2.appendChild(widget, panel);
       }
-    } catch {
+    } catch (e) {
       /* ignore querySelector failure (very unlikely) */
     }
 
