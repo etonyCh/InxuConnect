@@ -842,205 +842,201 @@ export class ChatbotComponent implements AfterViewChecked, OnInit, OnDestroy {
     // Même si ViewEncapsulation.None était cassé par un autre CSS global,
     // ce style inline override tout.
     try {
-      const widget = domElem.querySelector<HTMLElement>(':scope > .chatbot-widget');
-      if (widget) {
-        const forceStyles = new Map<string, string>([
-          ['position',       'fixed'],
-          ['bottom',         '24px'],
-          ['right',          '24px'],
-          ['top',            'auto'],
-          ['left',           'auto'],
-          ['width',          'auto'],
-          ['maxWidth',       'calc(100vw - 24px)'],
-          ['zIndex',         '2147483647'],
-          ['transform',      'none'],
-          ['filter',         'none'],
-          ['perspective',    'none'],
-          ['backdropFilter', 'none'],
-          ['clipPath',       'none'],
-          ['display',        'block'],
-          ['pointerEvents',  'none'],
-          ['margin',         '0'],
-          ['padding',        '0'],
-          ['isolation',      'isolate'],
-          ['contain',        'layout style size'],
-        ]);
-        forceStyles.forEach((v, p) => this.renderer2.setStyle(widget, p, v));
+      const EMOJI_FONT = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Segoe UI Symbol",system-ui,sans-serif';
+      const BRONZE = '#a68a6d';
+      const OBSIDIAN = '#0b0b0b';
+      const CREAM = '#F3E7D6';
+      const GREEN = '#10b981';
 
-        // ─────────────────────────────────────────────────────────────
-        // NUKE-AND-PAVE: on jette le rendu Angular du trigger
-        // (évite: SVG robot Angular vide / status bar hors template
-        //  / polices emoji non-rendues / flex-direction erronée)
-        // ─────────────────────────────────────────────────────────────
-        const EMOJI_FONT = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Segoe UI Symbol",system-ui,sans-serif';
-        widget.innerHTML = '';
+      // ────────────────────────────────────────────────────────────────
+      // MODE 9000 ULTRA-VISIBLE:
+      // 3 éléments ENFANTS DIRECTS du <inzu-chatbot-portal> (= sous BODY)
+      // TOUS position: fixed right:32 bottom:32 → aucun parent ne peut
+      // plus les cacher (pas de widget flex-wrap / de maxWidth qui casse)
+      // ────────────────────────────────────────────────────────────────
+      domElem.innerHTML = '';
 
-        // ---- (A) trigger-wrapper : [texte "Besoin d'aide ?"] ─── [🤖 btn 62x62]
-        const wrap = this.renderer2.createElement('div');
-        [
-          ['display',         'flex'],
-          ['flexDirection', 'row'],
-          ['flexWrap',      'nowrap'],
-          ['alignItems',   'center'],
-          ['justifyContent', 'flex-end'],
-          ['gap',           '12px'],
-          ['marginBottom',   '0'],
-          ['padding',       '0'],
-          ['pointerEvents', 'none'],
-          ['lineHeight',    '1'],
-        ].forEach(([p,v]) => this.renderer2.setStyle(wrap, p, v));
-        this.renderer2.addClass(wrap, 'chatbot-trigger-wrapper');
-        this.renderer2.appendChild(widget, wrap);
+      // ── [1/3] TRIGGER ROND GÉANT 72×72 FIXED BOTTOM-RIGHT ─────────
+      const trigger = this.renderer2.createElement('button');
+      this.renderer2.setAttribute(trigger, 'type', 'button');
+      this.renderer2.setAttribute(trigger, 'aria-label', "Ouvrir l'assistant InzuBot");
+      [
+        ['position',        'fixed'],
+        ['right',           '32px'],
+        ['bottom',          '32px'],
+        ['width',           '72px'],
+        ['height',          '72px'],
+        ['minWidth',        '72px'],
+        ['minHeight',       '72px'],
+        ['borderRadius',    '50%'],
+        ['border',          `3px solid ${BRONZE}`],
+        ['background',      'linear-gradient(135deg,'+OBSIDIAN+' 0%,#2B2B2B 55%,'+BRONZE+' 150%)'],
+        ['cursor',          'pointer'],
+        ['zIndex',          '2147483647'],
+        ['boxShadow',       '0 18px 44px rgba(11,11,11,0.55), inset 0 0 0 2px rgba(255,255,255,0.07)'],
+        ['display',         'inline-flex'],
+        ['alignItems',      'center'],
+        ['justifyContent',  'center'],
+        ['padding',         '0'],
+        ['margin',          '0'],
+        ['transform',       'scale(1)'],
+        ['transition',      'transform 0.25s cubic-bezier(0.16,1,0.3,1), box-shadow 0.25s, background 0.25s, border-color 0.25s'],
+        ['overflow',        'hidden'],
+        ['outline',         'none'],
+        ['contain',         'layout style size'],
+        ['isolation',       'isolate'],
+      ].forEach(([p,v]) => this.renderer2.setStyle(trigger, p, v));
 
-        //  (A.1) Tooltip Badge "Besoin d'aide ? 🤖" ─────────────────
-        const badge = this.renderer2.createElement('div');
-        [
-          ['display',          'inline-flex'],
-          ['alignItems',       'center'],
-          ['gap',              '8px'],
-          ['padding',          '10px 16px'],
-          ['borderRadius',   '999px'],
-          ['background',     '#0b0b0b'],
-          ['color',          '#F3E7D6'],
-          ['border',         '1.5px solid #a68a6d'],
-          ['fontFamily',     "'Playfair Display', Georgia, serif"],
-          ['fontSize',       '0.85rem'],
-          ['fontWeight',     '700'],
-          ['boxShadow',      '0 6px 22px rgba(0,0,0,0.28)'],
-          ['whiteSpace',     'nowrap'],
-          ['cursor',         'default'],
-          ['userSelect',     'none'],
-          ['animation',      'chatbotPulse 2.4s infinite ease-in-out'],
-        ].forEach(([p,v]) => this.renderer2.setStyle(badge, p, v));
-        const badgeLabel = this.renderer2.createElement('span');
-        this.renderer2.setProperty(badgeLabel, 'textContent', "Besoin d'aide ?");
-        const badgeRobot = this.renderer2.createElement('span');
-        this.renderer2.setProperty(badgeRobot, 'textContent', '🤖');
-        [
-          ['fontFamily', EMOJI_FONT],
-          ['fontSize',   '1rem'],
-          ['lineHeight', '1'],
-          ['display',    'inline-block'],
-        ].forEach(([p,v]) => this.renderer2.setStyle(badgeRobot, p, v));
-        this.renderer2.appendChild(badge, badgeLabel);
-        this.renderer2.appendChild(badge, badgeRobot);
-        this.renderer2.appendChild(wrap, badge);
-
-        //  (A.2) Bouton trigger ROND 62x62 ─────────────────────────
-        const trigger = this.renderer2.createElement('button');
-        this.renderer2.setAttribute(trigger, 'type', 'button');
-        this.renderer2.setAttribute(trigger, 'aria-label', "Ouvrir l'assistant InzuBot");
-        [
-          ['display',          'inline-flex'],
-          ['alignItems',       'center'],
-          ['justifyContent',   'center'],
-          ['width',            '62px'],
-          ['height',           '62px'],
-          ['borderRadius',     '50%'],
-          ['border',           '2.5px solid #a68a6d'],
-          ['background',       'linear-gradient(135deg,#0b0b0b 0%,#2B2B2B 100%)'],
-          ['color',            '#fff'],
-          ['cursor',           'pointer'],
-          ['position',         'relative'],
-          ['boxShadow',        '0 12px 32px rgba(11,11,11,0.38),inset 0 0 0 1px rgba(255,255,255,0.06)'],
-          ['flexShrink',       '0'],
-          ['transition',       'transform 0.25s cubic-bezier(0.16,1,0.3,1),background 0.25s,box-shadow 0.25s'],
-          ['pointerEvents',    'auto'],
-          ['padding',          '0'],
-          ['margin',           '0'],
-          ['font',             'inherit'],
-          ['zIndex',           '2147483647'],
-          ['outline',          'none'],
-        ].forEach(([p,v]) => this.renderer2.setStyle(trigger, p, v));
-        // hover/active styles inline via events micro-attach
-        const enter = () => {
-          Object.assign(trigger.style, {
-            transform: 'scale(1.06)',
-            background: '#a68a6d',
-            borderColor: '#0b0b0b',
-            boxShadow: '0 14px 36px rgba(166,138,109,0.45)'
-          });
-        };
-        const leave = () => {
-          Object.assign(trigger.style, {
-            transform: 'scale(1)',
-            background: 'linear-gradient(135deg,#0b0b0b 0%,#2B2B2B 100%)',
-            borderColor: '#a68a6d',
-            boxShadow: '0 12px 32px rgba(11,11,11,0.38),inset 0 0 0 1px rgba(255,255,255,0.06)'
-          });
-        };
-        const down = () => trigger.style.transform = 'scale(0.97)';
-        trigger.addEventListener('mouseenter', enter);
-        trigger.addEventListener('mouseleave', leave);
-        trigger.addEventListener('mousedown', down);
-        trigger.addEventListener('mouseup', leave);
-
-        //  (A.2.1) Emoji robot FORCÉ police emoji couleur (Windows Chrome ok)
-        const robot = this.renderer2.createElement('span');
-        this.renderer2.setProperty(robot, 'textContent', '🤖');
-        [
-          ['fontFamily', EMOJI_FONT],
-          ['fontSize',   '34px'],
-          ['fontWeight', '400'],
-          ['lineHeight', '1'],
-          ['display',    'inline-block'],
-          ['userSelect', 'none'],
-          ['textAlign', 'center'],
-          ['color',     '#fff'],
-        ].forEach(([p,v]) => this.renderer2.setStyle(robot, p, v));
-        this.renderer2.appendChild(trigger, robot);
-
-        //  (A.2.2) Online dot (vert)
-        const dot = this.renderer2.createElement('span');
-        [
-          ['position',     'absolute'],
-          ['top',          '4px'],
-          ['right',        '4px'],
-          ['width',        '13px'],
-          ['height',       '13px'],
-          ['borderRadius', '50%'],
-          ['background',   '#10b981'],
-          ['border',       '2.5px solid #0b0b0b'],
-          ['boxShadow',    '0 0 0 2px rgba(16,185,129,0.35)'],
-          ['pointerEvents', 'none'],
-        ].forEach(([p,v]) => this.renderer2.setStyle(dot, p, v));
-        this.renderer2.appendChild(trigger, dot);
-        this.renderer2.appendChild(wrap, trigger);
-
-        // on re-bind click → toggle()
-        trigger.addEventListener('click', () => {
-          const s = this.isOpen;
-          s.set(!s());
+      // hover/active inline events
+      trigger.addEventListener('mouseenter', () => {
+        Object.assign(trigger.style, {
+          transform: 'scale(1.08)',
+          background: `linear-gradient(135deg,${BRONZE} 0%, #c7a98c 100%)`,
+          borderColor: OBSIDIAN,
+          boxShadow: '0 22px 54px rgba(166,138,109,0.55), inset 0 0 0 2px rgba(11,11,11,0.3)'
         });
+      });
+      trigger.addEventListener('mouseleave', () => {
+        Object.assign(trigger.style, {
+          transform: 'scale(1)',
+          background: `linear-gradient(135deg,${OBSIDIAN} 0%,#2B2B2B 55%,${BRONZE} 150%)`,
+          borderColor: BRONZE,
+          boxShadow: '0 18px 44px rgba(11,11,11,0.55), inset 0 0 0 2px rgba(255,255,255,0.07)'
+        });
+      });
+      trigger.addEventListener('mousedown', () => trigger.style.transform = 'scale(0.94)');
+      trigger.addEventListener('mouseup',   () => trigger.style.transform = this.isOpen() ? 'scale(1.04)' : 'scale(1)');
 
-        // ---- (B) Chat PANEL (ajouté dans le widget, masqué par défaut)
-        const panel = this.renderer2.createElement('div');
-        this.renderer2.addClass(panel, 'chatbot-panel');
-        [
-          ['marginTop',      '14px'],
-          ['width',        'min(430px, calc(100vw - 48px))'],
-          ['maxWidth',     'calc(100vw - 48px)'],
-          ['height',       'min(640px, calc(100vh - 120px))'],
-          ['minHeight',    '520px'],
-          ['background',   '#ffffff'],
-          ['border',       '2px solid #a68a6d'],
-          ['borderRadius', '22px'],
-          ['boxShadow',    '0 28px 80px rgba(11,11,11,0.38),inset 0 0 0 1px rgba(255,255,255,0.06)'],
-          ['display',      'none'],
-          ['flexDirection', 'column'],
-          ['overflow',     'hidden'],
-          ['pointerEvents', 'auto'],
-          ['zIndex',       '2147483647'],
-        ].forEach(([p,v]) => this.renderer2.setStyle(panel, p, v));
-        // Cacher / montrer selon signal
-        const syncPanel = () => {
-          panel.style.display = this.isOpen() ? 'flex' : 'none';
-        };
-        syncPanel();
-        const cleanup = effect(syncPanel, { manualCleanup: true, injector: this.injector });
-        this.syncCleanupFn.push(() => cleanup.destroy());
-        this.renderer2.appendChild(widget, panel);
-      }
+      // 1.1 Robot 🤖 (forcé emoji font, 40px GÉANT)
+      const robot = this.renderer2.createElement('span');
+      this.renderer2.setProperty(robot, 'textContent', '🤖');
+      [
+        ['fontFamily',  EMOJI_FONT],
+        ['fontSize',    '42px'],
+        ['lineHeight',  '1'],
+        ['fontWeight',  '400'],
+        ['userSelect',  'none'],
+        ['color',       '#fff'],
+        ['display',     'inline-block'],
+        ['textAlign',   'center'],
+        ['filter',      'drop-shadow(0 2px 6px rgba(0,0,0,0.5))'],
+        ['pointerEvents','none'],
+      ].forEach(([p,v]) => this.renderer2.setStyle(robot, p, v));
+      this.renderer2.appendChild(trigger, robot);
+
+      // 1.2 Online dot vert (GROS 16px, en bas à droite pour être vu sur bordure bronze)
+      const dot = this.renderer2.createElement('span');
+      [
+        ['position',     'absolute'],
+        ['bottom',       '2px'],
+        ['right',        '2px'],
+        ['width',        '18px'],
+        ['height',       '18px'],
+        ['borderRadius', '50%'],
+        ['background',   GREEN],
+        ['border',       `3px solid ${OBSIDIAN}`],
+        ['boxShadow',    `0 0 0 3px rgba(16,185,129,0.4), 0 0 18px ${GREEN}`],
+        ['pointerEvents','none'],
+      ].forEach(([p,v]) => this.renderer2.setStyle(dot, p, v));
+      this.renderer2.appendChild(trigger, dot);
+
+      trigger.addEventListener('click', () => this.isOpen.set(!this.isOpen()));
+      this.renderer2.appendChild(domElem, trigger);
+
+      // ── [2/3] TOOLTIP BADGE "Besoin d'aide ?" collé à gauche ──────
+      const badge = this.renderer2.createElement('div');
+      [
+        ['position',        'fixed'],
+        ['right',           '116px'],
+        ['bottom',          '46px'],
+        ['background',      OBSIDIAN],
+        ['color',           CREAM],
+        ['border',          `2px solid ${BRONZE}`],
+        ['borderRadius',    '999px'],
+        ['padding',         '12px 20px'],
+        ['fontFamily',      "'Playfair Display', Georgia, serif"],
+        ['fontWeight',      '800'],
+        ['fontSize',        '1rem'],
+        ['letterSpacing',   '0.01em'],
+        ['whiteSpace',      'nowrap'],
+        ['boxShadow',       '0 10px 28px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(166,138,109,0.35)'],
+        ['zIndex',          '2147483646'],
+        ['display',         'inline-flex'],
+        ['alignItems',      'center'],
+        ['gap',             '10px'],
+        ['pointerEvents',   'none'],
+        ['userSelect',      'none'],
+        ['transformOrigin', '100% 50%'],
+        ['animation',       'chatbotBadgePulse 2.6s infinite ease-in-out'],
+      ].forEach(([p,v]) => this.renderer2.setStyle(badge, p, v));
+
+      const bTxt = this.renderer2.createElement('span');
+      this.renderer2.setProperty(bTxt, 'textContent', "Besoin d'aide ?");
+      this.renderer2.appendChild(badge, bTxt);
+
+      const bEmo = this.renderer2.createElement('span');
+      this.renderer2.setProperty(bEmo, 'textContent', '🤖');
+      [
+        ['fontFamily', EMOJI_FONT],
+        ['fontSize',   '1.1rem'],
+        ['lineHeight', '1'],
+      ].forEach(([p,v]) => this.renderer2.setStyle(bEmo, p, v));
+      this.renderer2.appendChild(badge, bEmo);
+
+      const arrow = this.renderer2.createElement('span');
+      [
+        ['position',     'absolute'],
+        ['top',          '50%'],
+        ['right',        '-9px'],
+        ['transform',    'translateY(-50%)'],
+        ['width',        '0'],
+        ['height',       '0'],
+        ['borderTop',    '10px solid transparent'],
+        ['borderBottom', '10px solid transparent'],
+        ['borderLeft',   `10px solid ${BRONZE}`],
+        ['pointerEvents','none'],
+      ].forEach(([p,v]) => this.renderer2.setStyle(arrow, p, v));
+      this.renderer2.appendChild(badge, arrow);
+
+      this.renderer2.appendChild(domElem, badge);
+
+      // hide badge quand panel ouvert
+      const syncBadge = () => {
+        badge.style.display = this.isOpen() ? 'none' : 'inline-flex';
+      };
+      syncBadge();
+      const cBadge = effect(syncBadge, { manualCleanup: true, injector: this.injector });
+      this.syncCleanupFn.push(() => cBadge.destroy());
+
+      // ── [3/3] CHAT PANEL FIXED juste au-dessus du bouton ──────────
+      const panel = this.renderer2.createElement('div');
+      [
+        ['position',        'fixed'],
+        ['right',           '32px'],
+        ['bottom',          '120px'],
+        ['width',           'min(440px, calc(100vw - 64px))'],
+        ['maxWidth',        'calc(100vw - 64px)'],
+        ['height',          'min(660px, calc(100vh - 180px))'],
+        ['minHeight',       '540px'],
+        ['background',      '#ffffff'],
+        ['border',          `2.5px solid ${BRONZE}`],
+        ['borderRadius',    '24px'],
+        ['boxShadow',       '0 32px 90px rgba(11,11,11,0.5), inset 0 0 0 1px rgba(255,255,255,0.07)'],
+        ['zIndex',          '2147483647'],
+        ['display',         'none'],
+        ['flexDirection',   'column'],
+        ['overflow',        'hidden'],
+        ['contain',         'layout style size'],
+      ].forEach(([p,v]) => this.renderer2.setStyle(panel, p, v));
+
+      const syncPanel = () => {
+        panel.style.display = this.isOpen() ? 'flex' : 'none';
+      };
+      syncPanel();
+      const cPanel = effect(syncPanel, { manualCleanup: true, injector: this.injector });
+      this.syncCleanupFn.push(() => cPanel.destroy());
+      this.renderer2.appendChild(domElem, panel);
+
     } catch (e) {
       /* ignore querySelector failure (very unlikely) */
     }
