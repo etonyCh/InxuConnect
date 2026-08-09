@@ -1,6 +1,7 @@
 export const environment = {
   production: true,
-  apiBaseUrl: 'https://api.inzuconnect.bi',
-  appName: 'InzuConnect',
-  tokenRefreshThresholdMs: 300000,
+  apiUrl: '/api/v1',
+  apiBaseUrl: '',
+  wsUrl: '/ws-chat',
+  tokenRefreshThresholdMs: 300000
 };

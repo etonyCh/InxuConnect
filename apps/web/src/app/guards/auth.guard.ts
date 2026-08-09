@@ -1,48 +1,31 @@
-import { Injectable, inject } from '@angular/core';
-import {
-  CanActivate,
-  CanActivateChild,
-  CanMatch,
-  Router,
-  UrlTree,
-  Route,
-  UrlSegment,
-  ActivatedRouteSnapshot,
-  RouterStateSnapshot,
-} from '@angular/router';
-import { AuthService } from '../services/auth.service';
-import { Observable, of, switchMap, catchError } from 'rxjs';
+import { Injectable } from '@angular/core';
+import { CanActivateFn, CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 
-@Injectable({ providedIn: 'root' })
-export class AuthGuard implements CanActivate, CanActivateChild, CanMatch {
-  private auth = inject(AuthService);
-  private router = inject(Router);
-
-  canActivate(_route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean | UrlTree> {
-    return this.evaluate(state.url);
+export const authGuard: CanActivateFn = (route, state) => {
+  const token = localStorage.getItem('inzu_token');
+  if (token) {
+    return true;
   }
+  console.warn('Accès refusé - Authentification requise pour', state.url);
+  return false;
+};
 
-  canActivateChild(_childRoute: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean | UrlTree> {
-    return this.evaluate(state.url);
-  }
-
-  canMatch(_route: Route, segments: UrlSegment[]): Observable<boolean | UrlTree> {
-    return this.evaluate('/' + segments.map((s) => s.path).join('/'));
-  }
-
-  private evaluate(returnUrl: string): Observable<boolean | UrlTree> {
-    if (this.auth.isAuthenticated()) return of(true);
-    return this.auth.refreshProfile().pipe(
-      switchMap(() => of(this.auth.isAuthenticated())),
-      catchError(() => of(false)),
-      switchMap((ok) => {
-        if (ok) return of(true as boolean);
-        return of(
-          this.router.createUrlTree(['/login'], {
-            queryParams: { returnUrl: returnUrl !== '/login' ? returnUrl : undefined },
-          }),
-        );
-      }),
-    );
+@Injectable({
+  providedIn: 'root'
+})
+export class AuthGuard implements CanActivate {
+  canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean {
+    return authGuard(route, state) as boolean;
   }
 }
+
+export const roleGuard = (requiredRole: string): CanActivateFn => {
+  return (route, state) => {
+    const userRole = localStorage.getItem('inzu_user_role') || 'GUEST';
+    if (userRole === requiredRole || userRole === 'ADMIN') {
+      return true;
+    }
+    console.warn(`Accès refusé - Rôle ${requiredRole} requis.`);
+    return false;
+  };
+};

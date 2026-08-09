@@ -2,15 +2,15 @@ package com.inzuconnect.inzuconnect_api.web.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.inzuconnect.inzuconnect_api.rag.LightRagService;
+import com.inzuconnect.inzuconnect_api.web.dto.RagAskDto;
+import com.inzuconnect.inzuconnect_api.web.dto.RagQueryDto;
 import com.inzuconnect.inzuconnect_api.web.dto.VoiceAssistantRequestDto;
 import com.inzuconnect.inzuconnect_api.web.dto.VoiceFiltersDto;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -37,14 +37,113 @@ public class AiController {
 
     private final ObjectMapper objectMapper;
     private final HttpClient httpClient;
+    private final LightRagService lightRagService;
 
-    public AiController(ObjectMapper springObjectMapper) {
+    public AiController(ObjectMapper springObjectMapper, LightRagService lightRagService) {
         this.objectMapper = springObjectMapper.copy()
                 .configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true)
                 .configure(com.fasterxml.jackson.databind.SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(10))
                 .build();
+        this.lightRagService = lightRagService;
+    }
+
+    @GetMapping("/rag/status")
+    public ResponseEntity<?> ragStatus() {
+        return ResponseEntity.ok(Map.of(
+                "storeSize", lightRagService.storeSize(),
+                "engine", "light-rag-inmemory-v1",
+                "vectorStore", "ConcurrentHashMap + pure-java-cosine",
+                "features", List.of("chunking", "embedding", "retrieval", "qa")
+        ));
+    }
+
+    @PostMapping("/rag/index-listings")
+    public ResponseEntity<?> ragIndexListings() {
+        try {
+            LightRagService.IndexResult r = lightRagService.indexAllPublishedListings();
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "indexedChunks", r.indexedChunks(),
+                    "sourceItems", r.sourceItems(),
+                    "note", r.note(),
+                    "storeSize", lightRagService.storeSize()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Échec indexation annonces: " + e.getMessage()));
+        }
+    }
+
+    @PostMapping("/rag/index-kb")
+    public ResponseEntity<?> ragIndexKb() {
+        try {
+            LightRagService.IndexResult r = lightRagService.indexKnowledgeBase();
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "indexedChunks", r.indexedChunks(),
+                    "kbEntries", r.sourceItems(),
+                    "note", r.note(),
+                    "storeSize", lightRagService.storeSize()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Échec indexation KB: " + e.getMessage()));
+        }
+    }
+
+    @PostMapping("/rag/retrieve")
+    public ResponseEntity<?> ragRetrieve(@Valid @RequestBody RagQueryDto dto) {
+        String q = dto.getQuery().trim();
+        Matcher m = INJECTION_PATTERN.matcher(q);
+        if (m.find()) {
+            return ResponseEntity.status(422)
+                    .body(Map.of("error", "Requête refusée."));
+        }
+        int topK = dto.getTopK() == null ? 5 : dto.getTopK();
+        try {
+            List<LightRagService.RetrievedChunk> results = lightRagService.retrieve(q, topK);
+            return ResponseEntity.ok(Map.of(
+                    "query", q,
+                    "topK", topK,
+                    "count", results.size(),
+                    "results", results
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Échec retrieval: " + e.getMessage()));
+        }
+    }
+
+    @PostMapping("/rag/ask")
+    public ResponseEntity<?> ragAsk(@Valid @RequestBody RagAskDto dto) {
+        String q = dto.getQuestion().trim();
+        Matcher m = INJECTION_PATTERN.matcher(q);
+        if (m.find()) {
+            return ResponseEntity.status(422)
+                    .body(Map.of("error", "Requête refusée."));
+        }
+        int topK = dto.getTopK() == null ? 5 : dto.getTopK();
+        try {
+            LightRagService.RagAnswer answer = lightRagService.answerWithRag(q, topK);
+            return ResponseEntity.ok(Map.of(
+                    "question", q,
+                    "answer", answer.answer(),
+                    "usedLlm", answer.usedLlm(),
+                    "model", answer.model(),
+                    "sources", answer.sources()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Échec RAG QA: " + e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/rag/store")
+    public ResponseEntity<?> ragClear() {
+        lightRagService.clearStore();
+        return ResponseEntity.ok(Map.of("success", true, "storeSize", 0));
     }
 
     @PostMapping("/voice-assistant")
@@ -53,7 +152,7 @@ public class AiController {
 
         Matcher m = INJECTION_PATTERN.matcher(textCommand);
         if (m.find()) {
-            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+            return ResponseEntity.status(422)
                     .body(Map.of(
                             "error", "Requête refusée - détection d'instructions suspectes.",
                             "hint", "Consultez notre politique d'usage de l'assistant vocal."
