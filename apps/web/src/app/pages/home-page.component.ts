@@ -46,7 +46,7 @@ interface StatItem { icon: string; value: string; label: string; }
       <a class="topnav__link" (click)="setSearchTab('rent'); scrollToHero()">Louer</a>
       <a class="topnav__link" (click)="setSearchTab('new'); scrollToHero()">Neuf</a>
       <a class="topnav__link" (click)="scrollTo('about')">À propos</a>
-      <a class="topnav__link" (click)="scrollTo('footer')">Contact</a>
+      <a class="topnav__link" (click)="isContactOpen.set(true)">Contact</a>
     </div>
 
     <div class="topnav__actions">
@@ -386,13 +386,13 @@ interface StatItem { icon: string; value: string; label: string; }
       </div>
 
       <div class="footer__col">
-        <h5>Informations</h5>
+        <h5>Informations & Contact</h5>
         <ul>
           <li><a (click)="scrollTo('about')">Qui sommes-nous ?</a></li>
+          <li><a (click)="isContactOpen.set(true)">Formulaire de Contact</a></li>
           <li><a (click)="isKycOpen.set(true)">Vérification KYC & Badge</a></li>
           <li><a (click)="isTransferOpen.set(true)">Services de Transfert</a></li>
           <li><a (click)="isVoiceOpen.set(true)">Assistant Vocal Kirundi</a></li>
-          <li><a (click)="isFilterOpen.set(true)">Recherche Avancée</a></li>
         </ul>
       </div>
 
@@ -418,11 +418,57 @@ interface StatItem { icon: string; value: string; label: string; }
     <button class="mobile-nav__tab" (click)="scrollTo('listings')">Recherche</button>
     <button class="mobile-nav__tab mobile-nav__tab--plus" (click)="navigateHostWizard()">+</button>
     <button class="mobile-nav__tab" (click)="isChatOpen.set(true)">Messages</button>
-    <button class="mobile-nav__tab" (click)="isWishlistOpen.set(true)">Favoris</button>
+    <button class="mobile-nav__tab" (click)="isContactOpen.set(true)">Contact</button>
   </nav>
 </div>
 
 <!-- ==================== MODALS ==================== -->
+<!-- CONTACT MODAL -->
+<div class="overlay overlay--center" [class.is-open]="isContactOpen()">
+  <div class="overlay__backdrop" (click)="isContactOpen.set(false)"></div>
+  <div class="overlay__panel">
+    <div class="overlay__head">
+      <h3 class="overlay__title">Contactez l'équipe InzuConnect</h3>
+      <button class="overlay__close" (click)="isContactOpen.set(false)">✕</button>
+    </div>
+    <form class="overlay__body" (submit)="onContactSubmit($event)">
+      <p style="font-size:0.9rem;color:var(--ink-on-light-65);margin-bottom:1.5rem">
+        Une question sur une annonce, un partenariat ou besoin d'assistance ? Remplissez ce formulaire et notre équipe vous répondra sous 24h.
+      </p>
+
+      <div class="field">
+        <label>Nom & Prénom</label>
+        <input type="text" placeholder="Votre nom complet" required [value]="contactName()" (input)="setContactName($event)">
+      </div>
+
+      <div class="field">
+        <label>Email ou Téléphone</label>
+        <input type="text" placeholder="+257 79 000 000 ou email@exemple.bi" required [value]="contactEmail()" (input)="setContactEmail($event)">
+      </div>
+
+      <div class="field">
+        <label>Sujet de votre demande</label>
+        <select [value]="contactSubject()" (change)="setContactSubject($event)">
+          <option value="renseignement">Demande d'information sur un bien</option>
+          <option value="hote">Devenir Hôte / Publier un bien</option>
+          <option value="partenariat">Partenariat & Agences Immobilieres</option>
+          <option value="support">Assistance Technique & KYC</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Votre message</label>
+        <textarea rows="4" placeholder="Précisez votre demande..." required style="width:100%;padding:0.85rem 1rem;border:1.5px solid rgba(1,32,38,0.12);border-radius:var(--r-sm);font-family:var(--f-body);font-size:0.95rem" [value]="contactMessage()" (input)="setContactMessage($event)"></textarea>
+      </div>
+
+      <div class="overlay__footer">
+        <button type="button" class="btn btn-ghost" (click)="isContactOpen.set(false)">Annuler</button>
+        <button type="submit" class="btn btn-primary">Envoyer le message</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <div class="overlay overlay--center" [class.is-open]="isFilterOpen()">
   <div class="overlay__backdrop" (click)="isFilterOpen.set(false)"></div>
   <div class="overlay__panel">
@@ -615,6 +661,13 @@ export class HomePageComponent implements OnInit {
   readonly searchPieces = signal<number>(0);
   readonly newsletterEmail = signal('');
 
+  // CONTACT FORM SIGNALS
+  readonly isContactOpen = signal(false);
+  readonly contactName = signal('');
+  readonly contactEmail = signal('');
+  readonly contactSubject = signal('renseignement');
+  readonly contactMessage = signal('');
+
   readonly trustBadges: TrustBadge[] = [
     { icon:  '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2 4 5v6c0 5 3.4 8.7 8 11 4.6-2.3 8-6 8-11V5l-8-3Z"/><path d="m9 12 2 2 4-4"/></svg>',
       title: 'Annonces vérifiées', desc: 'Des annonces de qualité vérifiées par nos équipes.' },
@@ -704,10 +757,36 @@ export class HomePageComponent implements OnInit {
     if (!Number.isNaN(n)) this.priceMax.set(n);
   }
 
+  setContactName(e: Event): void {
+    const v = (e.target as HTMLInputElement)?.value;
+    if (typeof v === 'string') this.contactName.set(v);
+  }
+  setContactEmail(e: Event): void {
+    const v = (e.target as HTMLInputElement)?.value;
+    if (typeof v === 'string') this.contactEmail.set(v);
+  }
+  setContactSubject(e: Event): void {
+    const v = (e.target as HTMLSelectElement)?.value;
+    if (typeof v === 'string') this.contactSubject.set(v);
+  }
+  setContactMessage(e: Event): void {
+    const v = (e.target as HTMLTextAreaElement)?.value;
+    if (typeof v === 'string') this.contactMessage.set(v);
+  }
+
   ngOnInit(): void {
     this.listingSvc.getListings().subscribe((data) => {
       this.listings.set(data);
     });
+  }
+
+  onContactSubmit(e: Event): void {
+    e.preventDefault();
+    this.isContactOpen.set(false);
+    this.contactName.set('');
+    this.contactEmail.set('');
+    this.contactMessage.set('');
+    this.toast.show('Message transmis à l\'équipe InzuConnect. Réponse sous 24h.');
   }
 
   // REDIRECTIONS INTELLIGENTES & AUTHENTIFICATION
