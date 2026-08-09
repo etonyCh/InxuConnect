@@ -17,7 +17,7 @@ import { Listing } from '../models/listing.model';
   <div style="padding:.85rem .25rem 0;">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;">
       <h3 style="font-size:.98rem;line-height:1.25;">{{listing.title}}</h3>
-      <span style="font-family:var(--f-mono);font-weight:600;white-space:nowrap;">★ {{listing.rating?.toFixed(1) || '4.9'}}</span>
+      <span style="font-family:var(--f-mono);font-weight:600;white-space:nowrap;">★ {{listing.rating.toFixed(1)}}</span>
     </div>
     <p style="color:var(--ink-on-light-65);font-size:.85rem;margin-top:.25rem;">{{listing.location}} · {{listing.bedroomsCount}} ch. · {{listing.guestsCount}} voyageurs</p>
     <p style="font-weight:700;margin-top:.45rem;"><span class="mono">{{formatPrice(listing.pricePerNightFbu)}}</span> <span style="color:var(--ink-on-light-65);font-weight:500;font-size:.85rem;">/ nuit</span></p>

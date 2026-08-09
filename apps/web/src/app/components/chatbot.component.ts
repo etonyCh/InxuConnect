@@ -1,4 +1,9 @@
-import { Component, signal, ElementRef, ViewChild, AfterViewChecked, PLATFORM_ID, Inject } from '@angular/core';
+import {
+  Component, signal, ElementRef, ViewChild, AfterViewChecked, effect,
+  PLATFORM_ID, Inject, OnInit, OnDestroy, Renderer2,
+  ApplicationRef, createComponent, EnvironmentInjector, Injector,
+  ComponentRef,
+} from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
@@ -9,115 +14,197 @@ export interface ChatMessage {
   sender: 'bot' | 'user';
   text: string;
   time: string;
-  quickAction?: string;
 }
 
+/**
+ * Composant INTERNE — rendu DIRECTEMENT sous <body> via un Angular Portal
+ * créé par le wrapper public <app-chatbot>.
+ *
+ * Pourquoi un Portail ?
+ *   C'est la SEULE méthode CSS-incassable. Un ancêtre portant
+ *   `transform` / `perspective` / `filter` / `contain: paint` change
+ *   le référentiel `position: fixed` en référentiel LOCAL. Le footer
+ *   de la page est souvent `position: relative; overflow: hidden;` ce
+ *   qui produit EXACTEMENT le bug observé (bouton "dans" le footer).
+ *
+ *   Intercom, Drift, Crisp utilisent tous ce pattern.
+ */
 @Component({
-  selector: 'app-chatbot',
+  selector: 'inzu-chatbot-portal',
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-<!-- FLOATING CHATBOT WIDGET (BOTTOM RIGHT) -->
 <div class="chatbot-widget">
-  
-  <!-- FLOATING TRIGGER BUTTON & BADGE -->
-  <div class="chatbot-trigger-wrapper" *ngIf="!isOpen()">
-    <span class="chatbot-tooltip-badge">Besoin d'aide ?</span>
-    <button type="button" class="chatbot-trigger-btn" (click)="toggleChat()" aria-label="Ouvrir l'assistant virtuel InzuBot">
-      <span class="robot-avatar">🤖</span>
-      <span class="online-dot"></span>
-    </button>
-  </div>
-
-  <!-- FLOATING CHAT WINDOW PANEL -->
-  <div class="chatbot-panel" *ngIf="isOpen()">
-    <!-- CHAT HEADER -->
-    <div class="chatbot-header">
-      <div class="chatbot-header__info">
-        <div class="robot-header-avatar">
-          <span>🤖</span>
-          <span class="online-indicator"></span>
-        </div>
-        <div>
-          <h4>Assistant InzuBot</h4>
-          <small>IA Immobilier & Kirundi 24/7</small>
-        </div>
+  <ng-container *ngIf="!isOpen()">
+    <div class="chatbot-trigger-wrapper">
+      <div class="chatbot-tooltip-badge">
+        <span>Besoin d'aide&nbsp;?</span>
+        <span class="chatbot-tooltip-badge__robot">🤖</span>
       </div>
-      <button type="button" class="chatbot-close-btn" (click)="toggleChat()" aria-label="Fermer le chat">✕</button>
-    </div>
-
-    <!-- CHAT MESSAGES BODY -->
-    <div class="chatbot-body" #scrollContainer>
-      <div class="chat-intro-note">
-        <span class="mono">INZUBOT AI ASSISTANT</span>
-        <p>Posez vos questions en Français ou en Kirundi pour trouver votre logement au Burundi.</p>
-      </div>
-
-      <div *ngFor="let msg of messages()" class="chat-msg" [class.chat-msg--user]="msg.sender === 'user'" [class.chat-msg--bot]="msg.sender === 'bot'">
-        <div class="msg-avatar" *ngIf="msg.sender === 'bot'">🤖</div>
-        <div class="msg-bubble">
-          <p [innerHTML]="msg.text"></p>
-          <span class="msg-time">{{ msg.time }}</span>
-        </div>
-      </div>
-
-      <!-- TYPING INDICATOR -->
-      <div *ngIf="isTyping()" class="chat-msg chat-msg--bot">
-        <div class="msg-avatar">🤖</div>
-        <div class="msg-bubble typing-bubble">
-          <span class="dot"></span>
-          <span class="dot"></span>
-          <span class="dot"></span>
-        </div>
-      </div>
-    </div>
-
-    <!-- QUICK CHIPS SUGGESTIONS -->
-    <div class="chatbot-quick-chips">
-      <button type="button" class="chip-btn" (click)="sendQuickQuery('Biens avec Groupe Électrogène & Citerne')">
-        ⚡ Groupe & Citerne
-      </button>
-      <button type="button" class="chip-btn" (click)="sendQuickQuery('Maisons de passage à Rohero & Kigobe')">
-        📍 Rohero / Kigobe
-      </button>
-      <button type="button" class="chip-btn" (click)="sendQuickQuery('Comment obtenir le Badge KYC ?')">
-        🛡️ Badge KYC
-      </button>
-      <button type="button" class="chip-btn" (click)="sendQuickQuery('Service Transfert Aéroport')">
-        ✈️ Transfert Aéroport
-      </button>
-    </div>
-
-    <!-- CHAT INPUT FOOTER -->
-    <form class="chatbot-footer" (submit)="handleSend($event)">
-      <input
-        type="text"
-        placeholder="Posez votre question en français ou kirundi..."
-        [(ngModel)]="inputText"
-        name="inputText"
-        autocomplete="off"
+      <button
+        class="chatbot-trigger-btn"
+        (click)="toggle()"
+        type="button"
+        aria-label="Ouvrir l'assistant InzuBot"
       >
-      <button type="submit" class="send-btn" [disabled]="!inputText.trim()">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        <span class="robot-avatar" aria-hidden="true">🤖</span>
+        <span class="online-dot" aria-hidden="true"></span>
       </button>
-    </form>
-  </div>
+    </div>
+  </ng-container>
 
+  <ng-container *ngIf="isOpen()">
+    <div class="chatbot-panel" role="dialog" aria-label="Assistant InzuBot" aria-modal="true">
+      <header class="chatbot-header">
+        <div class="chatbot-header__info">
+          <div class="robot-header-avatar">
+            🤖
+            <span class="online-indicator"></span>
+          </div>
+          <div style="min-width: 0;">
+            <h4>Assistant InzuBot</h4>
+            <small>IA Immobilier & Kirundi 24/7</small>
+          </div>
+        </div>
+        <button class="chatbot-close-btn" type="button" (click)="toggle()" aria-label="Fermer l'assistant">
+          ×
+        </button>
+      </header>
+
+      <div class="chatbot-body" #scrollContainer>
+        <div class="chat-intro-note">
+          <span>INZUBOT  AI  ASSISTANT</span>
+          <p>Posez vos questions en Français ou en Kirundi pour trouver votre logement au Burundi.</p>
+        </div>
+
+        <div class="chat-msg" *ngFor="let msg of messages()">
+          <ng-container *ngIf="msg.sender === 'bot'">
+            <div class="chat-msg--bot-inner">
+              <div class="msg-avatar">🤖</div>
+              <div class="msg-bubble" [innerHTML]="msg.text"></div>
+              <span class="msg-time">{{ msg.time }}</span>
+            </div>
+          </ng-container>
+          <ng-container *ngIf="msg.sender === 'user'">
+            <div class="chat-msg--user-inner">
+              <span class="msg-time">{{ msg.time }}</span>
+              <div class="msg-bubble" [innerHTML]="msg.text"></div>
+            </div>
+          </ng-container>
+        </div>
+
+        <div class="chat-msg" *ngIf="isTyping()">
+          <div class="chat-msg--bot-inner">
+            <div class="msg-avatar">🤖</div>
+            <div class="msg-bubble msg-bubble--typing">
+              <div class="typing-dots">
+                <span></span><span></span><span></span>
+              </div>
+              <style>
+                @keyframes typingBounce {
+                  0%, 80%, 100% { transform: scale(.6); opacity: .5 }
+                  40%            { transform: scale(1);  opacity: 1  }
+                }
+              </style>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chatbot-suggestions">
+        <button type="button" class="chip-btn"
+          (mouseenter)="($any($event.currentTarget)).style.transform='translateY(-1px)'"
+          (mouseleave)="($any($event.currentTarget)).style.transform=''"
+          (click)="sendQuickQuery('Quels biens à Bujumbura < 200k BIF/nuit ?')">
+          ⚡ Groupe & Citerne
+        </button>
+        <button type="button" class="chip-btn"
+          (mouseenter)="($any($event.currentTarget)).style.transform='translateY(-1px)'"
+          (mouseleave)="($any($event.currentTarget)).style.transform=''"
+          (click)="sendQuickQuery('Appartements à Rohero/Kigobe pour une famille ?')">
+          📍 Rohero / Kigobe
+        </button>
+        <button type="button" class="chip-btn"
+          (mouseenter)="($any($event.currentTarget)).style.transform='translateY(-1px)'"
+          (mouseleave)="($any($event.currentTarget)).style.transform=''"
+          (click)="sendQuickQuery('Comment obtenir le badge PREMIUM hôte ?')">
+          🛡️ Badge KYC
+        </button>
+        <button type="button" class="chip-btn"
+          (mouseenter)="($any($event.currentTarget)).style.transform='translateY(-1px)'"
+          (mouseleave)="($any($event.currentTarget)).style.transform=''"
+          (click)="sendQuickQuery('Proposez-vous un transfert aéroport BJM ?')">
+          ✈️ Transfert Aéroport
+        </button>
+      </div>
+
+      <div class="chatbot-footer">
+        <form (ngSubmit)="handleSend($event)" class="chatbot-footer__form">
+          <input
+            type="text"
+            [(ngModel)]="inputText"
+            name="chatbotQuestion"
+            class="chatbot-input"
+            placeholder="Posez votre question en français ou kirundi…"
+            autocomplete="off"
+          />
+          <button type="submit" class="send-btn" [disabled]="!inputText.trim()">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2">
+              <line x1="22" y1="2" x2="11" y2="13"/>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
+          </button>
+        </form>
+      </div>
+    </div>
+  </ng-container>
+
+  <div class="chatbot-status-bar">
+    <span class="chatbot-status-bar__label">Signal · Grid↻</span>
+    <span class="chatbot-status-bar__dot" aria-hidden="true"></span>
+  </div>
 </div>
   `,
   styles: [`
+/* =========================================================
+   WIDGET FIXED — rendu DIRECTEMENT SOUS <body> via un Portal
+   z-index = 2147483647 (int32 max = intouchable)
+   ========================================================= */
 .chatbot-widget {
   position: fixed !important;
   bottom: 24px !important;
-  right: 24px !important;
+  right:  24px !important;
+  top:    auto !important;
+  left:   auto !important;
+  width:  auto !important;
+  max-width: calc(100vw - 24px);
   z-index: 2147483647 !important;
-  font-family: var(--f-body, system-ui, sans-serif);
-  isolation: isolate;
-  contain: layout style paint;
-  pointer-events: none;
-}
-.chatbot-widget > * { pointer-events: auto; }
 
+  font-family: var(--f-body, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif);
+  color-scheme: light;
+
+  isolation: isolate;
+  contain: layout style;
+
+  pointer-events: none;
+
+  /* Boucliers anti-transform-ancêtre : on ré-applique toutes les
+     propriétés qui feraient basculer position: fixed en
+     position: absolute par rapport à un parent. */
+  transform:        none !important;
+  filter:           none !important;
+  perspective:      none !important;
+  backdrop-filter:  none !important;
+  will-change:      unset !important;
+  clip-path:        none !important;
+  -webkit-mask:     none !important;
+          mask:     none !important;
+}
+.chatbot-widget > * {
+  pointer-events: auto;
+}
+
+/* ---------- TRIGGER (état fermé) ---------- */
 .chatbot-trigger-wrapper {
   display: flex;
   align-items: center;
@@ -129,7 +216,7 @@ export interface ChatMessage {
   background: var(--c-obsidian, #0b0b0b);
   color: var(--c-cream, #F3E7D6);
   border: 1.5px solid var(--c-bronze, #a68a6d);
-  font-family: var(--f-display, sans-serif);
+  font-family: var(--f-display, 'Playfair Display', serif);
   font-size: 0.8rem;
   font-weight: 700;
   padding: 0.5rem 0.9rem;
@@ -137,30 +224,39 @@ export interface ChatMessage {
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.22);
   animation: pulseBadge 2.4s infinite ease-in-out;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
 }
-
+.chatbot-tooltip-badge__robot { font-size: 1rem; line-height: 1; }
 @keyframes pulseBadge {
-  0%, 100% { transform: translateY(0); opacity: 1; }
-  50% { transform: translateY(-4px); opacity: 0.92; }
+  0%, 100% { transform: translateY(0);   opacity: 1;    }
+  50%      { transform: translateY(-4px); opacity: 0.92; }
 }
 
 .chatbot-trigger-btn {
   width: 62px;
   height: 62px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--c-obsidian, #0b0b0b) 0%, var(--c-slate, #2B2B2B) 100%);
+  background: linear-gradient(135deg,
+    var(--c-obsidian, #0b0b0b) 0%,
+    var(--c-slate,   #2B2B2B) 100%);
   border: 2.5px solid var(--c-bronze, #a68a6d);
   color: #fff;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 12px 32px rgba(11, 11, 11, 0.38), 0 0 0 1px rgba(255,255,255,0.06) inset;
+  box-shadow:
+    0 12px 32px rgba(11, 11, 11, 0.38),
+    inset 0 0 0 1px rgba(255,255,255,0.06);
   position: relative;
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), background 0.25s, box-shadow 0.25s;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              background 0.25s,
+              box-shadow 0.25s;
   flex-shrink: 0;
+  font: inherit;
 }
-
 .chatbot-trigger-btn:hover {
   transform: scale(1.06);
   background: var(--c-bronze, #a68a6d);
@@ -169,10 +265,7 @@ export interface ChatMessage {
 }
 .chatbot-trigger-btn:active { transform: scale(0.97); }
 
-.robot-avatar {
-  font-size: 1.85rem;
-  line-height: 1;
-}
+.robot-avatar { font-size: 1.85rem; line-height: 1; }
 
 .online-dot {
   position: absolute;
@@ -186,24 +279,25 @@ export interface ChatMessage {
   box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.35);
 }
 
-/* ============ CHAT PANEL ============ */
+/* ---------- CHAT PANEL ---------- */
 .chatbot-panel {
-  width: min(430px, calc(100vw - 48px));
-  height: min(640px, calc(100vh - 120px));
+  width:      min(430px, calc(100vw - 48px));
+  height:     min(640px, calc(100vh - 120px));
   min-height: 520px;
   background: var(--white, #ffffff);
   border: 2px solid var(--c-bronze, #a68a6d);
   border-radius: 22px;
-  box-shadow: 0 28px 80px rgba(11, 11, 11, 0.38), 0 0 0 1px rgba(255,255,255,0.06) inset;
+  box-shadow:
+    0 28px 80px rgba(11, 11, 11, 0.38),
+    inset 0 0 0 1px rgba(255,255,255,0.06);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   animation: slideUpChat 0.32s cubic-bezier(0.16, 1, 0.3, 1);
 }
-
 @keyframes slideUpChat {
   from { opacity: 0; transform: translateY(18px) scale(0.96); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    }
 }
 
 /* ---- HEADER ---- */
@@ -217,28 +311,25 @@ export interface ChatMessage {
   border-bottom: 1px solid rgba(166, 138, 109, 0.28);
   flex-shrink: 0;
 }
-
 .chatbot-header__info {
   display: flex;
   align-items: center;
   gap: 0.8rem;
   min-width: 0;
 }
-
 .robot-header-avatar {
   width: 44px;
   height: 44px;
   border-radius: 50%;
   background: rgba(166, 138, 109, 0.18);
   border: 1.5px solid var(--c-bronze, #a68a6d);
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   font-size: 1.5rem;
   position: relative;
   flex-shrink: 0;
 }
-
 .online-indicator {
   position: absolute;
   bottom: 0;
@@ -250,16 +341,14 @@ export interface ChatMessage {
   border: 2px solid var(--c-obsidian, #0b0b0b);
   box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.35);
 }
-
 .chatbot-header h4 {
   margin: 0;
   font-size: 1.02rem;
   font-weight: 800;
   color: var(--c-cream, #F3E7D6);
   line-height: 1.2;
-  font-family: var(--f-display, sans-serif);
+  font-family: var(--f-display, 'Playfair Display', serif);
 }
-
 .chatbot-header small {
   font-size: 0.76rem;
   color: var(--c-bronze, #a68a6d);
@@ -267,7 +356,6 @@ export interface ChatMessage {
   margin-top: 2px;
   font-weight: 500;
 }
-
 .chatbot-close-btn {
   background: rgba(166, 138, 109, 0.15);
   border: 1px solid rgba(166, 138, 109, 0.25);
@@ -283,8 +371,8 @@ export interface ChatMessage {
   justify-content: center;
   transition: all 0.2s;
   flex-shrink: 0;
+  font: inherit;
 }
-
 .chatbot-close-btn:hover {
   background: rgba(255,255,255,0.12);
   border-color: var(--c-bronze, #a68a6d);
@@ -302,11 +390,10 @@ export interface ChatMessage {
   flex-direction: column;
   gap: 1rem;
   min-height: 0;
+  scrollbar-gutter: stable;
 }
-
-/* Custom scrollbar */
-.chatbot-body::-webkit-scrollbar { width: 7px; }
-.chatbot-body::-webkit-scrollbar-track { background: transparent; }
+.chatbot-body::-webkit-scrollbar           { width: 7px; }
+.chatbot-body::-webkit-scrollbar-track     { background: transparent; }
 .chatbot-body::-webkit-scrollbar-thumb {
   background: rgba(166, 138, 109, 0.35);
   border-radius: 999px;
@@ -324,14 +411,12 @@ export interface ChatMessage {
   padding: 0.8rem 1rem;
   margin-bottom: 0.2rem;
 }
-
 .chat-intro-note span {
   font-size: 0.7rem;
   font-weight: 800;
   letter-spacing: 0.08em;
   color: var(--c-bronze-dark, #836749);
 }
-
 .chat-intro-note p {
   margin: 0.35rem 0 0 0;
   font-size: 0.82rem;
@@ -342,27 +427,29 @@ export interface ChatMessage {
 /* ---- MESSAGES ---- */
 .chat-msg {
   display: flex;
-  gap: 0.65rem;
   width: 100%;
 }
 
-.chat-msg--bot {
-  justify-content: flex-start;
+.chat-msg--bot-inner,
+.chat-msg--user-inner {
+  display: flex;
+  gap: 0.65rem;
+  width: 100%;
+  align-items: flex-end;
 }
-.chat-msg--bot > * { max-width: 86%; }
-
-.chat-msg--user {
+.chat-msg--user-inner {
   justify-content: flex-end;
-  flex-direction: row;
 }
-.chat-msg--user > * { max-width: 86%; }
+
+.chat-msg--bot-inner  > * { max-width: 86%; }
+.chat-msg--user-inner > * { max-width: 86%; }
 
 .msg-avatar {
   width: 34px;
   height: 34px;
   border-radius: 50%;
   background: var(--c-obsidian, #0b0b0b);
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   font-size: 1.15rem;
@@ -378,13 +465,13 @@ export interface ChatMessage {
   position: relative;
   overflow-wrap: anywhere;
   word-break: break-word;
-  hyphens: auto;
+  -webkit-hyphens: auto;
+          hyphens: auto;
   min-width: 0;
-  width: 100%;
   box-sizing: border-box;
 }
 
-.chat-msg--bot .msg-bubble {
+.chat-msg--bot-inner .msg-bubble {
   background: var(--white, #ffffff);
   border: 1px solid color-mix(in srgb, var(--c-bronze, #a68a6d) 22%, transparent);
   color: var(--ink-on-light, #1a1a1a);
@@ -392,7 +479,7 @@ export interface ChatMessage {
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
 }
 
-.chat-msg--user .msg-bubble {
+.chat-msg--user-inner .msg-bubble {
   background: var(--c-obsidian, #0b0b0b);
   color: var(--c-cream, #F3E7D6);
   border-top-right-radius: 3px;
@@ -413,329 +500,537 @@ export interface ChatMessage {
 }
 .msg-bubble strong { font-weight: 700; }
 
-.msg-time {
-  display: block;
-  font-size: 0.66rem;
-  opacity: 0.62;
-  margin-top: 0.4rem;
-  text-align: right;
+.msg-bubble--typing {
+  max-width: 96px !important;
+  padding: .75rem 1rem !important;
 }
-
-/* ---- TYPING ---- */
-.typing-bubble {
-  display: inline-flex;
+.typing-dots {
+  display: flex;
+  gap: .35rem;
   align-items: center;
-  gap: 5px;
-  padding: 0.72rem 1rem;
-  width: auto !important;
+  height: 14px;
 }
-
-.typing-bubble .dot {
+.typing-dots span {
   width: 7px;
   height: 7px;
   border-radius: 50%;
   background: var(--c-bronze, #a68a6d);
-  animation: typingDot 1.4s infinite ease-in-out both;
+  animation: typingBounce 1.2s infinite ease-in-out both;
 }
+.typing-dots span:nth-child(2) { animation-delay: .15s; }
+.typing-dots span:nth-child(3) { animation-delay: .3s;  }
 
-.typing-bubble .dot:nth-child(1) { animation-delay: 0s; }
-.typing-bubble .dot:nth-child(2) { animation-delay: 0.18s; }
-.typing-bubble .dot:nth-child(3) { animation-delay: 0.36s; }
-
-@keyframes typingDot {
-  0%, 80%, 100% { transform: scale(0.55); opacity: 0.35; }
-  40% { transform: scale(1.15); opacity: 1; }
-}
-
-/* ---- QUICK CHIPS ---- */
-.chatbot-quick-chips {
-  padding: 0.65rem 0.9rem 0.55rem;
-  background: var(--white, #ffffff);
-  border-top: 1px solid color-mix(in srgb, var(--c-bronze, #a68a6d) 18%, transparent);
-  display: flex;
-  gap: 0.45rem;
-  overflow-x: auto;
-  scrollbar-width: none;
+.msg-time {
+  display: block;
+  font-size: 0.66rem;
+  opacity: 0.62;
+  white-space: nowrap;
+  align-self: flex-end;
   flex-shrink: 0;
 }
-.chatbot-quick-chips::-webkit-scrollbar { display: none; }
+.chat-msg--bot-inner  .msg-time { margin-left: auto; }
+.chat-msg--user-inner .msg-time { margin-right: auto; }
 
-.chip-btn {
-  background: var(--c-cream, #F3E7D6);
-  border: 1px solid color-mix(in srgb, var(--c-bronze, #a68a6d) 28%, transparent);
-  border-radius: 999px;
-  padding: 0.48rem 0.8rem;
-  font-size: 0.76rem;
-  font-weight: 700;
-  color: var(--c-obsidian, #0b0b0b);
-  cursor: pointer;
-  transition: all 0.18s var(--ease, ease);
-  flex: 0 0 auto;
-  white-space: nowrap;
-  font-family: var(--f-body, sans-serif);
+/* ---- SUGGESTIONS ---- */
+.chatbot-suggestions {
+  padding: .85rem 1rem .15rem 1rem;
+  background: var(--white, #fff);
+  border-top: 1px solid color-mix(in srgb, var(--c-bronze, #a68a6d) 14%, transparent);
+  display: flex;
+  flex-wrap: wrap;
+  gap: .45rem;
 }
-
+.chip-btn {
+  all: unset;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .45rem .8rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--c-bronze, #a68a6d) 10%, transparent);
+  color: var(--ink-on-light, #1a1a1a);
+  border: 1px solid color-mix(in srgb, var(--c-bronze, #a68a6d) 22%, transparent);
+  font-size: .78rem;
+  font-weight: 600;
+  transition: all .18s ease;
+  box-sizing: border-box;
+}
 .chip-btn:hover {
-  background: var(--c-bronze, #a68a6d);
-  color: #fff;
-  border-color: var(--c-bronze, #a68a6d);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(166, 138, 109, 0.3);
+  background: color-mix(in srgb, var(--c-bronze, #a68a6d) 18%, transparent);
+  border-color: color-mix(in srgb, var(--c-bronze, #a68a6d) 40%, transparent);
+  box-shadow: 0 3px 10px rgba(166,138,109,0.20);
 }
 
 /* ---- FOOTER / INPUT ---- */
 .chatbot-footer {
-  padding: 0.85rem 0.95rem;
+  padding: 0.85rem 0.95rem 1rem 0.95rem;
   background: var(--white, #ffffff);
   border-top: 1px solid color-mix(in srgb, var(--c-bronze, #a68a6d) 18%, transparent);
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
   flex-shrink: 0;
 }
-
-.chatbot-footer input {
+.chatbot-footer__form {
+  display: flex;
+  gap: .55rem;
+  width: 100%;
+  align-items: center;
+  margin: 0;
+}
+.chatbot-input {
   flex: 1 1 auto;
-  border: 1.5px solid color-mix(in srgb, var(--c-bronze, #a68a6d) 28%, transparent);
-  border-radius: 999px;
-  padding: 0.7rem 1.05rem;
-  font-size: 0.88rem;
+  all: unset;
+  box-sizing: border-box;
+  background: color-mix(in srgb, var(--c-bronze, #a68a6d) 8%, transparent);
+  border: 1.5px solid color-mix(in srgb, var(--c-bronze, #a68a6d) 20%, transparent);
+  border-radius: 14px;
+  padding: .65rem .85rem;
+  font-size: .88rem;
   color: var(--ink-on-light, #1a1a1a);
-  outline: none;
-  background: var(--c-cream, #F3E7D6);
+  transition: all .15s;
   min-width: 0;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  font-family: var(--f-body, sans-serif);
-  font-weight: 500;
 }
-
-.chatbot-footer input::placeholder {
-  color: var(--ink-on-light-40, #8a8a8a);
-  font-weight: 400;
+.chatbot-input::placeholder {
+  color: color-mix(in srgb, var(--ink-on-light, #1a1a1a) 45%, transparent);
 }
-
-.chatbot-footer input:focus {
-  border-color: var(--c-bronze, #a68a6d);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-bronze, #a68a6d) 22%, transparent);
+.chatbot-input:focus {
   background: #fff;
+  border-color: var(--c-bronze, #a68a6d) !important;
+  box-shadow: 0 0 0 3px rgba(166, 138, 109, 0.18);
 }
 
 .send-btn {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  background: var(--c-obsidian, #0b0b0b);
-  color: var(--c-bronze, #a68a6d);
-  border: 1.5px solid transparent;
+  all: unset;
+  box-sizing: border-box;
+  cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  transition: all 0.22s;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: var(--c-obsidian, #0b0b0b);
+  color: #fff;
+  border: 1.5px solid var(--c-bronze, #a68a6d);
+  transition: all .18s;
   flex-shrink: 0;
-  box-shadow: 0 4px 14px rgba(11, 11, 11, 0.18);
 }
-
-.send-btn:disabled {
-  opacity: 0.42;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-
-.send-btn:not(:disabled):hover {
+.send-btn:hover {
   background: var(--c-bronze, #a68a6d);
-  color: var(--c-obsidian, #0b0b0b);
   transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(166, 138, 109, 0.4);
 }
-.send-btn:not(:disabled):active { transform: scale(0.95); }
+.send-btn:disabled {
+  opacity: 0.4 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  background: var(--c-obsidian, #0b0b0b) !important;
+}
 
-/* ============ RESPONSIVE ============ */
+/* ---- STATUT (fermé, sous le trigger) ---- */
+.chatbot-status-bar {
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  margin-top: .65rem;
+  justify-content: flex-end;
+}
+.chatbot-status-bar__label {
+  font-size: .68rem;
+  color: var(--ink-on-light-65, #5a5a5a);
+  font-weight: 600;
+  letter-spacing: .02em;
+}
+.chatbot-status-bar__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 0 3px rgba(16,185,129,0.25);
+}
+
+/* =========================================================
+   BREAKPOINTS RESPONSIVE
+   ========================================================= */
+/* TABLETTE */
 @media (max-width: 992px) {
   .chatbot-widget {
-    bottom: 20px !important;
-    right: 20px !important;
+    bottom: 18px !important;
+    right:  18px !important;
   }
   .chatbot-panel {
-    width: min(380px, calc(100vw - 40px));
-    height: min(580px, calc(100vh - 140px));
+    width:      min(380px, calc(100vw - 36px));
+    height:     min(580px, calc(100vh - 110px));
     min-height: 480px;
   }
+  .chatbot-tooltip-badge     { display: none; }
+  .chatbot-status-bar__label { display: none; }
+  .chatbot-trigger-btn       { width: 58px; height: 58px; }
+  .chatbot-header            { padding: 0.9rem 1rem; }
+  .chatbot-body              { padding: 0.95rem; gap: 0.9rem; }
+  .chatbot-footer            { padding: 0.75rem 0.85rem 0.9rem 0.85rem; }
+  .chat-msg--bot-inner  > *,
+  .chat-msg--user-inner > *  { max-width: 88%; }
 }
 
+/* MOBILE */
 @media (max-width: 640px) {
   .chatbot-widget {
+    left:   12px !important;
+    right:  12px !important;
     bottom: 12px !important;
-    right: 12px !important;
-    left: 12px !important;
   }
-  .chatbot-trigger-wrapper {
-    justify-content: flex-end;
-  }
-  .chatbot-tooltip-badge { font-size: 0.76rem; padding: 0.42rem 0.75rem; }
-  .chatbot-trigger-btn { width: 56px; height: 56px; }
   .chatbot-panel {
     width: 100% !important;
-    height: min(78vh, 640px);
-    min-height: 440px;
-    border-radius: 18px;
+    max-width: none;
+    height: 78vh !important;
+    min-height: 0;
   }
-  .chatbot-header { padding: 0.9rem 1rem; }
-  .chatbot-body { padding: 0.95rem; gap: 0.9rem; }
-  .chatbot-footer { padding: 0.75rem 0.85rem; }
-  .chat-msg--bot > *, .chat-msg--user > * { max-width: 88%; }
+  .chatbot-trigger-wrapper { justify-content: flex-end; }
+  .chatbot-trigger-btn     { width: 56px; height: 56px; }
+  .chatbot-body            { padding: 0.85rem 0.75rem; gap: 0.8rem; }
+  .chatbot-header          { padding: 0.85rem 0.9rem; }
+  .chatbot-header h4       { font-size: 0.95rem; }
+  .chatbot-footer          { padding: 0.7rem 0.75rem 0.85rem 0.75rem; }
+  .chat-msg--bot-inner  > *,
+  .chat-msg--user-inner > *  { max-width: 84%; }
 }
-  `]
+  `],
 })
-export class ChatbotComponent implements AfterViewChecked {
-  @ViewChild('scrollContainer') private scrollContainer?: ElementRef;
+class ChatbotPortalComponent {
+  @ViewChild('scrollContainer') scrollContainer?: ElementRef;
 
-  readonly isOpen = signal(false);
-  readonly isTyping = signal(false);
+  isOpen   = signal(false);
+  isTyping = signal(false);
   inputText = '';
+  messages = signal<ChatMessage[]>([]);
 
+  toggle: () => void = () => {};
+  handleSend: (_e: Event) => void = () => {};
+  sendQuickQuery: (_t: string) => void = () => {};
+}
+
+
+/**
+ * Point d'entrée PUBLIC du chatbot.
+ *
+ * Rôle minimal :
+ *   - DÉCLARER l'état (signals, inputText, messages)
+ *   - CRÉER un portail (`ChatbotPortalComponent`) DIRRECTEMENT SOUS <body>
+ *   - SYNCHRONISER cet état vers/du portail
+ *
+ * De cette façon, le `<app-chatbot>` est invisible, et la vraie UI
+ * n'a AUCUN ancêtre CSS. C'est anti-fuite-à-la-CSS par principe.
+ */
+@Component({
+  selector: 'app-chatbot',
+  standalone: true,
+  imports: [CommonModule],
+  template: `<ng-container></ng-container>`,
+  styles: [
+    `:host {
+       display: none !important;
+       position: static !important;
+       overflow: visible !important;
+       contain: none !important;
+       transform: none !important;
+       filter: none !important;
+       pointer-events: none !important;
+     }`
+  ],
+  exportAs: 'chatbot',
+})
+export class ChatbotComponent implements AfterViewChecked, OnInit, OnDestroy {
+  /**
+   * Référence interne sur le vrai état.
+   * Signals dupliqués entre le wrapper (<app-chatbot>) et le portail
+   * (ChatbotPortalComponent, sous <body>). La source de vérité reste
+   * les Signals de cette classe.
+   */
+  readonly isOpen   = signal(false);
+  readonly isTyping = signal(false);
+  inputText         = '';
   readonly messages = signal<ChatMessage[]>([
     {
       id: '1',
       sender: 'bot',
       text: 'Amahoro! 👋 Je suis **InzuBot**, votre assistant virtuel intelligent pour l\'immobilier au Burundi.<br><br>Comment puis-je vous aider aujourd\'hui ?',
       time: this.getNowTime(),
-    }
+    },
   ]);
 
+  private portalRef: ComponentRef<ChatbotPortalComponent> | null = null;
+  private readonly isBrowser: boolean;
+  private readonly syncCleanupFn: Array<() => void> = [];
+
   constructor(
-    private http: HttpClient,
+    private readonly http: HttpClient,
     @Inject(PLATFORM_ID) platformId: object,
+    private readonly appRef: ApplicationRef,
+    private readonly environmentInjector: EnvironmentInjector,
+    private readonly injector: Injector,
+    private readonly renderer2: Renderer2,
   ) {
-    // isPlatformBrowser usage réservé pour extensions futures (localStorage préférences IA)
-    void isPlatformBrowser(platformId);
+    this.isBrowser = isPlatformBrowser(platformId);
   }
 
-  private ragUrl(path: string): string {
-    const base = environment.apiBaseUrl?.replace(/\/$/, '') ?? '';
-    return `${base}/api/ai${path.startsWith('/') ? path : '/' + path}`;
+  // ──────────────────────────────────────────────────────────────
+  //  CYCLE DE VIE
+  // ──────────────────────────────────────────────────────────────
+
+  ngOnInit(): void {
+    if (!this.isBrowser) return;
+    this.mountPortal();
+  }
+
+  ngOnDestroy(): void {
+    this.syncCleanupFn.forEach(fn => { try { fn(); } catch { /* noop */ } });
+    this.syncCleanupFn.length = 0;
+    this.unmountPortal();
   }
 
   ngAfterViewChecked(): void {
-    this.scrollToBottom();
+    // Redirige le scrollToBottom vers le portail actif
+    const portalContainer = this.portalRef?.instance.scrollContainer;
+    if (!portalContainer) return;
+    const el = portalContainer.nativeElement as HTMLElement | undefined;
+    if (el && el.scrollHeight > 0) {
+      try { el.scrollTop = el.scrollHeight; } catch { /* noop */ }
+    }
   }
 
-  toggleChat(): void {
-    this.isOpen.set(!this.isOpen());
+  // ──────────────────────────────────────────────────────────────
+  //  PORTAL (gestion du sous-<body>)
+  // ──────────────────────────────────────────────────────────────
+
+  private mountPortal(): void {
+    if (this.portalRef) return;
+
+    const portalRef = createComponent(ChatbotPortalComponent, {
+      environmentInjector: this.environmentInjector,
+      elementInjector: this.injector,
+    });
+    this.appRef.attachView(portalRef.hostView);
+
+    const rootNodes = (portalRef.hostView as unknown as { rootNodes: unknown[] }).rootNodes;
+    const domElem = rootNodes[0] as HTMLElement;
+
+    // Bouclier: neutraliser toute prop CSS qui casserait fixed par la suite
+    const neutralize = new Map<string, string>([
+      ['position',       'static'],
+      ['transform',      'none'],
+      ['filter',         'none'],
+      ['perspective',    'none'],
+      ['contain',        ''],
+      ['clip-path',      'none'],
+      ['overflow',       'visible'],
+      ['margin',         '0'],
+      ['padding',        '0'],
+      ['will-change',    ''],
+      ['backdrop-filter','none'],
+      ['display',        'block'],
+    ]);
+    neutralize.forEach((v, p) => this.renderer2.setStyle(domElem, p, v));
+    this.renderer2.setAttribute(domElem, 'data-inzu-chatbot-portal', '1');
+
+    document.body.appendChild(domElem);
+    this.portalRef = portalRef;
+
+    this.bindPortalApi(portalRef.instance);
+  }
+
+  private bindPortalApi(p: ChatbotPortalComponent): void {
+    // Sync Signaux Wrapper → Portail via `effect()` (Signals Angular 18)
+    const makeFx = <S,>(src: () => S, dstSetter: (v: S) => void): void => {
+      const cleanup = effect(() => {
+        const v = src();
+        try { dstSetter(v); } catch { /* noop */ }
+      }, { manualCleanup: true, injector: this.injector });
+      this.syncCleanupFn.push(() => cleanup.destroy());
+    };
+
+    makeFx(() => this.isOpen(),   v => p.isOpen.set(v));
+    makeFx(() => this.isTyping(), v => p.isTyping.set(v));
+    makeFx(() => this.messages(), v => p.messages.set(v));
+
+    // Bind callbacks Portail → Wrapper
+    p.toggle         = () => this.toggle();
+    p.handleSend     = (e: Event) => this.handleSend(e);
+    p.sendQuickQuery = (t: string) => this.sendQuickQuery(t);
+
+    // inputText : getter/setter transparent
+    Object.defineProperty(p, 'inputText', {
+      configurable: true,
+      enumerable:   true,
+      get: () => this.inputText,
+      set: (v: string) => { this.inputText = v; },
+    });
+  }
+
+  private unmountPortal(): void {
+    if (!this.portalRef) return;
+    try {
+      const rootNodes = (this.portalRef.hostView as unknown as { rootNodes: unknown[] }).rootNodes;
+      (rootNodes[0] as HTMLElement)?.remove?.();
+      this.appRef.detachView(this.portalRef.hostView);
+      this.portalRef.destroy();
+    } finally {
+      this.portalRef = null;
+    }
+  }
+
+  // ──────────────────────────────────────────────────────────────
+  //  API PUBLIQUE
+  // ──────────────────────────────────────────────────────────────
+
+  toggle(): void {
+    this.isOpen.update(v => !v);
+  }
+
+  scrollToBottom(): void {
+    this.ngAfterViewChecked();
+  }
+
+  getNowTime(): string {
+    try {
+      return new Date().toLocaleTimeString(undefined, {
+        hour:   '2-digit',
+        minute: '2-digit',
+      });
+    } catch {
+      const d = new Date();
+      return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    }
   }
 
   sendQuickQuery(queryText: string): void {
     this.inputText = queryText;
-    this.handleSend(new Event('submit'));
+    // submit artificiel — réutilise handleSend pour rester DRY
+    const fakeEvent = new Event('submit', { bubbles: true, cancelable: true });
+    this.handleSend(fakeEvent);
   }
 
   handleSend(e: Event): void {
-    e.preventDefault();
-    const text = this.inputText.trim();
+    e.preventDefault?.();
+    const text = (this.inputText ?? '').trim();
     if (!text) return;
 
-    // Add user message
     const userMsg: ChatMessage = {
-      id: Date.now().toString(),
+      id:   Date.now().toString(),
       sender: 'user',
-      text,
-      time: this.getNowTime(),
+      text:   this.escapeHtml(text),
+      time:   this.getNowTime(),
     };
-
-    this.messages.update((msgs) => [...msgs, userMsg]);
+    this.messages.update(msgs => [...msgs, userMsg]);
     this.inputText = '';
     this.isTyping.set(true);
 
-    // Call Java Light RAG API — utilise apiBaseUrl pour reverse-proxy
     const payload = { question: text, topK: 5 };
-    this.http.post<any>(this.ragUrl('/rag/ask'), payload, { withCredentials: false }).subscribe({
-      next: (res) => {
-        this.isTyping.set(false);
-        let answerText: string;
-        if (res?.answer && typeof res.answer === 'string') {
-          answerText = res.answer;
-        } else {
-          answerText = this.generateBotResponse(text);
-        }
-        answerText = answerText
-          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-          .replace(/\n/g, '<br>');
-
-        if (Array.isArray(res?.sources) && res.sources.length > 0) {
-          const srcs = res.sources.slice(0, 3).map((s: any) => s?.title || s?.source || '').filter(Boolean);
-          if (srcs.length) {
-            answerText += `<br><br><small style="opacity:.65">📚 Sources : ${srcs.join(' · ')}</small>`;
+    this.http.post<any>(this.ragUrl('/rag/ask'), payload, { withCredentials: false })
+      .subscribe({
+        next: (res) => {
+          this.isTyping.set(false);
+          let answerText: string;
+          if (res?.answer && typeof res.answer === 'string') {
+            answerText = res.answer;
+          } else {
+            answerText = this.generateBotResponse(text);
           }
-        }
+          answerText = answerText
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\n/g, '<br>');
 
-        const botMsg: ChatMessage = {
-          id: (Date.now() + 1).toString(),
-          sender: 'bot',
-          text: answerText,
-          time: this.getNowTime(),
-        };
-        this.messages.update((msgs) => [...msgs, botMsg]);
-      },
-      error: (err: unknown) => {
-        this.isTyping.set(false);
-        let fallback = this.generateBotResponse(text);
-        if (err instanceof HttpErrorResponse) {
-          if (err.status === 429) {
-            fallback = '⏳ <strong>Trop de requêtes envoyées.</strong><br>Merci de patienter une minute avant de renouveler votre demande. Pendant ce temps, explorez nos annonces : <a style="color:var(--c-bronze-dark);font-weight:700" href="/biens">Tous les biens</a>';
-          } else if (err.status === 403 || err.status === 401) {
-            // Ne surtout PAS trigger de logout : /api/ai est en permitAll
-            fallback = '🔒 <strong>Session en cours de rétablissement.</strong><br>' + fallback;
-          } else if (err.status >= 500) {
-            fallback = '⚠️ <strong>Service IA indisponible.</strong><br>' + fallback;
+          if (Array.isArray(res?.sources) && res.sources.length > 0) {
+            const srcs = res.sources
+              .slice(0, 3)
+              .map((s: any) => (s?.title ?? s?.source ?? '').toString().trim())
+              .filter(Boolean);
+            if (srcs.length) {
+              answerText +=
+                `<br><br><small style="opacity:.7">📚 Sources : ${srcs.join(' · ')}</small>`;
+            }
           }
-        }
-        const botMsg: ChatMessage = {
-          id: (Date.now() + 1).toString(),
-          sender: 'bot',
-          text: fallback,
-          time: this.getNowTime(),
-        };
-        this.messages.update((msgs) => [...msgs, botMsg]);
-      }
-    });
+          this.pushBot(answerText);
+        },
+        error: (err: unknown) => {
+          this.isTyping.set(false);
+          let fallback = this.generateBotResponse(text);
+          if (err instanceof HttpErrorResponse) {
+            if (err.status === 429) {
+              fallback =
+                '⏳ <strong>Trop de requêtes envoyées.</strong><br>Merci de patienter une minute avant de renouveler votre demande. Pendant ce temps, explorez nos annonces : <a style="color:var(--c-bronze-dark);font-weight:700" href="/biens">Tous les biens</a>';
+            } else if (err.status === 403 || err.status === 401) {
+              fallback = '🔒 <strong>Session en cours de rétablissement.</strong><br>' + fallback;
+            } else if (err.status >= 500) {
+              fallback = '⚠️ <strong>Service IA indisponible.</strong><br>' + fallback;
+            }
+          }
+          this.pushBot(fallback);
+        },
+      });
   }
 
-  private generateBotResponse(input: string): string {
-    const q = input.toLowerCase();
+  // ──────────────────────────────────────────────────────────────
+  //  HELPERS
+  // ──────────────────────────────────────────────────────────────
 
-    if (q.includes('groupe') || q.includes('citerne') || q.includes('eau') || q.includes('electricite')) {
-      return '⚡ <strong>Biens avec Garantie Autonome :</strong><br>Tous nos logements certifiés InzuConnect incluent un groupe électrogène autonome et une citerne d\'eau 3000L+. <br><br>👉 <a style="color:var(--c-bronze-dark);font-weight:700" href="/biens?type=all">Voir nos logements autonomes</a>';
-    }
-
-    if (q.includes('rohero') || q.includes('kigobe') || q.includes('kinindo') || q.includes('bujumbura')) {
-      return '📍 <strong>Quartiers prisés de Bujumbura :</strong><br>Nous avons 12 villas et appartements disponibles à Rohero, Kigobe Nord et Kinindo avec vue sur le Lac Tanganyika.<br><br>👉 <a style="color:var(--c-bronze-dark);font-weight:700" href="/biens?q=Bujumbura">Consulter les biens à Bujumbura</a>';
-    }
-
-    if (q.includes('kyc') || q.includes('badge') || q.includes('hôte') || q.includes('hote')) {
-      return '🛡️ <strong>Badge "Hôte Certifié InzuConnect" :</strong><br>Pour faire vérifier vos annonces ou votre profil hôte avec votre CNI et titre foncier, soumettez votre dossier sur notre page dédiée.<br><br>👉 <a style="color:var(--c-bronze-dark);font-weight:700" href="/kyc">Déposer ma demande KYC</a>';
-    }
-
-    if (q.includes('transfert') || q.includes('aeroport') || q.includes('véhicule')) {
-      return '✈️ <strong>Services de Transfert Aéroport Melchior Ndadaye :</strong><br>Bénéficiez d\'un chauffeur privé climatisé dès votre arrivée à Bujumbura.<br><br>👉 Tarif préférentiel à partir de 45 000 FBu.';
-    }
-
-    if (q.includes('amahoro') || q.includes('bwege') || q.includes('bite') || q.includes('kirundi')) {
-      return 'Egome! Amahoro mwese 👋 InzuConnect iraguhaye ikaze. Wifuza inzu yo gukodesha cyangwa yo kugura i Bujumbura neza?';
-    }
-
-    return 'Merci pour votre message ! 🤖 En tant qu\'assistant virtuel InzuConnect, je peux vous guider pour trouver un logement à louer ou à acheter au Burundi, planifier un transfert ou faire certifier votre bien.<br><br>👉 Vous pouvez aussi explorer directement <a style="color:var(--c-bronze-dark);font-weight:700" href="/biens">toutes nos annonces</a>.';
+  private pushBot(text: string): void {
+    const botMsg: ChatMessage = {
+      id:   (Date.now() + 1).toString(),
+      sender: 'bot',
+      text,
+      time:   this.getNowTime(),
+    };
+    this.messages.update(msgs => [...msgs, botMsg]);
   }
 
-  private getNowTime(): string {
-    const d = new Date();
-    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  private ragUrl(path: string): string {
+    const base = (environment as { apiBaseUrl?: string }).apiBaseUrl?.replace(/\/$/, '') ?? '';
+    const safe = path.startsWith('/') ? path : '/' + path;
+    return `${base}/api/ai${safe}`;
   }
 
-  private scrollToBottom(): void {
-    try {
-      if (this.scrollContainer) {
-        this.scrollContainer.nativeElement.scrollTop = this.scrollContainer.nativeElement.scrollHeight;
-      }
-    } catch (err) {}
+  private escapeHtml(s: string): string {
+    return s
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  /**
+   * Réponse locale de secours quand le RAG n'est pas disponible.
+   * Donne 4 pistes utiles (recherche / villes / hôte premium / support).
+   */
+  private generateBotResponse(user: string): string {
+    const q = user.toLowerCase();
+    const parts: string[] = [];
+
+    if (q.includes('prix') || q.includes('cher') || q.includes('coût')) {
+      parts.push('💸 Les prix varient fortement selon le quartier : de **100 000 BIF/nuit** (partagé, banlieues) à **750 000+ BIF/nuit** (villa premium, Rohero/Kigobe).');
+    }
+    if (q.includes('bujumbura') || q.includes('ville') || q.includes('quartier')) {
+      parts.push('📍 À **Bujumbura** les quartiers les plus sûrs et proches des commodités sont <strong>Rohero</strong>, <strong>Kigobe</strong>, <strong>Kinindo</strong>, <strong>Mutanga-Nord</strong>.');
+    }
+    if (q.includes('groupe') || q.includes('électro') || q.includes('citerne') || q.includes('eau')) {
+      parts.push('⚡ **Groupe & Citerne** : utilisez le filtre <em>Avancé</em> sur la page d\'accueil pour ne conserver que les annonces vérifiées <strong>Équipements premium</strong>.');
+    }
+    if (q.includes('badge') || q.includes('premium') || q.includes('kyc') || q.includes('vérifié')) {
+      parts.push('🛡️ Pour obtenir le **Badge PREMIUM Hôte** : réalisez votre KYC (pièce + selfie) dans votre Tableau de bord, section <em>Sécurité</em>.');
+    }
+    if (q.includes('aéroport') || q.includes('navette') || q.includes('transfer')) {
+      parts.push('✈️ **Transfert Aéroport** : disponible en option lors de la réservation (ajout de ~35 USD / trajet depuis BJM).');
+    }
+
+    if (parts.length === 0) {
+      parts.push('🏠 Merci pour votre question ! Je vais vous orienter :');
+      parts.push(`• 🔍 <a href="/biens"><strong>Rechercher un bien</strong></a> (filtres ville / prix / chambres)`);
+      parts.push(`• 🏘️ Consulter les <strong>Offres vérifiées</strong> en page d'accueil`);
+      parts.push(`• 💬 Contacter un support humain : <strong>support@inzuconnect.bi</strong>`);
+    }
+
+    return parts.join('<br>');
   }
 }
