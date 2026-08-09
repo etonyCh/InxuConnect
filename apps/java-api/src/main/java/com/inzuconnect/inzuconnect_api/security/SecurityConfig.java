@@ -78,6 +78,7 @@ public class SecurityConfig {
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/users/*/reviews").permitAll()
                 .requestMatchers("/api/admin/**", "/api/v1/admin/**").hasAnyRole("ADMIN", "B2B")
                 .requestMatchers("/api/health", "/actuator/health", "/actuator/health/**").permitAll()
+                .requestMatchers("/api/ai/**").permitAll()
                 .requestMatchers("/actuator/info").permitAll()
                 .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/kyc/webhook", "/api/payments/mock-callback").permitAll()

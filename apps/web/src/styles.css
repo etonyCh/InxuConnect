@@ -73,6 +73,62 @@
   --shadow-violet-glow: 0 8px 24px rgba(166,138,109,.35);
 }
 
+/* ==========================================================================
+   THEME — MULBERRY MINT LUXE
+   Palette: Mulberry #3A2036 · Mint #DCEBDB · Gold #B08C5E · Paper #F1EBE3
+   Typography: Playfair Display (serif) · Inter (sans)
+   ========================================================================== */
+[data-theme="mulberry-mint"] {
+  --c-cream:        #F1EBE3;
+  --c-sand:         #DCEBDB;
+  --c-bronze:       #B08C5E;
+  --c-bronze-dark:  #8E6F46;
+  --c-slate:        #4A3047;
+  --c-obsidian:     #3A2036;
+
+  --charcoal:      #3A2036;
+  --charcoal-1:    #4A3047;
+  --charcoal-2:    #5C3F58;
+  --charcoal-3:    #725470;
+  --fluor:         #B08C5E;
+  --fluor-soft:    #DCEBDB;
+  --fluor-dim:     rgba(176,140,94,.18);
+  --fluor-dim-2:   rgba(176,140,94,.32);
+  --thin-air:      #DCEBDB;
+  --thin-air-2:    #F1EBE3;
+  --white:         #ffffff;
+
+  --alert:         #c87a38;
+  --alert-dim:     rgba(200,122,56,.15);
+  --ok:            #5fa784;
+
+  --ink-on-dark:    #F1EBE3;
+  --ink-on-dark-70: rgba(241,235,227,.75);
+  --ink-on-dark-45: rgba(241,235,227,.45);
+  --ink-on-light:   #3A2036;
+  --ink-on-light-65:rgba(58,32,54,.68);
+  --ink-on-light-40:rgba(58,32,54,.42);
+
+  --violet-primary: #3A2036;
+  --violet-dark:    #4A3047;
+  --violet-light:   #B08C5E;
+  --lavender-primary: #B08C5E;
+  --lavender-soft:   #DCEBDB;
+  --lavender-bg:     #F1EBE3;
+  --neutral-50:  #ffffff;
+  --neutral-100: #F1EBE3;
+  --neutral-300: #DCEBDB;
+  --neutral-900: #3A2036;
+
+  --f-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  --f-body:    'Inter', system-ui, sans-serif;
+  --f-mono:    'IBM Plex Mono', monospace;
+
+  --shadow-glow: 0 0 0 1px rgba(176,140,94,.28), 0 14px 44px -12px rgba(176,140,94,.38);
+  --shadow-card: 0 4px 20px rgba(58,32,54,.06), 0 16px 40px -18px rgba(58,32,54,.18);
+  --shadow-violet-glow: 0 10px 28px rgba(176,140,94,.40);
+}
+
 *,*::before,*::after{ box-sizing:border-box; }
 html{ scroll-behavior:smooth; }
 body{
