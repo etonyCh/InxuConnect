@@ -43,8 +43,20 @@ export class AuthInterceptor implements HttpInterceptor {
     const isLoginOrAuth =
       url.includes('/auth/login') || url.includes('/auth/register') || url.includes('/auth/otp');
 
+    const isPublicRoute =
+      url.startsWith('/api/listings') ||
+      url.startsWith('/api/ai/') ||
+      url.includes('/api/health') ||
+      url.includes('/api-docs') ||
+      url.includes('/swagger-ui') ||
+      url.includes('/api/users/') && url.includes('/reviews');
+
     if (!this.auth.isAuthenticated() || isLoginOrAuth) {
-      this.auth.logout();
+      if (!isPublicRoute) this.auth.logout();
+      return throwError(() => err);
+    }
+
+    if (isPublicRoute) {
       return throwError(() => err);
     }
 

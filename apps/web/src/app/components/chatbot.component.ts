@@ -1,7 +1,8 @@
-import { Component, signal, inject, ElementRef, ViewChild, AfterViewChecked } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, signal, ElementRef, ViewChild, AfterViewChecked, PLATFORM_ID, Inject } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 
 export interface ChatMessage {
   id: string;
@@ -602,6 +603,19 @@ export class ChatbotComponent implements AfterViewChecked {
     }
   ]);
 
+  constructor(
+    private http: HttpClient,
+    @Inject(PLATFORM_ID) platformId: object,
+  ) {
+    // isPlatformBrowser usage réservé pour extensions futures (localStorage préférences IA)
+    void isPlatformBrowser(platformId);
+  }
+
+  private ragUrl(path: string): string {
+    const base = environment.apiBaseUrl?.replace(/\/$/, '') ?? '';
+    return `${base}/api/ai${path.startsWith('/') ? path : '/' + path}`;
+  }
+
   ngAfterViewChecked(): void {
     this.scrollToBottom();
   }
@@ -614,8 +628,6 @@ export class ChatbotComponent implements AfterViewChecked {
     this.inputText = queryText;
     this.handleSend(new Event('submit'));
   }
-
-  private readonly http = inject(HttpClient);
 
   handleSend(e: Event): void {
     e.preventDefault();
@@ -634,14 +646,27 @@ export class ChatbotComponent implements AfterViewChecked {
     this.inputText = '';
     this.isTyping.set(true);
 
-    // Call Java Light RAG API
-    this.http.post<any>('/api/ai/rag/ask', { question: text, topK: 5 }).subscribe({
+    // Call Java Light RAG API — utilise apiBaseUrl pour reverse-proxy
+    const payload = { question: text, topK: 5 };
+    this.http.post<any>(this.ragUrl('/rag/ask'), payload, { withCredentials: false }).subscribe({
       next: (res) => {
         this.isTyping.set(false);
-        let answerText = res?.answer || this.generateBotResponse(text);
+        let answerText: string;
+        if (res?.answer && typeof res.answer === 'string') {
+          answerText = res.answer;
+        } else {
+          answerText = this.generateBotResponse(text);
+        }
         answerText = answerText
           .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
           .replace(/\n/g, '<br>');
+
+        if (Array.isArray(res?.sources) && res.sources.length > 0) {
+          const srcs = res.sources.slice(0, 3).map((s: any) => s?.title || s?.source || '').filter(Boolean);
+          if (srcs.length) {
+            answerText += `<br><br><small style="opacity:.65">📚 Sources : ${srcs.join(' · ')}</small>`;
+          }
+        }
 
         const botMsg: ChatMessage = {
           id: (Date.now() + 1).toString(),
@@ -651,13 +676,23 @@ export class ChatbotComponent implements AfterViewChecked {
         };
         this.messages.update((msgs) => [...msgs, botMsg]);
       },
-      error: () => {
+      error: (err: unknown) => {
         this.isTyping.set(false);
-        const botResponseText = this.generateBotResponse(text);
+        let fallback = this.generateBotResponse(text);
+        if (err instanceof HttpErrorResponse) {
+          if (err.status === 429) {
+            fallback = '⏳ <strong>Trop de requêtes envoyées.</strong><br>Merci de patienter une minute avant de renouveler votre demande. Pendant ce temps, explorez nos annonces : <a style="color:var(--c-bronze-dark);font-weight:700" href="/biens">Tous les biens</a>';
+          } else if (err.status === 403 || err.status === 401) {
+            // Ne surtout PAS trigger de logout : /api/ai est en permitAll
+            fallback = '🔒 <strong>Session en cours de rétablissement.</strong><br>' + fallback;
+          } else if (err.status >= 500) {
+            fallback = '⚠️ <strong>Service IA indisponible.</strong><br>' + fallback;
+          }
+        }
         const botMsg: ChatMessage = {
           id: (Date.now() + 1).toString(),
           sender: 'bot',
-          text: botResponseText,
+          text: fallback,
           time: this.getNowTime(),
         };
         this.messages.update((msgs) => [...msgs, botMsg]);

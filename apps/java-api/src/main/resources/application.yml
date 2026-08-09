@@ -114,5 +114,5 @@ inzuconnect:
       refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:2592000000}
     webhook-secret: ${WEBHOOK_SECRET:dev-secret-change-me}
   cors:
-    allowed-origins: ${FRONTEND_URL:http://localhost:4200,http://localhost:8082,http://localhost,http://192.168.1.12:4200,http://192.168.1.12:8082}
+    allowed-origins: ${FRONTEND_URL:http://localhost:4200,http://localhost:8082,http://localhost,https://localhost,http://192.168.1.12:4200,http://192.168.1.12:8082,http://192.168.1.12,https://192.168.1.12}
   enforce-https: ${ENFORCE_HTTPS:false}

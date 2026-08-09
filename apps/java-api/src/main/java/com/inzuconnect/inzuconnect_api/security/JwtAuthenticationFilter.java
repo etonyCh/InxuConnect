@@ -27,6 +27,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
+        String requestUri = request.getRequestURI();
+        boolean isPublicRoute =
+                requestUri.startsWith("/api/auth/") ||
+                requestUri.startsWith("/api/v1/auth/") ||
+                requestUri.startsWith("/api/ai/") ||
+                requestUri.startsWith("/api/listings") ||
+                requestUri.startsWith("/api/v1/listings") ||
+                requestUri.startsWith("/api/health") ||
+                requestUri.startsWith("/actuator/health") ||
+                requestUri.startsWith("/actuator/info") ||
+                requestUri.startsWith("/api-docs") ||
+                requestUri.startsWith("/swagger-ui") ||
+                requestUri.endsWith("/reviews") ||
+                requestUri.contains("/kyc/webhook") ||
+                requestUri.contains("/payments/mock-callback");
+
         String jwt = null;
 
         jakarta.servlet.http.Cookie[] cookies = request.getCookies();
@@ -52,8 +68,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         try {
-
             if (!jwtService.isTokenValid(jwt)) {
+                if (isPublicRoute) {
+                    SecurityContextHolder.clearContext();
+                    filterChain.doFilter(request, response);
+                    return;
+                }
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.setContentType("application/problem+json");
                 response.setCharacterEncoding("UTF-8");
@@ -81,6 +101,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         } catch (Exception e) {
             SecurityContextHolder.clearContext();
+            if (isPublicRoute) {
+                if (response.isCommitted()) {
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+                filterChain.doFilter(request, response);
+                return;
+            }
             if (response.isCommitted()) {
                 filterChain.doFilter(request, response);
                 return;
