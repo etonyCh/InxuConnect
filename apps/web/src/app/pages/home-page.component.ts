@@ -56,7 +56,8 @@ interface StatItem { icon: string; value: string; label: string; }
 
       @if (user()) {
         <button class="btn btn-ghost btn-sm" (click)="navigateDashboard()">
-          👤 {{ user()?.name || 'Mon Compte' }}
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+          {{ user()?.name || 'Mon Compte' }}
         </button>
       } @else {
         <a class="btn btn-ghost btn-sm" routerLink="/login">Connexion</a>
@@ -268,11 +269,11 @@ interface StatItem { icon: string; value: string; label: string; }
       <div class="hscroll">
         @for (cat of categories; track cat) {
           <button class="chip" [class.is-active]="activeCategory()===cat" (click)="activeCategory.set(cat); loadByCategory(cat)">
-            @if (cat === 'tous') { Tous }
-            @if (cat === 'maison') { 🏡 Maison }
-            @if (cat === 'studio') { 🛏️ Studio }
-            @if (cat === 'villa') { 🏛️ Villa }
-            @if (cat === 'appartement') { 🏢 Appartement }
+            @if (cat === 'tous') { Tous les biens }
+            @if (cat === 'maison') { Maison }
+            @if (cat === 'studio') { Studio }
+            @if (cat === 'villa') { Villa }
+            @if (cat === 'appartement') { Appartement }
             @if (cat === 'Bujumbura') { Bujumbura }
             @if (cat === 'Gitega') { Gitega }
             @if (cat === 'Ngozi') { Ngozi }
@@ -287,15 +288,24 @@ interface StatItem { icon: string; value: string; label: string; }
 
     <div class="quickbar">
       <button class="quickbar__voice" (click)="isVoiceOpen.set(true)">
-        <span class="quickbar__voice-icon"><span class="pulse"></span>🎙️</span>
+        <span class="quickbar__voice-icon">
+          <span class="pulse"></span>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+        </span>
         <span class="quickbar__voice-text">
-          <strong>Parlez à l'assistant InzuConnect</strong>
+          <strong>Assistant vocal InzuConnect</strong>
           <em>Kirundi ou Français — « Une maison à Gitega avec groupe électrogène »</em>
         </span>
       </button>
       <div class="quickbar__creative">
-        <button class="creative-chip" (click)="isStagingOpen.set(true)">🪄 AI Staging Déco</button>
-        <button class="creative-chip" (click)="isTransferOpen.set(true)">🚕 Transfert Aéroport</button>
+        <button class="creative-chip" (click)="isStagingOpen.set(true)">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"/></svg>
+          AI Staging Déco
+        </button>
+        <button class="creative-chip" (click)="isTransferOpen.set(true)">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.5 2.8C2 11.2 2 11.6 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>
+          Transfert Aéroport
+        </button>
       </div>
     </div>
 
@@ -398,7 +408,7 @@ interface StatItem { icon: string; value: string; label: string; }
 
     <div class="footer__bottom">
       <small>© 2026 InzuConnect. Tous droits réservés.</small>
-      <small>Conçu avec ❤️ pour le Burundi 🇧🇮</small>
+      <small>Plateforme certifiée pour le Burundi</small>
     </div>
   </footer>
 
@@ -444,7 +454,7 @@ interface StatItem { icon: string; value: string; label: string; }
           @for (amenity of amenityOptions; track amenity.value) {
             <label class="check-pill">
               <input type="checkbox" [checked]="selectedAmenities().includes(amenity.value)" (change)="toggleAmenity(amenity.value)">
-              <span>{{ amenity.icon }} {{ amenity.label }}</span>
+              <span>{{ amenity.label }}</span>
             </label>
           }
         </div>
@@ -509,8 +519,11 @@ interface StatItem { icon: string; value: string; label: string; }
       <button class="overlay__close" (click)="isKycOpen.set(false)">✕</button>
     </div>
     <div class="overlay__body">
-      <p style="margin-bottom:1rem">Téléversez votre pièce d'identité pour obtenir le badge Vérifié 🛡️</p>
-      <div class="dropzone"><span>📄</span><strong>Photo pièce d'identité (CIP / Passeport)</strong></div>
+      <p style="margin-bottom:1rem">Téléversez votre pièce d'identité pour obtenir le badge Vérifié.</p>
+      <div class="dropzone">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <strong>Photo pièce d'identité (CIP / Passeport)</strong>
+      </div>
       <div class="overlay__footer">
         <button class="btn btn-ghost" (click)="isKycOpen.set(false)">Fermer</button>
         <button class="btn btn-primary" (click)="isKycOpen.set(false); toast.show('Dossier KYC soumis')">Soumettre</button>
@@ -523,14 +536,17 @@ interface StatItem { icon: string; value: string; label: string; }
   <div class="overlay__backdrop" (click)="isStagingOpen.set(false)"></div>
   <div class="overlay__panel">
     <div class="overlay__head">
-      <h3 class="overlay__title">🪄 AI Staging Déco</h3>
+      <h3 class="overlay__title">AI Staging Déco</h3>
       <button class="overlay__close" (click)="isStagingOpen.set(false)">✕</button>
     </div>
     <div class="overlay__body">
-      <div class="dropzone"><span>📷</span><strong>Charger une photo de pièce vide</strong></div>
+      <div class="dropzone">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        <strong>Charger une photo de pièce vide</strong>
+      </div>
       <div class="overlay__footer">
         <button class="btn btn-ghost" (click)="isStagingOpen.set(false)">Annuler</button>
-        <button class="btn btn-primary" (click)="generateStaging()">✨ Générer l'image</button>
+        <button class="btn btn-primary" (click)="generateStaging()">Générer l'image</button>
       </div>
     </div>
   </div>
@@ -540,20 +556,20 @@ interface StatItem { icon: string; value: string; label: string; }
   <div class="overlay__backdrop" (click)="isTransferOpen.set(false)"></div>
   <div class="overlay__panel">
     <div class="overlay__head">
-      <h3 class="overlay__title">🚕 Transfert Aéroport</h3>
+      <h3 class="overlay__title">Transfert Aéroport</h3>
       <button class="overlay__close" (click)="isTransferOpen.set(false)">✕</button>
     </div>
     <div class="overlay__body">
       <div class="vehicle-grid">
         @for (veh of vehicles; track veh.id) {
           <button type="button" class="vehicle-card" [class.is-active]="selectedVehicle()===veh.id" (click)="selectVehicle(veh)">
-            {{ veh.icon }}<span>{{ veh.name }}</span><em class="mono">{{ veh.price }} FBu</em>
+            <span>{{ veh.name }}</span><em class="mono">{{ veh.price }} FBu</em>
           </button>
         }
       </div>
       <div class="overlay__footer">
         <button class="btn btn-ghost" (click)="isTransferOpen.set(false)">Annuler</button>
-        <button class="btn btn-primary" (click)="bookTransfer()">✅ Réserver — <span class="mono">{{ transferPrice() }}</span></button>
+        <button class="btn btn-primary" (click)="bookTransfer()">Réserver — <span class="mono">{{ transferPrice() }}</span></button>
       </div>
     </div>
   </div>
@@ -563,14 +579,14 @@ interface StatItem { icon: string; value: string; label: string; }
   <div class="overlay__backdrop" (click)="isVoiceOpen.set(false)"></div>
   <div class="overlay__panel">
     <div class="overlay__head">
-      <h3 class="overlay__title">🎙️ Assistant vocal (Kirundi & Français)</h3>
+      <h3 class="overlay__title">Assistant vocal (Kirundi & Français)</h3>
       <button class="overlay__close" (click)="isVoiceOpen.set(false)">✕</button>
     </div>
     <div class="overlay__body">
       <p style="margin-bottom:1rem">Appuyez pour parler en Kirundi ou tapez votre recherche.</p>
       <div class="overlay__footer">
         <button class="btn btn-ghost" (click)="isVoiceOpen.set(false)">Fermer</button>
-        <button class="btn btn-primary" (click)="runVoiceSearch()">🔍 Lancer la recherche</button>
+        <button class="btn btn-primary" (click)="runVoiceSearch()">Lancer la recherche</button>
       </div>
     </div>
   </div>
@@ -657,23 +673,23 @@ export class HomePageComponent implements OnInit {
   readonly categories = ['tous', 'maison', 'studio', 'villa', 'appartement', 'Bujumbura', 'Gitega', 'Ngozi'];
 
   readonly amenityOptions = [
-    { value: 'salle-de-bain', label: 'Salle de bain privée', icon: '🚿' },
-    { value: 'wifi', label: 'WiFi', icon: '📶' },
-    { value: 'cuisine', label: 'Cuisine', icon: '🍳' },
-    { value: 'groupe', label: 'Groupe électrogène', icon: '🔌' },
-    { value: 'citerne', label: 'Citerne d\'eau', icon: '💧' },
-    { value: 'starlink', label: 'Starlink', icon: '🛰️' },
+    { value: 'salle-de-bain', label: 'Salle de bain privée' },
+    { value: 'wifi', label: 'WiFi Haut Débit' },
+    { value: 'cuisine', label: 'Cuisine Équipée' },
+    { value: 'groupe', label: 'Groupe électrogène' },
+    { value: 'citerne', label: 'Citerne d\'eau autonome' },
+    { value: 'starlink', label: 'Internet Starlink' },
   ];
 
   readonly vehicles = [
-    { id: 1, icon: '🏍️', name: 'Moto', price: '15 000' },
-    { id: 2, icon: '🚗', name: 'Berline', price: '45 000' },
-    { id: 3, icon: '🚐', name: 'Van', price: '70 000' },
-    { id: 4, icon: '🚙', name: '4x4', price: '90 000' },
+    { id: 1, name: 'Moto Express', price: '15 000' },
+    { id: 2, name: 'Berline Confort', price: '45 000' },
+    { id: 3, name: 'Van VIP', price: '70 000' },
+    { id: 4, name: 'SUV 4x4', price: '90 000' },
   ];
 
   readonly mockChats = [
-    { id: 1, name: 'Eric N. · Villa Kigobe', lastMessage: 'Bonjour, votre check-in est confirmé pour 14h 👋' },
+    { id: 1, name: 'Eric N. · Villa Kigobe', lastMessage: 'Bonjour, votre check-in est confirmé pour 14h' },
     { id: 2, name: 'Claudine M. · Studio Rohero', lastMessage: 'Le groupe électrogène est testé et prêt.' },
   ];
 
@@ -760,7 +776,7 @@ export class HomePageComponent implements OnInit {
     const email = this.newsletterEmail().trim();
     if (!email) return;
     this.newsletterEmail.set('');
-    this.toast.show(`✅ Inscription newsletter OK — ${email}`);
+    this.toast.show(`Inscription newsletter effectuée — ${email}`);
   }
 
   listingSurfaceEstimate(l: Listing): string {
@@ -785,7 +801,7 @@ export class HomePageComponent implements OnInit {
       all[idx] = { ...all[idx], isFavorite: !all[idx].isFavorite };
       this.listings.set(all);
     }
-    this.toast.show(listing.isFavorite ? `Retiré des favoris` : `${listing.title} ajouté aux favoris ♥`);
+    this.toast.show(listing.isFavorite ? `Retiré des favoris` : `${listing.title} ajouté aux favoris`);
   }
 
   resetFilters(): void {
@@ -826,7 +842,7 @@ export class HomePageComponent implements OnInit {
     this.toast.show('Génération AI Déco en cours…');
     setTimeout(() => {
       this.isStagingOpen.set(false);
-      this.toast.show('Rendu AI généré avec succès ✨');
+      this.toast.show('Rendu AI généré avec succès');
     }, 1800);
   }
 
