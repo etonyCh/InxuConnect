@@ -40,9 +40,7 @@ interface StatItem { icon: string; value: string; label: string; }
 
     <div class="topnav__menu">
       <a class="topnav__link" [class.is-active]="activeNav() === 'accueil'" (click)="setActiveNav('accueil')">Accueil</a>
-      <a class="topnav__link" [class.is-active]="activeNav() === 'buy'" (click)="setActiveNav('buy')">Acheter</a>
-      <a class="topnav__link" [class.is-active]="activeNav() === 'rent'" (click)="setActiveNav('rent')">Louer</a>
-      <a class="topnav__link" [class.is-active]="activeNav() === 'passage'" (click)="setActiveNav('passage')">Maisons de passage</a>
+      <a class="topnav__link" routerLink="/biens">Nos biens</a>
       <a class="topnav__link" [class.is-active]="activeNav() === 'about'" (click)="setActiveNav('about')">À propos</a>
       <a class="topnav__link" [class.is-active]="activeNav() === 'contact'" (click)="setActiveNav('contact')">Contact</a>
     </div>

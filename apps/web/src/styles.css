@@ -1462,3 +1462,275 @@ ul{ margin:0; padding:0; list-style:none; }
     z-index: 90;
   }
 }
+
+/* ==========================================================================
+   11. BIENS CATALOG PAGE STYLES (/biens)
+   ========================================================================== */
+.biens-header {
+  background: var(--c-obsidian);
+  color: var(--c-cream);
+  padding: 3.5rem 2.5rem 3rem 2.5rem;
+  border-bottom: 1px solid var(--fluor-dim-2);
+}
+
+.biens-header__inner {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.biens-header h1 {
+  font-size: 2.8rem;
+  font-weight: 800;
+  color: var(--c-cream);
+  margin-top: 0.5rem;
+  margin-bottom: 0.85rem;
+}
+
+.biens-header__sub {
+  font-size: 1.05rem;
+  color: var(--ink-on-dark-70);
+  max-width: 680px;
+  line-height: 1.6;
+}
+
+.biens-container {
+  max-width: 1280px;
+  margin: 2.5rem auto 5rem auto;
+  padding: 0 1.5rem;
+  display: grid;
+  grid-template-columns: 290px 1fr;
+  gap: 2.5rem;
+  align-items: start;
+}
+
+.biens-sidebar {
+  position: sticky;
+  top: 90px;
+}
+
+.sidebar-card {
+  background: var(--white);
+  border: 1.5px solid rgba(166, 138, 109, 0.25);
+  border-radius: var(--r-lg);
+  padding: 1.75rem 1.5rem;
+  box-shadow: var(--shadow-card);
+}
+
+.sidebar-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid rgba(166, 138, 109, 0.15);
+}
+
+.sidebar-card__head h3 {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--c-obsidian);
+}
+
+.link-btn-sm {
+  font-size: 0.8rem;
+  color: var(--c-bronze-dark);
+  font-weight: 700;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.filter-group {
+  margin-bottom: 1.5rem;
+}
+
+.filter-label {
+  display: block;
+  font-family: var(--f-display);
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-obsidian);
+  margin-bottom: 0.5rem;
+}
+
+.filter-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.price-val {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--c-bronze-dark);
+}
+
+.pill-toggle-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem;
+}
+
+.pill-toggle {
+  padding: 0.5rem 0.65rem;
+  border-radius: var(--r-pill);
+  border: 1.5px solid rgba(166, 138, 109, 0.25);
+  background: var(--c-cream);
+  font-family: var(--f-display);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--c-obsidian);
+  transition: all 0.2s var(--ease);
+}
+
+.pill-toggle:hover {
+  border-color: var(--c-bronze);
+}
+
+.pill-toggle.is-active {
+  background: var(--c-obsidian);
+  color: var(--c-bronze);
+  border-color: var(--c-obsidian);
+}
+
+.field-inner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1.5px solid rgba(166, 138, 109, 0.25);
+  border-radius: var(--r-sm);
+  padding: 0.65rem 0.85rem;
+  background: var(--white);
+  color: var(--c-obsidian);
+}
+
+.field-inner input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-size: 0.9rem;
+  color: var(--c-obsidian);
+  font-weight: 600;
+  outline: none;
+}
+
+.checkbox-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--c-obsidian);
+  cursor: pointer;
+}
+
+.check-row input {
+  accent-color: var(--c-bronze);
+  width: 16px;
+  height: 16px;
+}
+
+.biens-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.biens-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--white);
+  border: 1.5px solid rgba(166, 138, 109, 0.2);
+  border-radius: var(--r-md);
+  padding: 1rem 1.5rem;
+  box-shadow: var(--shadow-card);
+}
+
+.biens-count strong {
+  font-family: var(--f-display);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--c-obsidian);
+  margin-right: 0.35rem;
+}
+
+.biens-count span {
+  font-size: 0.9rem;
+  color: var(--ink-on-light-65);
+}
+
+.biens-sort {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.biens-sort label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--c-obsidian);
+}
+
+.biens-sort select {
+  border: 1.5px solid rgba(166, 138, 109, 0.25);
+  border-radius: var(--r-pill);
+  padding: 0.45rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--c-obsidian);
+  background: var(--c-cream);
+}
+
+.biens-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.75rem;
+}
+
+.empty-state {
+  grid-column: 1 / -1;
+  background: var(--white);
+  border: 1.5px dashed rgba(166, 138, 109, 0.3);
+  border-radius: var(--r-lg);
+  padding: 4rem 2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.empty-state svg {
+  color: var(--c-bronze);
+}
+
+.empty-state h3 {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--c-obsidian);
+}
+
+.empty-state p {
+  font-size: 0.92rem;
+  color: var(--ink-on-light-65);
+  max-width: 480px;
+}
+
+@media (max-width: 992px) {
+  .biens-container {
+    grid-template-columns: 1fr;
+  }
+  .biens-sidebar {
+    position: static;
+  }
+}

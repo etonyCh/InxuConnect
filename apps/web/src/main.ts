@@ -35,6 +35,13 @@ bootstrapApplication(AppComponent, {
           pathMatch: 'full',
         },
         {
+          path: 'biens',
+          loadComponent: () =>
+            import('./app/pages/listings-page.component').then(
+              (m) => m.ListingsPageComponent,
+            ),
+        },
+        {
           path: 'login',
           loadComponent: () =>
             import('./app/pages/auth-page.component').then((m) => m.AuthPageComponent),
