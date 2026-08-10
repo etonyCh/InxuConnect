@@ -841,205 +841,525 @@ export class ChatbotComponent implements AfterViewChecked, OnInit, OnDestroy {
     // (1er enfant direct du portail) en position fixed bottom right z-index MAX.
     // Même si ViewEncapsulation.None était cassé par un autre CSS global,
     // ce style inline override tout.
-    try {
-      const EMOJI_FONT = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Segoe UI Symbol",system-ui,sans-serif';
-      const BRONZE = '#a68a6d';
-      const OBSIDIAN = '#0b0b0b';
-      const CREAM = '#F3E7D6';
-      const GREEN = '#10b981';
+    // ────────────────────────────────────────────────────────────────
+    // MODE 9000 ULTRA-VISIBLE (réécriture finale):
+    //   3 éléments DIRECT fixed sous <inzu-chatbot-portal> (child <body>)
+    //   — aucun widget/wrapper intermédiaire — 0 possibilité overflow.
+    // (1) trigger bouton 56x56 (plus petit, couleur platform gris foncé)
+    // (2) badge Besoin d'aide ? visible 2s PUIS fadeOut auto
+    // (3) panel CHATBOT LIGHT RAG COMPLET (header + welcome msgs +
+    //     suggestions + typing indicator + footer input + send)
+    // ────────────────────────────────────────────────────────────────
+    domElem.innerHTML = '';
+    const EMOJI_FONT = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Segoe UI Symbol",system-ui,sans-serif';
+    const PLATFORM = {
+      dark: '#2c2c2c',       // gris foncé platform (couleur du screenshot user)
+      dark2: '#3a3a3a',
+      bronze: '#a68a6d',     // bronze doux bordure
+      bronzeSoft: 'rgba(166,138,109,0.6)',
+      cream: '#F3E7D6',
+      creamBg: '#faf5ee',
+      green: '#10b981',
+      obsidian: '#0b0b0b',
+    };
+    const Z_MAX = '2147483647';
 
-      // ────────────────────────────────────────────────────────────────
-      // MODE 9000 ULTRA-VISIBLE:
-      // 3 éléments ENFANTS DIRECTS du <inzu-chatbot-portal> (= sous BODY)
-      // TOUS position: fixed right:32 bottom:32 → aucun parent ne peut
-      // plus les cacher (pas de widget flex-wrap / de maxWidth qui casse)
-      // ────────────────────────────────────────────────────────────────
-      domElem.innerHTML = '';
+    // ───────────────────────────────────────────
+    // (1/3) TRIGGER : 56×56, gris-foncé platform, 🤖 + point vert
+    // ───────────────────────────────────────────
+    const trigger = this.renderer2.createElement('button');
+    this.renderer2.setAttribute(trigger, 'type', 'button');
+    this.renderer2.setAttribute(trigger, 'aria-label', "Ouvrir l'assistant InzuBot");
+    const trig = (p: string, v: string) => this.renderer2.setStyle(trigger, p, v);
+    [
+      ['position','fixed'],['right','32px'],['bottom','32px'],
+      ['width','56px'],['height','56px'],['minWidth','56px'],['minHeight','56px'],
+      ['borderRadius','50%'],
+      ['border',`2.5px solid ${PLATFORM.bronzeSoft}`],
+      ['background',`linear-gradient(135deg, ${PLATFORM.dark} 0%, ${PLATFORM.dark2} 100%)`],
+      ['cursor','pointer'],['zIndex',Z_MAX],
+      ['boxShadow','0 12px 34px rgba(0,0,0,0.45), inset 0 0 0 2px rgba(255,255,255,0.04)'],
+      ['display','inline-flex'],['alignItems','center'],['justifyContent','center'],
+      ['padding','0'],['margin','0'],
+      ['transform','scale(1)'],['transition','transform 0.22s cubic-bezier(0.16,1,0.3,1), background 0.22s, box-shadow 0.22s, border-color 0.22s'],
+      ['overflow','hidden'],['outline','none'],['contain','layout style size'],['isolation','isolate'],
+    ].forEach(([p,v]) => trig(p,v));
+    trigger.addEventListener('mouseenter', () => Object.assign(trigger.style, {
+      transform:'scale(1.08)',
+      background:`linear-gradient(135deg, ${PLATFORM.bronze} 0%, #c7a98c 100%)`,
+      borderColor: PLATFORM.dark,
+      boxShadow: '0 16px 42px rgba(166,138,109,0.55), inset 0 0 0 2px rgba(11,11,11,0.35)',
+    }));
+    trigger.addEventListener('mouseleave', () => Object.assign(trigger.style, {
+      transform:'scale(1)',
+      background:`linear-gradient(135deg, ${PLATFORM.dark} 0%, ${PLATFORM.dark2} 100%)`,
+      borderColor: PLATFORM.bronzeSoft,
+      boxShadow: '0 12px 34px rgba(0,0,0,0.45), inset 0 0 0 2px rgba(255,255,255,0.04)',
+    }));
+    trigger.addEventListener('mousedown', () => trigger.style.transform = 'scale(0.95)');
+    trigger.addEventListener('mouseup',   () => trigger.style.transform = 'scale(1)');
 
-      // ── [1/3] TRIGGER ROND GÉANT 72×72 FIXED BOTTOM-RIGHT ─────────
-      const trigger = this.renderer2.createElement('button');
-      this.renderer2.setAttribute(trigger, 'type', 'button');
-      this.renderer2.setAttribute(trigger, 'aria-label', "Ouvrir l'assistant InzuBot");
+    const robot = this.renderer2.createElement('span');
+    this.renderer2.setProperty(robot, 'textContent', '🤖');
+    [
+      ['fontFamily',EMOJI_FONT],['fontSize','30px'],['lineHeight','1'],['fontWeight','400'],
+      ['userSelect','none'],['color','#fff'],['display','inline-block'],['textAlign','center'],
+      ['filter','drop-shadow(0 1.5px 4px rgba(0,0,0,0.55))'],['pointerEvents','none'],
+    ].forEach(([p,v]) => this.renderer2.setStyle(robot,p,v));
+    this.renderer2.appendChild(trigger, robot);
+
+    const dot = this.renderer2.createElement('span');
+    [
+      ['position','absolute'],['bottom','3px'],['right','3px'],['width','15px'],['height','15px'],
+      ['borderRadius','50%'],['background',PLATFORM.green],['border',`2.5px solid ${PLATFORM.dark}`],
+      ['boxShadow',`0 0 0 3px rgba(16,185,129,0.32), 0 0 14px ${PLATFORM.green}`],
+      ['pointerEvents','none'],
+    ].forEach(([p,v]) => this.renderer2.setStyle(dot,p,v));
+    this.renderer2.appendChild(trigger, dot);
+
+    trigger.addEventListener('click', () => this.isOpen.set(!this.isOpen()));
+    this.renderer2.appendChild(domElem, trigger);
+
+    // ───────────────────────────────────────────
+    // (2/3) BADGE "Besoin d'aide ?" — VISIBLE 2 SECONDES → FADE + GONE
+    // ───────────────────────────────────────────
+    const badge = this.renderer2.createElement('div');
+    const bst = (p:string,v:string) => this.renderer2.setStyle(badge,p,v);
+    [
+      ['position','fixed'],['right','98px'],['bottom','36px'],
+      ['background',`${PLATFORM.dark}`],['color',PLATFORM.cream],
+      ['border',`2px solid ${PLATFORM.bronzeSoft}`],['borderRadius','18px'],
+      ['padding','10px 18px'],
+      ['fontFamily',"'Playfair Display', Georgia, serif"],
+      ['fontWeight','700'],['fontSize','0.95rem'],['letterSpacing','0.01em'],
+      ['whiteSpace','nowrap'],['boxShadow','0 10px 26px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(166,138,109,0.25)'],
+      ['zIndex','2147483646'],['display','inline-flex'],['alignItems','center'],['gap','8px'],
+      ['pointerEvents','none'],['userSelect','none'],['transformOrigin','100% 50%'],
+      ['transition','opacity 0.5s ease, transform 0.5s ease'],
+      ['opacity','1'],['transform','scale(1)'],
+    ].forEach(([p,v]) => bst(p,v));
+    const bLbl = this.renderer2.createElement('span');
+    this.renderer2.setProperty(bLbl, 'textContent', "Besoin d'aide ?");
+    this.renderer2.appendChild(badge, bLbl);
+    const bEmo = this.renderer2.createElement('span');
+    this.renderer2.setProperty(bEmo, 'textContent', '🤖');
+    [['fontFamily',EMOJI_FONT],['fontSize','1rem'],['lineHeight','1'],['display','inline-block']].forEach(([p,v]) => this.renderer2.setStyle(bEmo,p,v));
+    this.renderer2.appendChild(badge, bEmo);
+    const bArr = this.renderer2.createElement('span');
+    [
+      ['position','absolute'],['top','50%'],['right','-8px'],['transform','translateY(-50%)'],
+      ['width','0'],['height','0'],
+      ['borderTop','8px solid transparent'],['borderBottom','8px solid transparent'],['borderLeft',`8px solid ${PLATFORM.bronzeSoft}`],
+      ['pointerEvents','none'],
+    ].forEach(([p,v]) => this.renderer2.setStyle(bArr,p,v));
+    this.renderer2.appendChild(badge, bArr);
+
+    this.renderer2.appendChild(domElem, badge);
+
+    // ★ Timer: montrer badge 2 secondes PUIS fadeOut opacity=0 → display=none
+    const hideBadge = () => {
+      badge.style.opacity = '0';
+      badge.style.transform = 'scale(0.9) translateX(6px)';
+      setTimeout(() => badge.style.display = 'none', 520);
+    };
+    const showBadge = () => {
+      badge.style.display = 'inline-flex';
+      badge.style.opacity = '1';
+      badge.style.transform = 'scale(1) translateX(0)';
+    };
+    // Apparition 2s au chargement (valeur user: "2 secondes")
+    const tInit = setTimeout(hideBadge, 2000);
+    const syncBadgeOpen = () => {
+      // Panel ouvert → badge caché systématiquement
+      if (this.isOpen()) {
+        clearTimeout(tInit);
+        badge.style.display = 'none';
+      } else {
+        // Fermeture panel → remontrer 2s puis re-cacher (bonus UX)
+        showBadge();
+        clearTimeout(tInit);
+        setTimeout(hideBadge, 2000);
+      }
+    };
+    const cBadge = effect(syncBadgeOpen, { manualCleanup: true, injector: this.injector });
+    this.syncCleanupFn.push(() => { clearTimeout(tInit); cBadge.destroy(); });
+
+    // ───────────────────────────────────────────
+    // (3/3) PANEL CHATBOT LIGHT RAG — 100% JS inline
+    // ───────────────────────────────────────────
+    const panel = this.renderer2.createElement('div');
+    this.renderer2.setAttribute(panel, 'role', 'dialog');
+    this.renderer2.setAttribute(panel, 'aria-label', 'Assistant InzuBot');
+    this.renderer2.setAttribute(panel, 'aria-modal', 'true');
+    const pst = (p:string,v:string) => this.renderer2.setStyle(panel,p,v);
+    [
+      ['position','fixed'],['right','32px'],['bottom','104px'],
+      ['width','min(430px, calc(100vw - 64px))'],['maxWidth','calc(100vw - 64px)'],
+      ['height','min(640px, calc(100vh - 160px))'],['minHeight','520px'],
+      ['background','#ffffff'],['border',`2.5px solid ${PLATFORM.bronze}`],
+      ['borderRadius','22px'],
+      ['boxShadow','0 30px 80px rgba(0,0,0,0.55), inset 0 0 0 1px rgba(255,255,255,0.07)'],
+      ['zIndex',Z_MAX],['display','none'],['flexDirection','column'],['overflow','hidden'],
+      ['contain','layout style size'],['fontFamily',"'Inter', system-ui, -apple-system, sans-serif"],
+    ].forEach(([p,v]) => pst(p,v));
+
+    // ── HEADER ────────────────────────────────────
+    const header = this.renderer2.createElement('header');
+    [
+      ['display','flex'],['alignItems','center'],['justifyContent','space-between'],
+      ['padding','16px 18px'],['background',PLATFORM.dark],['color',PLATFORM.cream],
+      ['borderBottom',`2px solid ${PLATFORM.bronze}`],['gap','12px'],
+    ].forEach(([p,v]) => this.renderer2.setStyle(header,p,v));
+    const hLeft = this.renderer2.createElement('div');
+    [['display','flex'],['alignItems','center'],['gap','12px']].forEach(([p,v]) => this.renderer2.setStyle(hLeft,p,v));
+    const hRobot = this.renderer2.createElement('div');
+    [
+      ['width','42px'],['height','42px'],['borderRadius','50%'],
+      ['background',`linear-gradient(135deg,${PLATFORM.dark2} 0%,${PLATFORM.dark} 100%)`],
+      ['border',`2px solid ${PLATFORM.bronze}`],
+      ['display','inline-flex'],['alignItems','center'],['justifyContent','center'],
+      ['flexShrink','0'],['position','relative'],
+    ].forEach(([p,v]) => this.renderer2.setStyle(hRobot,p,v));
+    const hRSp = this.renderer2.createElement('span');
+    this.renderer2.setProperty(hRSp, 'textContent', '🤖');
+    [['fontFamily',EMOJI_FONT],['fontSize','22px'],['lineHeight','1']].forEach(([p,v]) => this.renderer2.setStyle(hRSp,p,v));
+    this.renderer2.appendChild(hRobot, hRSp);
+    const hRSp2 = this.renderer2.createElement('span');
+    [
+      ['position','absolute'],['bottom','-1px'],['right','-1px'],['width','11px'],['height','11px'],
+      ['borderRadius','50%'],['background',PLATFORM.green],['border',`2px solid ${PLATFORM.dark}`],
+    ].forEach(([p,v]) => this.renderer2.setStyle(hRSp2,p,v));
+    this.renderer2.appendChild(hRobot, hRSp2);
+    const hTxt = this.renderer2.createElement('div');
+    [['display','flex'],['flexDirection','column'],['lineHeight','1.1']].forEach(([p,v]) => this.renderer2.setStyle(hTxt,p,v));
+    const hT1 = this.renderer2.createElement('div');
+    this.renderer2.setProperty(hT1, 'textContent', 'InzuBot');
+    [
+      ['fontFamily',"'Playfair Display', Georgia, serif"],['fontWeight','800'],
+      ['fontSize','1.05rem'],['letterSpacing','0.02em'],['color','#fff'],
+    ].forEach(([p,v]) => this.renderer2.setStyle(hT1,p,v));
+    this.renderer2.appendChild(hTxt, hT1);
+    const hT2 = this.renderer2.createElement('div');
+    this.renderer2.setProperty(hT2, 'textContent', 'Assistant immobilier · en ligne');
+    [['fontSize','0.75rem'],['color',`rgba(243,231,214,0.75)`],['marginTop','2px']].forEach(([p,v]) => this.renderer2.setStyle(hT2,p,v));
+    this.renderer2.appendChild(hTxt, hT2);
+    this.renderer2.appendChild(hLeft, hRobot);
+    this.renderer2.appendChild(hLeft, hTxt);
+    const closeBtn = this.renderer2.createElement('button');
+    this.renderer2.setAttribute(closeBtn, 'type', 'button');
+    this.renderer2.setAttribute(closeBtn, 'aria-label', 'Fermer le chat');
+    this.renderer2.setProperty(closeBtn, 'textContent', '×');
+    [
+      ['background','transparent'],['border','0'],['color',PLATFORM.cream],
+      ['fontSize','2rem'],['fontWeight','300'],['cursor','pointer'],
+      ['width','40px'],['height','40px'],['display','inline-flex'],
+      ['alignItems','center'],['justifyContent','center'],['borderRadius','50%'],
+      ['transition','background 0.2s'],['lineHeight','1'],['padding','0'],
+    ].forEach(([p,v]) => this.renderer2.setStyle(closeBtn,p,v));
+    closeBtn.addEventListener('mouseenter', () => closeBtn.style.background = 'rgba(255,255,255,0.08)');
+    closeBtn.addEventListener('mouseleave', () => closeBtn.style.background = 'transparent');
+    closeBtn.addEventListener('click', () => this.isOpen.set(false));
+    this.renderer2.appendChild(header, hLeft);
+    this.renderer2.appendChild(header, closeBtn);
+    this.renderer2.appendChild(panel, header);
+
+    // ── MESSAGES WRAPPER ─────────────────────────
+    const msgsWrap = this.renderer2.createElement('div');
+    [
+      ['flex','1 1 auto'],['overflowY','auto'],['overflowX','hidden'],
+      ['padding','18px 16px 12px'],['display','flex'],['flexDirection','column'],
+      ['gap','10px'],['background',PLATFORM.creamBg],
+      ['scrollBehavior','smooth'],
+    ].forEach(([p,v]) => this.renderer2.setStyle(msgsWrap,p,v));
+    msgsWrap.setAttribute('data-inzu-msgs','1');
+    this.renderer2.appendChild(panel, msgsWrap);
+
+    // helper: rendre 1 message user ou bot dans msgsWrap
+    const escapeHtml = (s: string) => s
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    const getNowTime = () => {
+      const d = new Date();
+      return d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    };
+    const addMsg = (sender: 'user'|'bot', textRaw: string, textSafeHtml?: string) => {
+      const row = this.renderer2.createElement('div');
       [
-        ['position',        'fixed'],
-        ['right',           '32px'],
-        ['bottom',          '32px'],
-        ['width',           '72px'],
-        ['height',          '72px'],
-        ['minWidth',        '72px'],
-        ['minHeight',       '72px'],
-        ['borderRadius',    '50%'],
-        ['border',          `3px solid ${BRONZE}`],
-        ['background',      'linear-gradient(135deg,'+OBSIDIAN+' 0%,#2B2B2B 55%,'+BRONZE+' 150%)'],
-        ['cursor',          'pointer'],
-        ['zIndex',          '2147483647'],
-        ['boxShadow',       '0 18px 44px rgba(11,11,11,0.55), inset 0 0 0 2px rgba(255,255,255,0.07)'],
-        ['display',         'inline-flex'],
-        ['alignItems',      'center'],
-        ['justifyContent',  'center'],
-        ['padding',         '0'],
-        ['margin',          '0'],
-        ['transform',       'scale(1)'],
-        ['transition',      'transform 0.25s cubic-bezier(0.16,1,0.3,1), box-shadow 0.25s, background 0.25s, border-color 0.25s'],
-        ['overflow',        'hidden'],
-        ['outline',         'none'],
-        ['contain',         'layout style size'],
-        ['isolation',       'isolate'],
-      ].forEach(([p,v]) => this.renderer2.setStyle(trigger, p, v));
-
-      // hover/active inline events
-      trigger.addEventListener('mouseenter', () => {
-        Object.assign(trigger.style, {
-          transform: 'scale(1.08)',
-          background: `linear-gradient(135deg,${BRONZE} 0%, #c7a98c 100%)`,
-          borderColor: OBSIDIAN,
-          boxShadow: '0 22px 54px rgba(166,138,109,0.55), inset 0 0 0 2px rgba(11,11,11,0.3)'
-        });
+        ['display','flex'],['flexDirection','row'],['alignItems','flex-end'],
+        ['gap','8px'],['maxWidth','100%'],
+      ].forEach(([p,v]) => this.renderer2.setStyle(row,p,v));
+      const isUser = sender === 'user';
+      if (isUser) {
+        this.renderer2.setStyle(row, 'justifyContent', 'flex-end');
+        this.renderer2.setStyle(row, 'flexDirection', 'row-reverse');
+      }
+      // avatar
+      const av = this.renderer2.createElement('div');
+      [
+        ['width','30px'],['height','30px'],['minWidth','30px'],['borderRadius','50%'],
+        ['display','inline-flex'],['alignItems','center'],['justifyContent','center'],
+        ['fontSize','14px'],['flexShrink','0'],['fontFamily',EMOJI_FONT],
+      ].forEach(([p,v]) => this.renderer2.setStyle(av,p,v));
+      if (isUser) {
+        Object.assign(av.style, {background: PLATFORM.dark, color: '#fff', border: `2px solid ${PLATFORM.bronzeSoft}`} as any);
+        av.textContent = '👤';
+      } else {
+        Object.assign(av.style, {background: PLATFORM.bronze, color: PLATFORM.cream, border: `2px solid ${PLATFORM.dark}`} as any);
+        av.textContent = '🤖';
+      }
+      // bubble
+      const bub = this.renderer2.createElement('div');
+      [
+        ['padding','10px 14px'],['borderRadius', isUser ? '14px 14px 4px 14px' : '14px 14px 14px 4px'],
+        ['fontSize','0.92rem'],['lineHeight','1.45'],['maxWidth','78%'],
+        ['wordWrap','break-word'],['boxShadow','0 3px 10px rgba(0,0,0,0.08)'],
+        ['position','relative'],
+      ].forEach(([p,v]) => this.renderer2.setStyle(bub,p,v));
+      if (isUser) {
+        Object.assign(bub.style, {background: PLATFORM.dark, color: '#fff'} as any);
+        bub.innerHTML = escapeHtml(textRaw);
+      } else {
+        Object.assign(bub.style, {background:'#fff', color:'#0b0b0b', border:`1px solid rgba(166,138,109,0.25)`} as any);
+        // bot html est fiable (RAG + strong/br/sources)
+        bub.innerHTML = textSafeHtml ?? escapeHtml(textRaw);
+      }
+      // time small
+      const tm = this.renderer2.createElement('div');
+      this.renderer2.setProperty(tm, 'textContent', getNowTime());
+      [
+        ['fontSize','0.65rem'],['color','rgba(0,0,0,0.45)'],
+        ['marginTop','3px'],['textAlign', isUser ? 'right' : 'left'],['userSelect','none'],
+      ].forEach(([p,v]) => this.renderer2.setStyle(tm,p,v));
+      const col = this.renderer2.createElement('div');
+      [['display','flex'],['flexDirection','column'],['maxWidth','78%']].forEach(([p,v]) => this.renderer2.setStyle(col,p,v));
+      this.renderer2.appendChild(col, bub);
+      this.renderer2.appendChild(col, tm);
+      this.renderer2.appendChild(row, av);
+      this.renderer2.appendChild(row, col);
+      this.renderer2.appendChild(msgsWrap, row);
+      // scroll en bas
+      requestAnimationFrame(() => {
+        try { msgsWrap.scrollTop = msgsWrap.scrollHeight; } catch {/* ignore */}
       });
-      trigger.addEventListener('mouseleave', () => {
-        Object.assign(trigger.style, {
-          transform: 'scale(1)',
-          background: `linear-gradient(135deg,${OBSIDIAN} 0%,#2B2B2B 55%,${BRONZE} 150%)`,
-          borderColor: BRONZE,
-          boxShadow: '0 18px 44px rgba(11,11,11,0.55), inset 0 0 0 2px rgba(255,255,255,0.07)'
-        });
+    };
+
+    // ── WELCOME BOT + suggestions (messages INITIAUX) ──
+    const WELCOME_HTML =
+      '<strong>👋 Bienvenue sur InzuBot !</strong><br><br>' +
+      'Je suis votre <strong>assistant immobilier IA</strong> pour le Burundi (Light RAG autonome).<br>' +
+      'Je vous aide à trouver un logement, comprendre les prix, et utiliser les garanties.<br><br>' +
+      '💡 Quelques pistes rapides :';
+    addMsg('bot', '', WELCOME_HTML);
+
+    const SUGGESTIONS = [
+      '🏡 Une villa à Bujumbura avec groupe ?',
+      '💸 Prix moyen à Rohero / nuit ?',
+      '🛡️ Comment obtenir le Badge Premium Hôte ?',
+      '✈️ Transfert aéroport Melchior ?',
+    ];
+    const chipsRow = this.renderer2.createElement('div');
+    [
+      ['display','flex'],['flexWrap','wrap'],['gap','8px'],['padding','2px 0 6px 38px'],
+    ].forEach(([p,v]) => this.renderer2.setStyle(chipsRow,p,v));
+    SUGGESTIONS.forEach(label => {
+      const chip = this.renderer2.createElement('button');
+      this.renderer2.setAttribute(chip, 'type', 'button');
+      this.renderer2.setProperty(chip, 'textContent', label);
+      [
+        ['background','rgba(166,138,109,0.14)'],['border',`1.5px solid rgba(166,138,109,0.5)`],
+        ['borderRadius','999px'],['padding','7px 12px'],['cursor','pointer'],
+        ['color','#0b0b0b'],['fontWeight','600'],['fontSize','0.8rem'],['whiteSpace','nowrap'],
+        ['transition','all 0.18s'],['fontFamily','inherit'],
+      ].forEach(([p,v]) => this.renderer2.setStyle(chip,p,v));
+      chip.addEventListener('mouseenter', () => Object.assign(chip.style, {
+        background: 'rgba(166,138,109,0.28)',
+        borderColor: PLATFORM.bronze,
+      } as any));
+      chip.addEventListener('mouseleave', () => Object.assign(chip.style, {
+        background:'rgba(166,138,109,0.14)',
+        borderColor:'rgba(166,138,109,0.5)',
+      } as any));
+      chip.addEventListener('click', () => doSend(label.replace(/^[^\p{L}\p{N}]+/gu,'').trim()));
+      this.renderer2.appendChild(chipsRow, chip);
+    });
+    this.renderer2.appendChild(msgsWrap, chipsRow);
+
+    // ── TYPING INDICATOR ──────────────────────────
+    const typing = this.renderer2.createElement('div');
+    [
+      ['display','none'],['flexDirection','row'],['alignItems','center'],['gap','8px'],
+      ['padding','4px 0 4px 38px'],
+    ].forEach(([p,v]) => this.renderer2.setStyle(typing,p,v));
+    const typingBub = this.renderer2.createElement('div');
+    Object.assign(typingBub.style, {
+      padding:'10px 14px', borderRadius:'14px 14px 14px 4px',
+      background:'#fff', border:`1px solid rgba(166,138,109,0.25)`,
+      display:'inline-flex', alignItems:'center', gap:'6px', boxShadow:'0 3px 10px rgba(0,0,0,0.08)',
+    });
+    for (let i = 0; i < 3; i++) {
+      const d = this.renderer2.createElement('span');
+      Object.assign(d.style, {
+        width: '8px', height: '8px', borderRadius: '50%',
+        background: PLATFORM.bronze, display:'inline-block',
+        animation: `chatbotTypingDot 1.3s ${i*0.22}s infinite ease-in-out`,
       });
-      trigger.addEventListener('mousedown', () => trigger.style.transform = 'scale(0.94)');
-      trigger.addEventListener('mouseup',   () => trigger.style.transform = this.isOpen() ? 'scale(1.04)' : 'scale(1)');
-
-      // 1.1 Robot 🤖 (forcé emoji font, 40px GÉANT)
-      const robot = this.renderer2.createElement('span');
-      this.renderer2.setProperty(robot, 'textContent', '🤖');
-      [
-        ['fontFamily',  EMOJI_FONT],
-        ['fontSize',    '42px'],
-        ['lineHeight',  '1'],
-        ['fontWeight',  '400'],
-        ['userSelect',  'none'],
-        ['color',       '#fff'],
-        ['display',     'inline-block'],
-        ['textAlign',   'center'],
-        ['filter',      'drop-shadow(0 2px 6px rgba(0,0,0,0.5))'],
-        ['pointerEvents','none'],
-      ].forEach(([p,v]) => this.renderer2.setStyle(robot, p, v));
-      this.renderer2.appendChild(trigger, robot);
-
-      // 1.2 Online dot vert (GROS 16px, en bas à droite pour être vu sur bordure bronze)
-      const dot = this.renderer2.createElement('span');
-      [
-        ['position',     'absolute'],
-        ['bottom',       '2px'],
-        ['right',        '2px'],
-        ['width',        '18px'],
-        ['height',       '18px'],
-        ['borderRadius', '50%'],
-        ['background',   GREEN],
-        ['border',       `3px solid ${OBSIDIAN}`],
-        ['boxShadow',    `0 0 0 3px rgba(16,185,129,0.4), 0 0 18px ${GREEN}`],
-        ['pointerEvents','none'],
-      ].forEach(([p,v]) => this.renderer2.setStyle(dot, p, v));
-      this.renderer2.appendChild(trigger, dot);
-
-      trigger.addEventListener('click', () => this.isOpen.set(!this.isOpen()));
-      this.renderer2.appendChild(domElem, trigger);
-
-      // ── [2/3] TOOLTIP BADGE "Besoin d'aide ?" collé à gauche ──────
-      const badge = this.renderer2.createElement('div');
-      [
-        ['position',        'fixed'],
-        ['right',           '116px'],
-        ['bottom',          '46px'],
-        ['background',      OBSIDIAN],
-        ['color',           CREAM],
-        ['border',          `2px solid ${BRONZE}`],
-        ['borderRadius',    '999px'],
-        ['padding',         '12px 20px'],
-        ['fontFamily',      "'Playfair Display', Georgia, serif"],
-        ['fontWeight',      '800'],
-        ['fontSize',        '1rem'],
-        ['letterSpacing',   '0.01em'],
-        ['whiteSpace',      'nowrap'],
-        ['boxShadow',       '0 10px 28px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(166,138,109,0.35)'],
-        ['zIndex',          '2147483646'],
-        ['display',         'inline-flex'],
-        ['alignItems',      'center'],
-        ['gap',             '10px'],
-        ['pointerEvents',   'none'],
-        ['userSelect',      'none'],
-        ['transformOrigin', '100% 50%'],
-        ['animation',       'chatbotBadgePulse 2.6s infinite ease-in-out'],
-      ].forEach(([p,v]) => this.renderer2.setStyle(badge, p, v));
-
-      const bTxt = this.renderer2.createElement('span');
-      this.renderer2.setProperty(bTxt, 'textContent', "Besoin d'aide ?");
-      this.renderer2.appendChild(badge, bTxt);
-
-      const bEmo = this.renderer2.createElement('span');
-      this.renderer2.setProperty(bEmo, 'textContent', '🤖');
-      [
-        ['fontFamily', EMOJI_FONT],
-        ['fontSize',   '1.1rem'],
-        ['lineHeight', '1'],
-      ].forEach(([p,v]) => this.renderer2.setStyle(bEmo, p, v));
-      this.renderer2.appendChild(badge, bEmo);
-
-      const arrow = this.renderer2.createElement('span');
-      [
-        ['position',     'absolute'],
-        ['top',          '50%'],
-        ['right',        '-9px'],
-        ['transform',    'translateY(-50%)'],
-        ['width',        '0'],
-        ['height',       '0'],
-        ['borderTop',    '10px solid transparent'],
-        ['borderBottom', '10px solid transparent'],
-        ['borderLeft',   `10px solid ${BRONZE}`],
-        ['pointerEvents','none'],
-      ].forEach(([p,v]) => this.renderer2.setStyle(arrow, p, v));
-      this.renderer2.appendChild(badge, arrow);
-
-      this.renderer2.appendChild(domElem, badge);
-
-      // hide badge quand panel ouvert
-      const syncBadge = () => {
-        badge.style.display = this.isOpen() ? 'none' : 'inline-flex';
-      };
-      syncBadge();
-      const cBadge = effect(syncBadge, { manualCleanup: true, injector: this.injector });
-      this.syncCleanupFn.push(() => cBadge.destroy());
-
-      // ── [3/3] CHAT PANEL FIXED juste au-dessus du bouton ──────────
-      const panel = this.renderer2.createElement('div');
-      [
-        ['position',        'fixed'],
-        ['right',           '32px'],
-        ['bottom',          '120px'],
-        ['width',           'min(440px, calc(100vw - 64px))'],
-        ['maxWidth',        'calc(100vw - 64px)'],
-        ['height',          'min(660px, calc(100vh - 180px))'],
-        ['minHeight',       '540px'],
-        ['background',      '#ffffff'],
-        ['border',          `2.5px solid ${BRONZE}`],
-        ['borderRadius',    '24px'],
-        ['boxShadow',       '0 32px 90px rgba(11,11,11,0.5), inset 0 0 0 1px rgba(255,255,255,0.07)'],
-        ['zIndex',          '2147483647'],
-        ['display',         'none'],
-        ['flexDirection',   'column'],
-        ['overflow',        'hidden'],
-        ['contain',         'layout style size'],
-      ].forEach(([p,v]) => this.renderer2.setStyle(panel, p, v));
-
-      const syncPanel = () => {
-        panel.style.display = this.isOpen() ? 'flex' : 'none';
-      };
-      syncPanel();
-      const cPanel = effect(syncPanel, { manualCleanup: true, injector: this.injector });
-      this.syncCleanupFn.push(() => cPanel.destroy());
-      this.renderer2.appendChild(domElem, panel);
-
-    } catch (e) {
-      /* ignore querySelector failure (very unlikely) */
+      this.renderer2.appendChild(typingBub, d);
     }
+    this.renderer2.appendChild(typing, typingBub);
+    this.renderer2.appendChild(msgsWrap, typing);
+    const showTyping = () => { typing.style.display = 'flex'; try { msgsWrap.scrollTop = msgsWrap.scrollHeight; } catch {/* */} };
+    const hideTyping = () => typing.style.display = 'none';
+
+    // ── FOOTER INPUT + SEND ───────────────────────
+    const footer = this.renderer2.createElement('footer');
+    [
+      ['display','flex'],['flexDirection','column'],['gap','8px'],
+      ['padding','12px 14px 14px'],['background','#fff'],
+      ['borderTop',`2px solid ${PLATFORM.bronze}`],
+    ].forEach(([p,v]) => this.renderer2.setStyle(footer,p,v));
+    const disclaimer = this.renderer2.createElement('div');
+    this.renderer2.setProperty(disclaimer, 'textContent', '💡 Light RAG autonome · réponses instantanées · respect de la vie privée');
+    [['fontSize','0.7rem'],['color','rgba(0,0,0,0.5)'],['textAlign','center']].forEach(([p,v]) => this.renderer2.setStyle(disclaimer,p,v));
+    this.renderer2.appendChild(footer, disclaimer);
+    const formRow = this.renderer2.createElement('form');
+    [
+      ['display','flex'],['alignItems','center'],['gap','8px'],
+    ].forEach(([p,v]) => this.renderer2.setStyle(formRow,p,v));
+    const inputEl = this.renderer2.createElement('input');
+    this.renderer2.setAttribute(inputEl, 'type', 'text');
+    this.renderer2.setAttribute(inputEl, 'name', 'chat');
+    this.renderer2.setAttribute(inputEl, 'autocomplete', 'off');
+    this.renderer2.setAttribute(inputEl, 'placeholder', "Posez votre question (Ex: « villa 2 chambres à Kigobe »)…");
+    this.renderer2.setAttribute(inputEl, 'aria-label', 'Message pour InzuBot');
+    [
+      ['flex','1 1 auto'],['border',`1.5px solid ${PLATFORM.bronze}`],
+      ['borderRadius','999px'],['padding','0.65rem 1rem'],['fontSize','0.92rem'],
+      ['fontFamily','inherit'],['outline','none'],['background','#fff'],['color','#0b0b0b'],
+      ['transition','border-color 0.2s, box-shadow 0.2s'],
+    ].forEach(([p,v]) => this.renderer2.setStyle(inputEl,p,v));
+    inputEl.addEventListener('focus', () => Object.assign(inputEl.style, {
+      borderColor: PLATFORM.bronze,
+      boxShadow: `0 0 0 3px rgba(166,138,109,0.2)`,
+    } as any));
+    inputEl.addEventListener('blur', () => Object.assign(inputEl.style, {
+      borderColor: PLATFORM.bronze,
+      boxShadow: 'none',
+    } as any));
+    const sendBtn = this.renderer2.createElement('button');
+    this.renderer2.setAttribute(sendBtn, 'type', 'submit');
+    this.renderer2.setProperty(sendBtn, 'textContent', 'Envoyer');
+    [
+      ['border','0'],['borderRadius','999px'],
+      ['background',`linear-gradient(135deg, ${PLATFORM.bronze} 0%, #c7a98c 100%)`],
+      ['color',PLATFORM.obsidian],['fontWeight','700'],['padding','0.65rem 1.15rem'],
+      ['cursor','pointer'],['fontSize','0.9rem'],['fontFamily','inherit'],
+      ['transition','all 0.2s'],['minWidth','90px'],['boxShadow','0 6px 16px rgba(166,138,109,0.35)'],
+    ].forEach(([p,v]) => this.renderer2.setStyle(sendBtn,p,v));
+    sendBtn.addEventListener('mouseenter', () => Object.assign(sendBtn.style, {
+      transform: 'translateY(-1px)',
+      boxShadow: '0 8px 20px rgba(166,138,109,0.5)',
+    } as any));
+    sendBtn.addEventListener('mouseleave', () => Object.assign(sendBtn.style, {
+      transform: 'translateY(0)',
+      boxShadow: '0 6px 16px rgba(166,138,109,0.35)',
+    } as any));
+    this.renderer2.appendChild(formRow, inputEl);
+    this.renderer2.appendChild(formRow, sendBtn);
+    this.renderer2.appendChild(footer, formRow);
+    this.renderer2.appendChild(panel, footer);
+
+    // Focus input quand panel s'ouvre
+    const focusInput = () => {
+      if (this.isOpen()) {
+        setTimeout(() => { try { inputEl.focus(); } catch {/* ignore */} }, 150);
+      }
+    };
+    const cFocus = effect(focusInput, { manualCleanup: true, injector: this.injector });
+    this.syncCleanupFn.push(() => cFocus.destroy());
+
+    // ── SYNC signal ↔ panel display ────────────────
+    const syncPanel = () => {
+      panel.style.display = this.isOpen() ? 'flex' : 'none';
+      if (this.isOpen()) { try { msgsWrap.scrollTop = msgsWrap.scrollHeight; } catch {/* */} }
+    };
+    syncPanel();
+    const cPanel = effect(syncPanel, { manualCleanup: true, injector: this.injector });
+    this.syncCleanupFn.push(() => cPanel.destroy());
+
+    this.renderer2.appendChild(domElem, panel);
+
+    // ── SEND LOGIC (Light RAG) : POST /api/ai/rag/ask ──
+    const ragUrl = (path: string) => {
+      const base = (environment as { apiBaseUrl?: string }).apiBaseUrl?.replace(/\/$/, '') ?? '';
+      const safe = path.startsWith('/') ? path : '/' + path;
+      return `${base}/api/ai${safe}`;
+    };
+    // fallback local
+    const localFallback = (q: string): string => {
+      const s = q.toLowerCase();
+      const arr: string[] = [];
+      if (/prix|coût|cher|combien|tarif/.test(s)) arr.push('💸 De **100 000 BIF/nuit** (partagé, banlieue) à **750 000+ BIF/nuit** (villa premium Rohero/Kigobe).');
+      if (/bujumbura|quartier|ville|kinindo|rohero|mutanga|kigobe|ngozi|gitega/.test(s)) arr.push('📍 Quartiers sûrs Bujumbura : <strong>Rohero, Kigobe, Kinindo, Mutanga-Nord</strong>. Filtres → page <a href="/biens" style="color:#a68a6d;font-weight:700">Tous les biens</a>.');
+      if (/groupe|électro|courant|élect|generator|citerne|eau/.test(s)) arr.push('⚡ **Groupe & Citerne** : utilisez le filtre « Avancé » en page d\'accueil ou cochez les cases garanties.');
+      if (/badge|premium|kyc|vérif|hôte|certif/.test(s)) arr.push('🛡️ **Badge Premium Hôte** : KYC (pièce + selfie) depuis Tableau de bord → Sécurité.');
+      if (/aéroport|navette|transfer|melchior/.test(s)) arr.push('✈️ **Transfert aéroport Melchior** : ajout ~35 USD/trajet, option lors de la réservation.');
+      if (arr.length === 0) {
+        arr.push('🏠 Merci pour votre question ! Je vous oriente :');
+        arr.push('• 🔍 <a href="/biens" style="color:#a68a6d;font-weight:700"><strong>Rechercher un bien</strong></a>');
+        arr.push('• 🏘️ Offres vérifiées en page d\'accueil');
+        arr.push('• 💬 Support humain : <strong>support@inzuconnect.bi</strong>');
+      }
+      return arr.join('<br>');
+    };
+    const doSend = (raw: string) => {
+      const text = (raw ?? '').trim();
+      if (!text) return;
+      addMsg('user', text);
+      inputEl.value = '';
+      showTyping();
+      const payload = { question: text, topK: 5 };
+      const http = (this as unknown as { http: HttpClient }).http;
+      let answered = false;
+      http.post<any>(ragUrl('/rag/ask'), payload, { withCredentials: false })
+        .subscribe({
+          next: (res) => {
+            if (answered) return;
+            answered = true;
+            hideTyping();
+            let answer = (res?.answer && typeof res.answer === 'string')
+              ? res.answer.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>')
+              : localFallback(text);
+            if (Array.isArray(res?.sources) && res.sources.length) {
+              const srcs = res.sources.slice(0,3)
+                .map((s: any) => (s?.title ?? s?.source ?? '').toString().trim())
+                .filter(Boolean);
+              if (srcs.length) answer += `<br><br><small style="opacity:.7">📚 Sources : ${srcs.join(' · ')}</small>`;
+            }
+            addMsg('bot', '', answer);
+          },
+          error: (err: unknown) => {
+            if (answered) return;
+            answered = true;
+            hideTyping();
+            let textOut = localFallback(text);
+            if (err instanceof HttpErrorResponse) {
+              if (err.status === 429) textOut = '⏳ <strong>Trop de requêtes.</strong> Réessayez dans 1 minute. Pendant ce temps : <a style="color:#a68a6d;font-weight:700" href="/biens">Tous les biens</a>';
+              else if (err.status >= 500) textOut = '⚠️ <strong>Service IA indisponible.</strong><br>' + textOut;
+              else if (err.status === 403 || err.status === 401) textOut = '🔒 <strong>Session.</strong><br>' + textOut;
+            }
+            addMsg('bot', '', textOut);
+          }
+        });
+    };
+    formRow.addEventListener('submit', (ev: Event) => {
+      ev.preventDefault?.();
+      doSend(inputEl.value);
+      return false;
+    });
+    sendBtn.addEventListener('click', (ev: Event) => {
+      ev.preventDefault?.();
+      doSend(inputEl.value);
+    });
 
     this.portalRef = portalRef;
 
