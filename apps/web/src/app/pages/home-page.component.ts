@@ -137,13 +137,12 @@ interface StatItem { icon: string; value: string; label: string; }
   <header id="hero" class="hero hero--v2">
     <div class="hero__content">
       <p class="hero__eyebrow mono">RÉSERVATION · EAU · ÉLECTRICITÉ — TROIS SIGNAUX, UN SÉJOUR</p>
-      <h1 class="hero__title">Un logement au Burundi, <span>garanti connecté.</span></h1>
+      <h1 class="hero__title">Louer au Burundi, <span>enfin sans surprise.</span></h1>
       <p class="hero__sub">
-        Maisons, appartements, villas, résidences meublées… Trouvez le bien qui vous correspond parmi
-        des milliers d'annonces <strong>vérifiées InzuConnect</strong> avec garantie d'eau et d'électricité.
+        Maison, appartement, villa ou résidence meublée : chaque annonce InzuConnect est vérifiée sur place, avec l'eau et l'électricité garanties dès le premier jour.
       </p>
       <div class="hero__cta-row">
-        <button class="btn btn-primary" (click)="setActiveNav('rent')">Découvrir les logements</button>
+        <button class="btn btn-primary" (click)="setActiveNav('rent')">Voir les logements</button>
         <button class="btn btn-ghost-dark" (click)="navigateHostWizard()">Je suis hôte</button>
       </div>
     </div>
@@ -367,12 +366,16 @@ interface StatItem { icon: string; value: string; label: string; }
 
   <section class="stats-cta">
     <div class="stats-cta__left">
-      <h2>Vous avez un bien<br>à vendre ou à louer ?</h2>
+      <h2>Mettez votre logement en location,<br>on s'occupe du reste.</h2>
       <p>
-        Publiez votre annonce <strong>gratuitement</strong> et touchez des milliers de
-        potentiels acheteurs ou locataires — partout au Burundi et dans la diaspora.
+        Publiez gratuitement, fixez votre prix, et laissez InzuConnect rassurer vos futurs locataires. Un bien vérifié se loue plus vite.
       </p>
-      <button class="btn btn-primary" (click)="navigateHostWizard()">Publier une annonce</button>
+      <div style="display:flex;gap:0.75rem;margin:1rem 0 1.5rem;flex-wrap:wrap">
+        <span style="background:rgba(255,255,255,0.15);padding:0.35rem 0.85rem;border-radius:20px;font-size:0.85rem;font-weight:600">👁️ Vu en premier</span>
+        <span style="background:rgba(255,255,255,0.15);padding:0.35rem 0.85rem;border-radius:20px;font-size:0.85rem;font-weight:600">💳 Payé sans détour</span>
+        <span style="background:rgba(255,255,255,0.15);padding:0.35rem 0.85rem;border-radius:20px;font-size:0.85rem;font-weight:600">🤝 Jamais seul</span>
+      </div>
+      <button class="btn btn-primary" (click)="navigateHostWizard()">Publier mon logement</button>
     </div>
     <div class="stats-grid">
       @for (s of stats; track s.label) {
