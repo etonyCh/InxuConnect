@@ -878,24 +878,26 @@ export class ChatbotComponent implements AfterViewChecked, OnInit, OnDestroy {
     const Z_MAX = '2147483647';
 
     // ───────────────────────────────────────────
-    // (1/3) TRIGGER : FORME RABBIT R1 (capsule verticale) + palette BEIGE/BLANC/NOIR
-    //       Shell extérieur beige + bord noir + grand "oeil" rond noir central
-    //       (caméra iconique du Rabbit R1) + micro dots + haut-parleur grille
+    // (1/3) TRIGGER : LOGO TÊTE DE LAPIN (silhouette comme image, palette BEIGE / NOIR)
+    //       · Fond noir carré arrondi
+    //       · 2 oreilles losanges (diamants) pointées vers le haut
+    //       · Tête beige arrondie (forme trapèze arrondi large en bas)
+    //       · 1 œil rond NOIR
+    //       · Museau/bouche en X style lapin minimaliste
     // ───────────────────────────────────────────
     const trigger = this.renderer2.createElement('button');
     this.renderer2.setAttribute(trigger, 'type', 'button');
     this.renderer2.setAttribute(trigger, 'aria-label', "Ouvrir l'assistant InzuBot");
     const trig = (p: string, v: string) => this.renderer2.setStyle(trigger, p, v);
-    const R1_W = 54;
-    const R1_H = 82;
+    const BTN_W = 68, BTN_H = 78;
     [
       ['position','fixed'],['right','32px'],['bottom','32px'],
-      ['width',`${R1_W}px`],['height',`${R1_H}px`],['minWidth',`${R1_W}px`],['minHeight',`${R1_H}px`],
-      ['borderRadius','9999px'],
+      ['width',`${BTN_W}px`],['height',`${BTN_H}px`],['minWidth',`${BTN_W}px`],['minHeight',`${BTN_H}px`],
+      ['borderRadius','20px'],
       ['border',`2.5px solid ${PALETTE.noir}`],
-      ['background',`linear-gradient(180deg, ${PALETTE.beige} 0%, #EBDDC6 60%, #E2D2B6 100%)`],
+      ['background',`linear-gradient(180deg, #1a1a1a 0%, ${PALETTE.noir} 100%)`],
       ['cursor','pointer'],['zIndex',Z_MAX],
-      ['boxShadow','0 14px 40px rgba(17,17,17,0.55), inset 0 0 0 1px rgba(255,255,255,0.65), inset 0 -6px 16px rgba(17,17,17,0.08)'],
+      ['boxShadow','0 14px 40px rgba(17,17,17,0.55), inset 0 0 0 1px rgba(255,255,255,0.06), inset 0 -6px 16px rgba(255,255,255,0.02)'],
       ['display','inline-flex'],['alignItems','center'],['justifyContent','center'],
       ['padding','0'],['margin','0'],
       ['transform','scale(1)'],['transition','transform 0.22s cubic-bezier(0.16,1,0.3,1), background 0.22s, box-shadow 0.22s, border-color 0.22s, filter 0.22s'],
@@ -904,103 +906,118 @@ export class ChatbotComponent implements AfterViewChecked, OnInit, OnDestroy {
     ].forEach(([p,v]) => trig(p,v));
     trigger.addEventListener('mouseenter', () => Object.assign(trigger.style, {
       transform:'scale(1.08)',
-      background:`linear-gradient(180deg, #F6EBDD 0%, #EBDDC6 60%, #DFCCAE 100%)`,
-      borderColor: PALETTE.noir,
-      boxShadow: '0 18px 48px rgba(17,17,17,0.6), inset 0 0 0 1px rgba(255,255,255,0.9), inset 0 -8px 18px rgba(17,17,17,0.1)',
+      boxShadow: '0 18px 48px rgba(17,17,17,0.6), inset 0 0 0 1px rgba(255,255,255,0.12), inset 0 -8px 18px rgba(255,255,255,0.04)',
       filter: 'saturate(1.05)',
     }));
     trigger.addEventListener('mouseleave', () => Object.assign(trigger.style, {
       transform:'scale(1)',
-      background:`linear-gradient(180deg, ${PALETTE.beige} 0%, #EBDDC6 60%, #E2D2B6 100%)`,
-      borderColor: PALETTE.noir,
-      boxShadow: '0 14px 40px rgba(17,17,17,0.55), inset 0 0 0 1px rgba(255,255,255,0.65), inset 0 -6px 16px rgba(17,17,17,0.08)',
+      boxShadow: '0 14px 40px rgba(17,17,17,0.55), inset 0 0 0 1px rgba(255,255,255,0.06), inset 0 -6px 16px rgba(255,255,255,0.02)',
       filter: 'none',
     }));
     trigger.addEventListener('mousedown', () => trigger.style.transform = 'scale(0.95)');
     trigger.addEventListener('mouseup',   () => trigger.style.transform = 'scale(1)');
 
-    // ─ Contenu graphique RABBIT R1 (empilé verticalement)
-    const r1Layout = this.renderer2.createElement('span');
+    // ─ Contenu LOGO : wrapper relatif pour placer oreilles + tête
+    const logoWrap = this.renderer2.createElement('span');
     [
       ['position','relative'],['width','100%'],['height','100%'],
       ['display','inline-flex'],['flexDirection','column'],
-      ['alignItems','center'],['justifyContent','space-between'],
-      ['padding','10px 0 12px 0'],['pointerEvents','none'],['userSelect','none'],
-    ].forEach(([p,v]) => this.renderer2.setStyle(r1Layout,p,v));
+      ['alignItems','center'],['justifyContent','flex-start'],
+      ['paddingTop','6px'],['pointerEvents','none'],['userSelect','none'],
+    ].forEach(([p,v]) => this.renderer2.setStyle(logoWrap,p,v));
 
-    // (A) Grille haut-parleur en haut du R1 (6+1 petits rectangles blancs)
-    const speakerGrid = this.renderer2.createElement('span');
+    // ─ Oreilles ×2 losanges (diamants) beige avec bordure noire fine
+    const earsRow = this.renderer2.createElement('span');
     [
-      ['display','inline-flex'],['flexDirection','row'],['alignItems','center'],['justifyContent','center'],
-      ['gap','3px'],['height','5px'],['marginTop','2px'],
-    ].forEach(([p,v]) => this.renderer2.setStyle(speakerGrid,p,v));
-    for (let g = 0; g < 7; g++) {
-      const dot = this.renderer2.createElement('span');
+      ['position','relative'],['width','100%'],['height','28px'],
+      ['display','inline-flex'],['flexDirection','row'],
+      ['alignItems','flex-start'],['justifyContent','space-between'],
+      ['padding','0 14px'],['marginTop','2px'],
+    ].forEach(([p,v]) => this.renderer2.setStyle(earsRow,p,v));
+    const makeEar = (tiltDeg: number) => {
+      const ear = this.renderer2.createElement('span');
+      const EAR_D = 24;
       [
-        ['width','4px'],['height','1.4px'],['borderRadius','1px'],
-        ['background',PALETTE.noir],['display','inline-block'],
-        ['boxShadow','inset 0 0 0 0.4px rgba(255,255,255,0.22)'],
-      ].forEach(([p,v]) => this.renderer2.setStyle(dot,p,v));
-      this.renderer2.appendChild(speakerGrid, dot);
-    }
-    this.renderer2.appendChild(r1Layout, speakerGrid);
+        ['width',`${EAR_D}px`],['height',`${EAR_D}px`],['minWidth',`${EAR_D}px`],['minHeight',`${EAR_D}px`],
+        ['background',`linear-gradient(135deg, ${PALETTE.beige} 0%, #E6D3B5 100%)`],
+        ['border',`1.8px solid ${PALETTE.noir}`],
+        ['clipPath','polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)'],
+        ['display','inline-block'],['position','relative'],
+        ['transform',`translateY(0) rotate(${tiltDeg}deg)`],
+        ['boxShadow',`inset 0 2px 4px rgba(255,255,255,0.55)`],
+      ].forEach(([p,v]) => this.renderer2.setStyle(ear,p,v));
+      return ear;
+    };
+    this.renderer2.appendChild(earsRow, makeEar(-12));
+    this.renderer2.appendChild(earsRow, makeEar(12));
+    this.renderer2.appendChild(logoWrap, earsRow);
 
-    // (B) "Caméra / Oeil" rond noir CENTRAL iconique du Rabbit R1
-    const camWrapper = this.renderer2.createElement('span');
+    // ─ Tête beige arrondie (forme trapèze : large en bas, rétrécie en haut sous oreilles)
+    const head = this.renderer2.createElement('span');
+    const HEAD_W = 60, HEAD_H = 52;
     [
-      ['width','40px'],['height','40px'],['minWidth','40px'],['minHeight','40px'],
-      ['borderRadius','50%'],
-      ['background',`radial-gradient(circle at 32% 30%, #2a2a2a 0%, ${PALETTE.noir} 55%, #000 100%)`],
+      ['position','absolute'],['left','50%'],['bottom','7px'],['transform','translateX(-50%)'],
+      ['width',`${HEAD_W}px`],['height',`${HEAD_H}px`],
+      ['background',`linear-gradient(180deg, ${PALETTE.beige} 0%, #EBDDC6 60%, #E2D2B6 100%)`],
       ['border',`2px solid ${PALETTE.noir}`],
+      // ─ Forme "tête lapin" : haut + bas arrondis, côtés assez droits comme image
+      ['borderRadius','46% 46% 48% 48% / 42% 42% 56% 56%'],
+      ['boxShadow','inset 0 2px 6px rgba(255,255,255,0.7), inset 0 -4px 10px rgba(17,17,17,0.06)'],
       ['display','inline-flex'],['alignItems','center'],['justifyContent','center'],
-      ['position','relative'],
-      ['boxShadow','inset 0 2px 8px rgba(255,255,255,0.08), 0 3px 8px rgba(17,17,17,0.5)'],
-    ].forEach(([p,v]) => this.renderer2.setStyle(camWrapper,p,v));
-    // Reflet caméra (petit ovale blanc en haut à gauche)
-    const camShine = this.renderer2.createElement('span');
+      ['overflow','hidden'],
+    ].forEach(([p,v]) => this.renderer2.setStyle(head,p,v));
+
+    // ─ Œil rond NOIR (positionné du côté droit sur la photo = droite du visage)
+    const eye = this.renderer2.createElement('span');
     [
-      ['position','absolute'],['top','8px'],['left','10px'],
-      ['width','9px'],['height','5px'],['borderRadius','999px'],
-      ['background','rgba(255,255,255,0.45)'],['filter','blur(0.4px)'],
-    ].forEach(([p,v]) => this.renderer2.setStyle(camShine,p,v));
-    this.renderer2.appendChild(camWrapper, camShine);
-    // Point central caméra (iris/lentille noir + petit centre blanc)
-    const iris = this.renderer2.createElement('span');
+      ['position','absolute'],['right','15px'],['top','20px'],
+      ['width','9px'],['height','9px'],['borderRadius','50%'],
+      ['background',PALETTE.noir],
+      ['boxShadow',`0 0 0 1.4px ${PALETTE.beige}, inset 0 -1px 2px rgba(255,255,255,0.15)`],
+    ].forEach(([p,v]) => this.renderer2.setStyle(eye,p,v));
+    // Petit point BLANC dans l'œil pour reflet
+    const eyeShine = this.renderer2.createElement('span');
     [
-      ['width','20px'],['height','20px'],['borderRadius','50%'],
-      ['background','#000'],['border',`1.5px solid #1e1e1e`],
+      ['position','absolute'],['right','16.5px'],['top','21.5px'],
+      ['width','2.4px'],['height','2.4px'],['borderRadius','50%'],
+      ['background',PALETTE.white],
+    ].forEach(([p,v]) => this.renderer2.setStyle(eyeShine,p,v));
+    this.renderer2.appendChild(head, eye);
+    this.renderer2.appendChild(head, eyeShine);
+
+    // ─ Museau + bouche : "X" ou museau lapin minimaliste (2 traits croisés noirs)
+    const muzzle = this.renderer2.createElement('span');
+    [
+      ['position','absolute'],['left','18px'],['bottom','12px'],
+      ['width','16px'],['height','12px'],
       ['display','inline-flex'],['alignItems','center'],['justifyContent','center'],
-    ].forEach(([p,v]) => this.renderer2.setStyle(iris,p,v));
-    const irisCenter = this.renderer2.createElement('span');
+    ].forEach(([p,v]) => this.renderer2.setStyle(muzzle,p,v));
+    // 2 traits croisés en X (spans avec rotate + bg noir)
+    const X1 = this.renderer2.createElement('span');
     [
-      ['width','5px'],['height','5px'],['borderRadius','50%'],
-      ['background',PALETTE.white],['boxShadow',`0 0 4px ${PALETTE.beigeSoft}`],
-    ].forEach(([p,v]) => this.renderer2.setStyle(irisCenter,p,v));
-    this.renderer2.appendChild(iris, irisCenter);
-    this.renderer2.appendChild(camWrapper, iris);
-    this.renderer2.appendChild(r1Layout, camWrapper);
-
-    // (C) Micro strip: 3 petits points noirs horizontaux en bas
-    const micStrip = this.renderer2.createElement('span');
+      ['position','absolute'],['top','50%'],['left','50%'],
+      ['width','12px'],['height','2px'],['borderRadius','2px'],
+      ['background',PALETTE.noir],
+      ['transform','translate(-50%,-50%) rotate(40deg)'],
+    ].forEach(([p,v]) => this.renderer2.setStyle(X1,p,v));
+    const X2 = this.renderer2.createElement('span');
     [
-      ['display','inline-flex'],['flexDirection','row'],['alignItems','center'],
-      ['justifyContent','center'],['gap','5px'],['marginBottom','2px'],
-    ].forEach(([p,v]) => this.renderer2.setStyle(micStrip,p,v));
-    for (let m = 0; m < 3; m++) {
-      const md = this.renderer2.createElement('span');
-      [
-        ['width','3.5px'],['height','3.5px'],['borderRadius','50%'],
-        ['background',PALETTE.noir],['display','inline-block'],
-      ].forEach(([p,v]) => this.renderer2.setStyle(md,p,v));
-      this.renderer2.appendChild(micStrip, md);
-    }
-    this.renderer2.appendChild(r1Layout, micStrip);
-    this.renderer2.appendChild(trigger, r1Layout);
+      ['position','absolute'],['top','50%'],['left','50%'],
+      ['width','12px'],['height','2px'],['borderRadius','2px'],
+      ['background',PALETTE.noir],
+      ['transform','translate(-50%,-50%) rotate(-40deg)'],
+    ].forEach(([p,v]) => this.renderer2.setStyle(X2,p,v));
+    this.renderer2.appendChild(muzzle, X1);
+    this.renderer2.appendChild(muzzle, X2);
+    this.renderer2.appendChild(head, muzzle);
 
-    // Online dot vert dans le coin du R1 (bas droite, emboîté sur contour noir)
+    this.renderer2.appendChild(logoWrap, head);
+    this.renderer2.appendChild(trigger, logoWrap);
+
+    // ─ Online dot vert dans le coin bas-droite
     const dot = this.renderer2.createElement('span');
     [
-      ['position','absolute'],['bottom','0px'],['right','-1px'],['width','16px'],['height','16px'],
+      ['position','absolute'],['bottom','-2px'],['right','-2px'],['width','16px'],['height','16px'],
       ['borderRadius','50%'],['background',PALETTE.green],['border',`2.5px solid ${PALETTE.noir}`],
       ['boxShadow',`0 0 0 3px rgba(16,185,129,0.3), 0 0 14px ${PALETTE.green}`],
       ['pointerEvents','none'],['zIndex','1'],
