@@ -864,13 +864,15 @@ export class ChatbotComponent implements AfterViewChecked, OnInit, OnDestroy {
       green:      '#10b981',
       cream:      '#F3E7D6',
       creamBg:    '#faf5ee',
-      // Alias rétrocompatibles: l'ancien code les utilise encore,
-      // on les remappe en palette BEIGE/BLANC/NOIR cohérente:
-      dark:       '#111111',     // = noir
-      dark2:      '#1e1e1e',     // = noir léger
-      bronze:     '#111111',     // = noir (bordures / accent)
-      bronzeSoft: 'rgba(17,17,17,0.35)',
-      obsidian:   '#F3E7D6',     // = beige (texte sur bouton Envoyer gradient noir)
+      // Mapping rétrocompatibles précis selon l'usage sémantique :
+      dark:       '#111111',          // fond user bulle + user avatar NOIR
+      dark2:      '#1e1e1e',
+      bronze:     '#F3E7D6',          // BOT avatar bg = BEIGE
+      bronzeSoft: 'rgba(243,231,214,0.8)',  // bord user avatar BEIGE
+      obsidian:   '#F3E7D6',          // texte sur bouton Envoyer = BEIGE
+      // Valeurs sémantiques pour bordures = NOIR
+      accentLine: '#111111',
+      accentShadow: 'rgba(17,17,17,0.35)',
     };
     const PALETTE = PLATFORM; // alias pour le nouveau code
     const Z_MAX = '2147483647';
@@ -1094,7 +1096,7 @@ export class ChatbotComponent implements AfterViewChecked, OnInit, OnDestroy {
       ['position','fixed'],['right','32px'],['bottom','126px'],
       ['width','min(430px, calc(100vw - 64px))'],['maxWidth','calc(100vw - 64px)'],
       ['height','min(640px, calc(100vh - 160px))'],['minHeight','520px'],
-      ['background','#ffffff'],['border',`2.5px solid ${PLATFORM.bronze}`],
+      ['background','#ffffff'],['border',`2.5px solid ${PALETTE.noir}`],
       ['borderRadius','22px'],
       ['boxShadow','0 30px 80px rgba(0,0,0,0.55), inset 0 0 0 1px rgba(255,255,255,0.07)'],
       ['zIndex',Z_MAX],['display','none'],['flexDirection','column'],['overflow','hidden'],
@@ -1105,27 +1107,27 @@ export class ChatbotComponent implements AfterViewChecked, OnInit, OnDestroy {
     const header = this.renderer2.createElement('header');
     [
       ['display','flex'],['alignItems','center'],['justifyContent','space-between'],
-      ['padding','16px 18px'],['background',PLATFORM.dark],['color',PLATFORM.cream],
-      ['borderBottom',`2px solid ${PLATFORM.bronze}`],['gap','12px'],
+      ['padding','16px 18px'],['background',PALETTE.noir],['color',PALETTE.beige],
+      ['borderBottom',`2px solid ${PALETTE.beigeSoft}`],['gap','12px'],
     ].forEach(([p,v]) => this.renderer2.setStyle(header,p,v));
     const hLeft = this.renderer2.createElement('div');
     [['display','flex'],['alignItems','center'],['gap','12px']].forEach(([p,v]) => this.renderer2.setStyle(hLeft,p,v));
     const hRobot = this.renderer2.createElement('div');
     [
       ['width','42px'],['height','42px'],['borderRadius','50%'],
-      ['background',`linear-gradient(135deg,${PLATFORM.dark2} 0%,${PLATFORM.dark} 100%)`],
-      ['border',`2px solid ${PLATFORM.bronze}`],
+      ['background',`linear-gradient(135deg, ${PALETTE.beige} 0%, #E8D7BE 100%)`],
+      ['border',`2px solid ${PALETTE.noir}`],
       ['display','inline-flex'],['alignItems','center'],['justifyContent','center'],
       ['flexShrink','0'],['position','relative'],
     ].forEach(([p,v]) => this.renderer2.setStyle(hRobot,p,v));
     const hRSp = this.renderer2.createElement('span');
-    this.renderer2.setProperty(hRSp, 'textContent', '🤖');
+    this.renderer2.setProperty(hRSp, 'textContent', '🐇');
     [['fontFamily',EMOJI_FONT],['fontSize','22px'],['lineHeight','1']].forEach(([p,v]) => this.renderer2.setStyle(hRSp,p,v));
     this.renderer2.appendChild(hRobot, hRSp);
     const hRSp2 = this.renderer2.createElement('span');
     [
       ['position','absolute'],['bottom','-1px'],['right','-1px'],['width','11px'],['height','11px'],
-      ['borderRadius','50%'],['background',PLATFORM.green],['border',`2px solid ${PLATFORM.dark}`],
+      ['borderRadius','50%'],['background',PALETTE.green],['border',`2px solid ${PALETTE.noir}`],
     ].forEach(([p,v]) => this.renderer2.setStyle(hRSp2,p,v));
     this.renderer2.appendChild(hRobot, hRSp2);
     const hTxt = this.renderer2.createElement('div');
@@ -1134,7 +1136,7 @@ export class ChatbotComponent implements AfterViewChecked, OnInit, OnDestroy {
     this.renderer2.setProperty(hT1, 'textContent', 'InzuBot');
     [
       ['fontFamily',"'Playfair Display', Georgia, serif"],['fontWeight','800'],
-      ['fontSize','1.05rem'],['letterSpacing','0.02em'],['color','#fff'],
+      ['fontSize','1.05rem'],['letterSpacing','0.02em'],['color',PALETTE.beige],
     ].forEach(([p,v]) => this.renderer2.setStyle(hT1,p,v));
     this.renderer2.appendChild(hTxt, hT1);
     const hT2 = this.renderer2.createElement('div');
@@ -1199,11 +1201,11 @@ export class ChatbotComponent implements AfterViewChecked, OnInit, OnDestroy {
         ['fontSize','14px'],['flexShrink','0'],['fontFamily',EMOJI_FONT],
       ].forEach(([p,v]) => this.renderer2.setStyle(av,p,v));
       if (isUser) {
-        Object.assign(av.style, {background: PLATFORM.dark, color: '#fff', border: `2px solid ${PLATFORM.bronzeSoft}`} as any);
+        Object.assign(av.style, {background: PALETTE.noir, color: PALETTE.beige, border: `2px solid ${PALETTE.beigeSoft}`} as any);
         av.textContent = '👤';
       } else {
-        Object.assign(av.style, {background: PLATFORM.bronze, color: PLATFORM.cream, border: `2px solid ${PLATFORM.dark}`} as any);
-        av.textContent = '🤖';
+        Object.assign(av.style, {background: PALETTE.beige, color: PALETTE.noir, border: `2px solid ${PALETTE.noir}`} as any);
+        av.textContent = '🐇';
       }
       // bubble
       const bub = this.renderer2.createElement('div');
@@ -1214,10 +1216,10 @@ export class ChatbotComponent implements AfterViewChecked, OnInit, OnDestroy {
         ['position','relative'],
       ].forEach(([p,v]) => this.renderer2.setStyle(bub,p,v));
       if (isUser) {
-        Object.assign(bub.style, {background: PLATFORM.dark, color: '#fff'} as any);
+        Object.assign(bub.style, {background: PALETTE.noir, color: PALETTE.beige} as any);
         bub.innerHTML = escapeHtml(textRaw);
       } else {
-        Object.assign(bub.style, {background:'#fff', color:'#0b0b0b', border:`1px solid rgba(166,138,109,0.25)`} as any);
+        Object.assign(bub.style, {background:'#fff', color:'#111111', border:`1px solid ${PALETTE.noirLine}`} as any);
         // bot html est fiable (RAG + strong/br/sources)
         bub.innerHTML = textSafeHtml ?? escapeHtml(textRaw);
       }
@@ -1264,18 +1266,18 @@ export class ChatbotComponent implements AfterViewChecked, OnInit, OnDestroy {
       this.renderer2.setAttribute(chip, 'type', 'button');
       this.renderer2.setProperty(chip, 'textContent', label);
       [
-        ['background','rgba(166,138,109,0.14)'],['border',`1.5px solid rgba(166,138,109,0.5)`],
+        ['background',`rgba(243,231,214,0.9)`],['border',`1.5px solid ${PALETTE.noir}`],
         ['borderRadius','999px'],['padding','7px 12px'],['cursor','pointer'],
-        ['color','#0b0b0b'],['fontWeight','600'],['fontSize','0.8rem'],['whiteSpace','nowrap'],
+        ['color',PALETTE.noir],['fontWeight','600'],['fontSize','0.8rem'],['whiteSpace','nowrap'],
         ['transition','all 0.18s'],['fontFamily','inherit'],
       ].forEach(([p,v]) => this.renderer2.setStyle(chip,p,v));
       chip.addEventListener('mouseenter', () => Object.assign(chip.style, {
-        background: 'rgba(166,138,109,0.28)',
-        borderColor: PLATFORM.bronze,
+        background: PALETTE.beige,
+        borderColor: PALETTE.noir,
       } as any));
       chip.addEventListener('mouseleave', () => Object.assign(chip.style, {
-        background:'rgba(166,138,109,0.14)',
-        borderColor:'rgba(166,138,109,0.5)',
+        background: `rgba(243,231,214,0.9)`,
+        borderColor: PALETTE.noir,
       } as any));
       chip.addEventListener('click', () => doSend(label.replace(/^[^\p{L}\p{N}]+/gu,'').trim()));
       this.renderer2.appendChild(chipsRow, chip);
@@ -1291,14 +1293,14 @@ export class ChatbotComponent implements AfterViewChecked, OnInit, OnDestroy {
     const typingBub = this.renderer2.createElement('div');
     Object.assign(typingBub.style, {
       padding:'10px 14px', borderRadius:'14px 14px 14px 4px',
-      background:'#fff', border:`1px solid rgba(166,138,109,0.25)`,
+      background:'#fff', border:`1px solid ${PALETTE.noirLine}`,
       display:'inline-flex', alignItems:'center', gap:'6px', boxShadow:'0 3px 10px rgba(0,0,0,0.08)',
     });
     for (let i = 0; i < 3; i++) {
       const d = this.renderer2.createElement('span');
       Object.assign(d.style, {
         width: '8px', height: '8px', borderRadius: '50%',
-        background: PLATFORM.bronze, display:'inline-block',
+        background: PALETTE.noir, display:'inline-block',
         animation: `chatbotTypingDot 1.3s ${i*0.22}s infinite ease-in-out`,
       });
       this.renderer2.appendChild(typingBub, d);
@@ -1313,7 +1315,7 @@ export class ChatbotComponent implements AfterViewChecked, OnInit, OnDestroy {
     [
       ['display','flex'],['flexDirection','column'],['gap','8px'],
       ['padding','12px 14px 14px'],['background','#fff'],
-      ['borderTop',`2px solid ${PLATFORM.bronze}`],
+      ['borderTop',`2px solid ${PALETTE.noir}`],
     ].forEach(([p,v]) => this.renderer2.setStyle(footer,p,v));
     const disclaimer = this.renderer2.createElement('div');
     this.renderer2.setProperty(disclaimer, 'textContent', '💡 Light RAG autonome · réponses instantanées · respect de la vie privée');
@@ -1330,36 +1332,36 @@ export class ChatbotComponent implements AfterViewChecked, OnInit, OnDestroy {
     this.renderer2.setAttribute(inputEl, 'placeholder', "Posez votre question (Ex: « villa 2 chambres à Kigobe »)…");
     this.renderer2.setAttribute(inputEl, 'aria-label', 'Message pour InzuBot');
     [
-      ['flex','1 1 auto'],['border',`1.5px solid ${PLATFORM.bronze}`],
+      ['flex','1 1 auto'],['border',`1.5px solid ${PALETTE.noir}`],
       ['borderRadius','999px'],['padding','0.65rem 1rem'],['fontSize','0.92rem'],
-      ['fontFamily','inherit'],['outline','none'],['background','#fff'],['color','#0b0b0b'],
+      ['fontFamily','inherit'],['outline','none'],['background','#fff'],['color','#111111'],
       ['transition','border-color 0.2s, box-shadow 0.2s'],
     ].forEach(([p,v]) => this.renderer2.setStyle(inputEl,p,v));
     inputEl.addEventListener('focus', () => Object.assign(inputEl.style, {
-      borderColor: PLATFORM.bronze,
-      boxShadow: `0 0 0 3px rgba(166,138,109,0.2)`,
+      borderColor: PALETTE.noir,
+      boxShadow: `0 0 0 3px ${PALETTE.beigeSoft}`,
     } as any));
     inputEl.addEventListener('blur', () => Object.assign(inputEl.style, {
-      borderColor: PLATFORM.bronze,
+      borderColor: PALETTE.noir,
       boxShadow: 'none',
     } as any));
     const sendBtn = this.renderer2.createElement('button');
     this.renderer2.setAttribute(sendBtn, 'type', 'submit');
     this.renderer2.setProperty(sendBtn, 'textContent', 'Envoyer');
     [
-      ['border','0'],['borderRadius','999px'],
-      ['background',`linear-gradient(135deg, ${PLATFORM.bronze} 0%, #c7a98c 100%)`],
-      ['color',PLATFORM.obsidian],['fontWeight','700'],['padding','0.65rem 1.15rem'],
+      ['border',`1.5px solid ${PALETTE.noir}`],['borderRadius','999px'],
+      ['background',`linear-gradient(135deg, ${PALETTE.noir} 0%, #1f1f1f 100%)`],
+      ['color',PALETTE.beige],['fontWeight','700'],['padding','0.65rem 1.15rem'],
       ['cursor','pointer'],['fontSize','0.9rem'],['fontFamily','inherit'],
-      ['transition','all 0.2s'],['minWidth','90px'],['boxShadow','0 6px 16px rgba(166,138,109,0.35)'],
+      ['transition','all 0.2s'],['minWidth','90px'],['boxShadow',`0 6px 16px ${PALETTE.accentShadow}`],
     ].forEach(([p,v]) => this.renderer2.setStyle(sendBtn,p,v));
     sendBtn.addEventListener('mouseenter', () => Object.assign(sendBtn.style, {
       transform: 'translateY(-1px)',
-      boxShadow: '0 8px 20px rgba(166,138,109,0.5)',
+      boxShadow: '0 8px 20px rgba(17,17,17,0.5)',
     } as any));
     sendBtn.addEventListener('mouseleave', () => Object.assign(sendBtn.style, {
       transform: 'translateY(0)',
-      boxShadow: '0 6px 16px rgba(166,138,109,0.35)',
+      boxShadow: `0 6px 16px ${PALETTE.accentShadow}`,
     } as any));
     this.renderer2.appendChild(formRow, inputEl);
     this.renderer2.appendChild(formRow, sendBtn);
@@ -1397,13 +1399,13 @@ export class ChatbotComponent implements AfterViewChecked, OnInit, OnDestroy {
       const s = q.toLowerCase();
       const arr: string[] = [];
       if (/prix|coût|cher|combien|tarif/.test(s)) arr.push('💸 De **100 000 BIF/nuit** (partagé, banlieue) à **750 000+ BIF/nuit** (villa premium Rohero/Kigobe).');
-      if (/bujumbura|quartier|ville|kinindo|rohero|mutanga|kigobe|ngozi|gitega/.test(s)) arr.push('📍 Quartiers sûrs Bujumbura : <strong>Rohero, Kigobe, Kinindo, Mutanga-Nord</strong>. Filtres → page <a href="/biens" style="color:#a68a6d;font-weight:700">Tous les biens</a>.');
+      if (/bujumbura|quartier|ville|kinindo|rohero|mutanga|kigobe|ngozi|gitega/.test(s)) arr.push('📍 Quartiers sûrs Bujumbura : <strong>Rohero, Kigobe, Kinindo, Mutanga-Nord</strong>. Filtres → page <a href="/biens" style="color:#111111;font-weight:700">Tous les biens</a>.');
       if (/groupe|électro|courant|élect|generator|citerne|eau/.test(s)) arr.push('⚡ **Groupe & Citerne** : utilisez le filtre « Avancé » en page d\'accueil ou cochez les cases garanties.');
       if (/badge|premium|kyc|vérif|hôte|certif/.test(s)) arr.push('🛡️ **Badge Premium Hôte** : KYC (pièce + selfie) depuis Tableau de bord → Sécurité.');
       if (/aéroport|navette|transfer|melchior/.test(s)) arr.push('✈️ **Transfert aéroport Melchior** : ajout ~35 USD/trajet, option lors de la réservation.');
       if (arr.length === 0) {
         arr.push('🏠 Merci pour votre question ! Je vous oriente :');
-        arr.push('• 🔍 <a href="/biens" style="color:#a68a6d;font-weight:700"><strong>Rechercher un bien</strong></a>');
+        arr.push('• 🔍 <a href="/biens" style="color:#111111;font-weight:700"><strong>Rechercher un bien</strong></a>');
         arr.push('• 🏘️ Offres vérifiées en page d\'accueil');
         arr.push('• 💬 Support humain : <strong>support@inzuconnect.bi</strong>');
       }
@@ -1441,7 +1443,7 @@ export class ChatbotComponent implements AfterViewChecked, OnInit, OnDestroy {
             hideTyping();
             let textOut = localFallback(text);
             if (err instanceof HttpErrorResponse) {
-              if (err.status === 429) textOut = '⏳ <strong>Trop de requêtes.</strong> Réessayez dans 1 minute. Pendant ce temps : <a style="color:#a68a6d;font-weight:700" href="/biens">Tous les biens</a>';
+              if (err.status === 429) textOut = '⏳ <strong>Trop de requêtes.</strong> Réessayez dans 1 minute. Pendant ce temps : <a style="color:#111111;font-weight:700" href="/biens">Tous les biens</a>';
               else if (err.status >= 500) textOut = '⚠️ <strong>Service IA indisponible.</strong><br>' + textOut;
               else if (err.status === 403 || err.status === 401) textOut = '🔒 <strong>Session.</strong><br>' + textOut;
             }
