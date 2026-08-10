@@ -853,67 +853,155 @@ export class ChatbotComponent implements AfterViewChecked, OnInit, OnDestroy {
     domElem.innerHTML = '';
     const EMOJI_FONT = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Segoe UI Symbol",system-ui,sans-serif';
     const PLATFORM = {
-      dark: '#2c2c2c',       // gris foncé platform (couleur du screenshot user)
-      dark2: '#3a3a3a',
-      bronze: '#a68a6d',     // bronze doux bordure
-      bronzeSoft: 'rgba(166,138,109,0.6)',
-      cream: '#F3E7D6',
-      creamBg: '#faf5ee',
-      green: '#10b981',
-      obsidian: '#0b0b0b',
+      // ─ NOUVELLE PALETTE BEIGE / BLANC / NOIR (Rabbit R1)
+      beige:      '#F3E7D6',
+      beigeSoft:  'rgba(243,231,214,0.8)',
+      beigeBg:    '#FBF7F0',
+      white:      '#FFFFFF',
+      noir:       '#111111',
+      noirSoft:   'rgba(17,17,17,0.85)',
+      noirLine:   'rgba(17,17,17,0.25)',
+      green:      '#10b981',
+      cream:      '#F3E7D6',
+      creamBg:    '#faf5ee',
+      // Alias rétrocompatibles: l'ancien code les utilise encore,
+      // on les remappe en palette BEIGE/BLANC/NOIR cohérente:
+      dark:       '#111111',     // = noir
+      dark2:      '#1e1e1e',     // = noir léger
+      bronze:     '#111111',     // = noir (bordures / accent)
+      bronzeSoft: 'rgba(17,17,17,0.35)',
+      obsidian:   '#F3E7D6',     // = beige (texte sur bouton Envoyer gradient noir)
     };
+    const PALETTE = PLATFORM; // alias pour le nouveau code
     const Z_MAX = '2147483647';
 
     // ───────────────────────────────────────────
-    // (1/3) TRIGGER : 56×56, gris-foncé platform, 🤖 + point vert
+    // (1/3) TRIGGER : FORME RABBIT R1 (capsule verticale) + palette BEIGE/BLANC/NOIR
+    //       Shell extérieur beige + bord noir + grand "oeil" rond noir central
+    //       (caméra iconique du Rabbit R1) + micro dots + haut-parleur grille
     // ───────────────────────────────────────────
     const trigger = this.renderer2.createElement('button');
     this.renderer2.setAttribute(trigger, 'type', 'button');
     this.renderer2.setAttribute(trigger, 'aria-label', "Ouvrir l'assistant InzuBot");
     const trig = (p: string, v: string) => this.renderer2.setStyle(trigger, p, v);
+    const R1_W = 54;
+    const R1_H = 82;
     [
       ['position','fixed'],['right','32px'],['bottom','32px'],
-      ['width','56px'],['height','56px'],['minWidth','56px'],['minHeight','56px'],
-      ['borderRadius','50%'],
-      ['border',`2.5px solid ${PLATFORM.bronzeSoft}`],
-      ['background',`linear-gradient(135deg, ${PLATFORM.dark} 0%, ${PLATFORM.dark2} 100%)`],
+      ['width',`${R1_W}px`],['height',`${R1_H}px`],['minWidth',`${R1_W}px`],['minHeight',`${R1_H}px`],
+      ['borderRadius','9999px'],
+      ['border',`2.5px solid ${PALETTE.noir}`],
+      ['background',`linear-gradient(180deg, ${PALETTE.beige} 0%, #EBDDC6 60%, #E2D2B6 100%)`],
       ['cursor','pointer'],['zIndex',Z_MAX],
-      ['boxShadow','0 12px 34px rgba(0,0,0,0.45), inset 0 0 0 2px rgba(255,255,255,0.04)'],
+      ['boxShadow','0 14px 40px rgba(17,17,17,0.55), inset 0 0 0 1px rgba(255,255,255,0.65), inset 0 -6px 16px rgba(17,17,17,0.08)'],
       ['display','inline-flex'],['alignItems','center'],['justifyContent','center'],
       ['padding','0'],['margin','0'],
-      ['transform','scale(1)'],['transition','transform 0.22s cubic-bezier(0.16,1,0.3,1), background 0.22s, box-shadow 0.22s, border-color 0.22s'],
-      ['overflow','hidden'],['outline','none'],['contain','layout style size'],['isolation','isolate'],
+      ['transform','scale(1)'],['transition','transform 0.22s cubic-bezier(0.16,1,0.3,1), background 0.22s, box-shadow 0.22s, border-color 0.22s, filter 0.22s'],
+      ['overflow','visible'],['outline','none'],['contain','layout style'],['isolation','isolate'],
+      ['WebkitAppearance','none'],['appearance','none'],
     ].forEach(([p,v]) => trig(p,v));
     trigger.addEventListener('mouseenter', () => Object.assign(trigger.style, {
       transform:'scale(1.08)',
-      background:`linear-gradient(135deg, ${PLATFORM.bronze} 0%, #c7a98c 100%)`,
-      borderColor: PLATFORM.dark,
-      boxShadow: '0 16px 42px rgba(166,138,109,0.55), inset 0 0 0 2px rgba(11,11,11,0.35)',
+      background:`linear-gradient(180deg, #F6EBDD 0%, #EBDDC6 60%, #DFCCAE 100%)`,
+      borderColor: PALETTE.noir,
+      boxShadow: '0 18px 48px rgba(17,17,17,0.6), inset 0 0 0 1px rgba(255,255,255,0.9), inset 0 -8px 18px rgba(17,17,17,0.1)',
+      filter: 'saturate(1.05)',
     }));
     trigger.addEventListener('mouseleave', () => Object.assign(trigger.style, {
       transform:'scale(1)',
-      background:`linear-gradient(135deg, ${PLATFORM.dark} 0%, ${PLATFORM.dark2} 100%)`,
-      borderColor: PLATFORM.bronzeSoft,
-      boxShadow: '0 12px 34px rgba(0,0,0,0.45), inset 0 0 0 2px rgba(255,255,255,0.04)',
+      background:`linear-gradient(180deg, ${PALETTE.beige} 0%, #EBDDC6 60%, #E2D2B6 100%)`,
+      borderColor: PALETTE.noir,
+      boxShadow: '0 14px 40px rgba(17,17,17,0.55), inset 0 0 0 1px rgba(255,255,255,0.65), inset 0 -6px 16px rgba(17,17,17,0.08)',
+      filter: 'none',
     }));
     trigger.addEventListener('mousedown', () => trigger.style.transform = 'scale(0.95)');
     trigger.addEventListener('mouseup',   () => trigger.style.transform = 'scale(1)');
 
-    const robot = this.renderer2.createElement('span');
-    this.renderer2.setProperty(robot, 'textContent', '🤖');
+    // ─ Contenu graphique RABBIT R1 (empilé verticalement)
+    const r1Layout = this.renderer2.createElement('span');
     [
-      ['fontFamily',EMOJI_FONT],['fontSize','30px'],['lineHeight','1'],['fontWeight','400'],
-      ['userSelect','none'],['color','#fff'],['display','inline-block'],['textAlign','center'],
-      ['filter','drop-shadow(0 1.5px 4px rgba(0,0,0,0.55))'],['pointerEvents','none'],
-    ].forEach(([p,v]) => this.renderer2.setStyle(robot,p,v));
-    this.renderer2.appendChild(trigger, robot);
+      ['position','relative'],['width','100%'],['height','100%'],
+      ['display','inline-flex'],['flexDirection','column'],
+      ['alignItems','center'],['justifyContent','space-between'],
+      ['padding','10px 0 12px 0'],['pointerEvents','none'],['userSelect','none'],
+    ].forEach(([p,v]) => this.renderer2.setStyle(r1Layout,p,v));
 
+    // (A) Grille haut-parleur en haut du R1 (6+1 petits rectangles blancs)
+    const speakerGrid = this.renderer2.createElement('span');
+    [
+      ['display','inline-flex'],['flexDirection','row'],['alignItems','center'],['justifyContent','center'],
+      ['gap','3px'],['height','5px'],['marginTop','2px'],
+    ].forEach(([p,v]) => this.renderer2.setStyle(speakerGrid,p,v));
+    for (let g = 0; g < 7; g++) {
+      const dot = this.renderer2.createElement('span');
+      [
+        ['width','4px'],['height','1.4px'],['borderRadius','1px'],
+        ['background',PALETTE.noir],['display','inline-block'],
+        ['boxShadow','inset 0 0 0 0.4px rgba(255,255,255,0.22)'],
+      ].forEach(([p,v]) => this.renderer2.setStyle(dot,p,v));
+      this.renderer2.appendChild(speakerGrid, dot);
+    }
+    this.renderer2.appendChild(r1Layout, speakerGrid);
+
+    // (B) "Caméra / Oeil" rond noir CENTRAL iconique du Rabbit R1
+    const camWrapper = this.renderer2.createElement('span');
+    [
+      ['width','40px'],['height','40px'],['minWidth','40px'],['minHeight','40px'],
+      ['borderRadius','50%'],
+      ['background',`radial-gradient(circle at 32% 30%, #2a2a2a 0%, ${PALETTE.noir} 55%, #000 100%)`],
+      ['border',`2px solid ${PALETTE.noir}`],
+      ['display','inline-flex'],['alignItems','center'],['justifyContent','center'],
+      ['position','relative'],
+      ['boxShadow','inset 0 2px 8px rgba(255,255,255,0.08), 0 3px 8px rgba(17,17,17,0.5)'],
+    ].forEach(([p,v]) => this.renderer2.setStyle(camWrapper,p,v));
+    // Reflet caméra (petit ovale blanc en haut à gauche)
+    const camShine = this.renderer2.createElement('span');
+    [
+      ['position','absolute'],['top','8px'],['left','10px'],
+      ['width','9px'],['height','5px'],['borderRadius','999px'],
+      ['background','rgba(255,255,255,0.45)'],['filter','blur(0.4px)'],
+    ].forEach(([p,v]) => this.renderer2.setStyle(camShine,p,v));
+    this.renderer2.appendChild(camWrapper, camShine);
+    // Point central caméra (iris/lentille noir + petit centre blanc)
+    const iris = this.renderer2.createElement('span');
+    [
+      ['width','20px'],['height','20px'],['borderRadius','50%'],
+      ['background','#000'],['border',`1.5px solid #1e1e1e`],
+      ['display','inline-flex'],['alignItems','center'],['justifyContent','center'],
+    ].forEach(([p,v]) => this.renderer2.setStyle(iris,p,v));
+    const irisCenter = this.renderer2.createElement('span');
+    [
+      ['width','5px'],['height','5px'],['borderRadius','50%'],
+      ['background',PALETTE.white],['boxShadow',`0 0 4px ${PALETTE.beigeSoft}`],
+    ].forEach(([p,v]) => this.renderer2.setStyle(irisCenter,p,v));
+    this.renderer2.appendChild(iris, irisCenter);
+    this.renderer2.appendChild(camWrapper, iris);
+    this.renderer2.appendChild(r1Layout, camWrapper);
+
+    // (C) Micro strip: 3 petits points noirs horizontaux en bas
+    const micStrip = this.renderer2.createElement('span');
+    [
+      ['display','inline-flex'],['flexDirection','row'],['alignItems','center'],
+      ['justifyContent','center'],['gap','5px'],['marginBottom','2px'],
+    ].forEach(([p,v]) => this.renderer2.setStyle(micStrip,p,v));
+    for (let m = 0; m < 3; m++) {
+      const md = this.renderer2.createElement('span');
+      [
+        ['width','3.5px'],['height','3.5px'],['borderRadius','50%'],
+        ['background',PALETTE.noir],['display','inline-block'],
+      ].forEach(([p,v]) => this.renderer2.setStyle(md,p,v));
+      this.renderer2.appendChild(micStrip, md);
+    }
+    this.renderer2.appendChild(r1Layout, micStrip);
+    this.renderer2.appendChild(trigger, r1Layout);
+
+    // Online dot vert dans le coin du R1 (bas droite, emboîté sur contour noir)
     const dot = this.renderer2.createElement('span');
     [
-      ['position','absolute'],['bottom','3px'],['right','3px'],['width','15px'],['height','15px'],
-      ['borderRadius','50%'],['background',PLATFORM.green],['border',`2.5px solid ${PLATFORM.dark}`],
-      ['boxShadow',`0 0 0 3px rgba(16,185,129,0.32), 0 0 14px ${PLATFORM.green}`],
-      ['pointerEvents','none'],
+      ['position','absolute'],['bottom','0px'],['right','-1px'],['width','16px'],['height','16px'],
+      ['borderRadius','50%'],['background',PALETTE.green],['border',`2.5px solid ${PALETTE.noir}`],
+      ['boxShadow',`0 0 0 3px rgba(16,185,129,0.3), 0 0 14px ${PALETTE.green}`],
+      ['pointerEvents','none'],['zIndex','1'],
     ].forEach(([p,v]) => this.renderer2.setStyle(dot,p,v));
     this.renderer2.appendChild(trigger, dot);
 
@@ -922,17 +1010,18 @@ export class ChatbotComponent implements AfterViewChecked, OnInit, OnDestroy {
 
     // ───────────────────────────────────────────
     // (2/3) BADGE "Besoin d'aide ?" — VISIBLE 2 SECONDES → FADE + GONE
+    //       Palette BEIGE + NOIR (cohérence R1)
     // ───────────────────────────────────────────
     const badge = this.renderer2.createElement('div');
     const bst = (p:string,v:string) => this.renderer2.setStyle(badge,p,v);
     [
-      ['position','fixed'],['right','98px'],['bottom','36px'],
-      ['background',`${PLATFORM.dark}`],['color',PLATFORM.cream],
-      ['border',`2px solid ${PLATFORM.bronzeSoft}`],['borderRadius','18px'],
+      ['position','fixed'],['right','100px'],['bottom','52px'],
+      ['background',PALETTE.beige],['color',PALETTE.noir],
+      ['border',`2px solid ${PALETTE.noir}`],['borderRadius','18px'],
       ['padding','10px 18px'],
       ['fontFamily',"'Playfair Display', Georgia, serif"],
       ['fontWeight','700'],['fontSize','0.95rem'],['letterSpacing','0.01em'],
-      ['whiteSpace','nowrap'],['boxShadow','0 10px 26px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(166,138,109,0.25)'],
+      ['whiteSpace','nowrap'],['boxShadow','0 10px 26px rgba(17,17,17,0.35), inset 0 0 0 1px rgba(255,255,255,0.6)'],
       ['zIndex','2147483646'],['display','inline-flex'],['alignItems','center'],['gap','8px'],
       ['pointerEvents','none'],['userSelect','none'],['transformOrigin','100% 50%'],
       ['transition','opacity 0.5s ease, transform 0.5s ease'],
@@ -942,17 +1031,26 @@ export class ChatbotComponent implements AfterViewChecked, OnInit, OnDestroy {
     this.renderer2.setProperty(bLbl, 'textContent', "Besoin d'aide ?");
     this.renderer2.appendChild(badge, bLbl);
     const bEmo = this.renderer2.createElement('span');
-    this.renderer2.setProperty(bEmo, 'textContent', '🤖');
+    this.renderer2.setProperty(bEmo, 'textContent', '🐇');
     [['fontFamily',EMOJI_FONT],['fontSize','1rem'],['lineHeight','1'],['display','inline-block']].forEach(([p,v]) => this.renderer2.setStyle(bEmo,p,v));
     this.renderer2.appendChild(badge, bEmo);
     const bArr = this.renderer2.createElement('span');
     [
-      ['position','absolute'],['top','50%'],['right','-8px'],['transform','translateY(-50%)'],
+      ['position','absolute'],['top','50%'],['right','-10px'],['transform','translateY(-50%)'],
       ['width','0'],['height','0'],
-      ['borderTop','8px solid transparent'],['borderBottom','8px solid transparent'],['borderLeft',`8px solid ${PLATFORM.bronzeSoft}`],
+      ['borderTop','9px solid transparent'],['borderBottom','9px solid transparent'],['borderLeft',`9px solid ${PALETTE.noir}`],
       ['pointerEvents','none'],
     ].forEach(([p,v]) => this.renderer2.setStyle(bArr,p,v));
+    // BOUCHON flèche intérieure BEIGE pour effet bord noir + intérieur beige
+    const bArrInner = this.renderer2.createElement('span');
+    [
+      ['position','absolute'],['top','50%'],['right','-6px'],['transform','translateY(-50%)'],
+      ['width','0'],['height','0'],
+      ['borderTop','7px solid transparent'],['borderBottom','7px solid transparent'],['borderLeft',`7px solid ${PALETTE.beige}`],
+      ['pointerEvents','none'],
+    ].forEach(([p,v]) => this.renderer2.setStyle(bArrInner,p,v));
     this.renderer2.appendChild(badge, bArr);
+    this.renderer2.appendChild(badge, bArrInner);
 
     this.renderer2.appendChild(domElem, badge);
 
@@ -993,7 +1091,7 @@ export class ChatbotComponent implements AfterViewChecked, OnInit, OnDestroy {
     this.renderer2.setAttribute(panel, 'aria-modal', 'true');
     const pst = (p:string,v:string) => this.renderer2.setStyle(panel,p,v);
     [
-      ['position','fixed'],['right','32px'],['bottom','104px'],
+      ['position','fixed'],['right','32px'],['bottom','126px'],
       ['width','min(430px, calc(100vw - 64px))'],['maxWidth','calc(100vw - 64px)'],
       ['height','min(640px, calc(100vh - 160px))'],['minHeight','520px'],
       ['background','#ffffff'],['border',`2.5px solid ${PLATFORM.bronze}`],
