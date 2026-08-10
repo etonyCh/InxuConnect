@@ -889,15 +889,15 @@ export class ChatbotComponent implements AfterViewChecked, OnInit, OnDestroy {
     this.renderer2.setAttribute(trigger, 'type', 'button');
     this.renderer2.setAttribute(trigger, 'aria-label', "Ouvrir l'assistant InzuBot");
     const trig = (p: string, v: string) => this.renderer2.setStyle(trigger, p, v);
-    const BTN_W = 68, BTN_H = 78;
+    const BTN_W = 56, BTN_H = 64;
     [
       ['position','fixed'],['right','32px'],['bottom','32px'],
       ['width',`${BTN_W}px`],['height',`${BTN_H}px`],['minWidth',`${BTN_W}px`],['minHeight',`${BTN_H}px`],
-      ['borderRadius','20px'],
-      ['border',`2.5px solid ${PALETTE.noir}`],
+      ['borderRadius','17px'],
+      ['border',`2px solid ${PALETTE.noir}`],
       ['background',`linear-gradient(180deg, #1a1a1a 0%, ${PALETTE.noir} 100%)`],
       ['cursor','pointer'],['zIndex',Z_MAX],
-      ['boxShadow','0 14px 40px rgba(17,17,17,0.55), inset 0 0 0 1px rgba(255,255,255,0.06), inset 0 -6px 16px rgba(255,255,255,0.02)'],
+      ['boxShadow','0 12px 34px rgba(17,17,17,0.55), inset 0 0 0 1px rgba(255,255,255,0.06), inset 0 -5px 13px rgba(255,255,255,0.02)'],
       ['display','inline-flex'],['alignItems','center'],['justifyContent','center'],
       ['padding','0'],['margin','0'],
       ['transform','scale(1)'],['transition','transform 0.22s cubic-bezier(0.16,1,0.3,1), background 0.22s, box-shadow 0.22s, border-color 0.22s, filter 0.22s'],
@@ -906,12 +906,12 @@ export class ChatbotComponent implements AfterViewChecked, OnInit, OnDestroy {
     ].forEach(([p,v]) => trig(p,v));
     trigger.addEventListener('mouseenter', () => Object.assign(trigger.style, {
       transform:'scale(1.08)',
-      boxShadow: '0 18px 48px rgba(17,17,17,0.6), inset 0 0 0 1px rgba(255,255,255,0.12), inset 0 -8px 18px rgba(255,255,255,0.04)',
+      boxShadow: '0 16px 42px rgba(17,17,17,0.6), inset 0 0 0 1px rgba(255,255,255,0.12), inset 0 -7px 15px rgba(255,255,255,0.04)',
       filter: 'saturate(1.05)',
     }));
     trigger.addEventListener('mouseleave', () => Object.assign(trigger.style, {
       transform:'scale(1)',
-      boxShadow: '0 14px 40px rgba(17,17,17,0.55), inset 0 0 0 1px rgba(255,255,255,0.06), inset 0 -6px 16px rgba(255,255,255,0.02)',
+      boxShadow: '0 12px 34px rgba(17,17,17,0.55), inset 0 0 0 1px rgba(255,255,255,0.06), inset 0 -5px 13px rgba(255,255,255,0.02)',
       filter: 'none',
     }));
     trigger.addEventListener('mousedown', () => trigger.style.transform = 'scale(0.95)');
@@ -923,28 +923,28 @@ export class ChatbotComponent implements AfterViewChecked, OnInit, OnDestroy {
       ['position','relative'],['width','100%'],['height','100%'],
       ['display','inline-flex'],['flexDirection','column'],
       ['alignItems','center'],['justifyContent','flex-start'],
-      ['paddingTop','6px'],['pointerEvents','none'],['userSelect','none'],
+      ['paddingTop','4px'],['pointerEvents','none'],['userSelect','none'],
     ].forEach(([p,v]) => this.renderer2.setStyle(logoWrap,p,v));
 
     // ─ Oreilles ×2 losanges (diamants) beige avec bordure noire fine
     const earsRow = this.renderer2.createElement('span');
     [
-      ['position','relative'],['width','100%'],['height','28px'],
+      ['position','relative'],['width','100%'],['height','22px'],
       ['display','inline-flex'],['flexDirection','row'],
       ['alignItems','flex-start'],['justifyContent','space-between'],
-      ['padding','0 14px'],['marginTop','2px'],
+      ['padding','0 10px'],['marginTop','1px'],
     ].forEach(([p,v]) => this.renderer2.setStyle(earsRow,p,v));
     const makeEar = (tiltDeg: number) => {
       const ear = this.renderer2.createElement('span');
-      const EAR_D = 24;
+      const EAR_D = 19;
       [
         ['width',`${EAR_D}px`],['height',`${EAR_D}px`],['minWidth',`${EAR_D}px`],['minHeight',`${EAR_D}px`],
         ['background',`linear-gradient(135deg, ${PALETTE.beige} 0%, #E6D3B5 100%)`],
-        ['border',`1.8px solid ${PALETTE.noir}`],
+        ['border',`1.5px solid ${PALETTE.noir}`],
         ['clipPath','polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)'],
         ['display','inline-block'],['position','relative'],
         ['transform',`translateY(0) rotate(${tiltDeg}deg)`],
-        ['boxShadow',`inset 0 2px 4px rgba(255,255,255,0.55)`],
+        ['boxShadow',`inset 0 1.5px 3px rgba(255,255,255,0.55)`],
       ].forEach(([p,v]) => this.renderer2.setStyle(ear,p,v));
       return ear;
     };
@@ -954,56 +954,53 @@ export class ChatbotComponent implements AfterViewChecked, OnInit, OnDestroy {
 
     // ─ Tête beige arrondie (forme trapèze : large en bas, rétrécie en haut sous oreilles)
     const head = this.renderer2.createElement('span');
-    const HEAD_W = 60, HEAD_H = 52;
+    const HEAD_W = 48, HEAD_H = 42;
     [
-      ['position','absolute'],['left','50%'],['bottom','7px'],['transform','translateX(-50%)'],
+      ['position','absolute'],['left','50%'],['bottom','5px'],['transform','translateX(-50%)'],
       ['width',`${HEAD_W}px`],['height',`${HEAD_H}px`],
       ['background',`linear-gradient(180deg, ${PALETTE.beige} 0%, #EBDDC6 60%, #E2D2B6 100%)`],
-      ['border',`2px solid ${PALETTE.noir}`],
-      // ─ Forme "tête lapin" : haut + bas arrondis, côtés assez droits comme image
+      ['border',`1.8px solid ${PALETTE.noir}`],
       ['borderRadius','46% 46% 48% 48% / 42% 42% 56% 56%'],
-      ['boxShadow','inset 0 2px 6px rgba(255,255,255,0.7), inset 0 -4px 10px rgba(17,17,17,0.06)'],
+      ['boxShadow','inset 0 1.5px 5px rgba(255,255,255,0.7), inset 0 -3px 8px rgba(17,17,17,0.06)'],
       ['display','inline-flex'],['alignItems','center'],['justifyContent','center'],
       ['overflow','hidden'],
     ].forEach(([p,v]) => this.renderer2.setStyle(head,p,v));
 
-    // ─ Œil rond NOIR (positionné du côté droit sur la photo = droite du visage)
+    // ─ Œil rond NOIR
     const eye = this.renderer2.createElement('span');
     [
-      ['position','absolute'],['right','15px'],['top','20px'],
-      ['width','9px'],['height','9px'],['borderRadius','50%'],
+      ['position','absolute'],['right','12px'],['top','16px'],
+      ['width','7px'],['height','7px'],['borderRadius','50%'],
       ['background',PALETTE.noir],
-      ['boxShadow',`0 0 0 1.4px ${PALETTE.beige}, inset 0 -1px 2px rgba(255,255,255,0.15)`],
+      ['boxShadow',`0 0 0 1.2px ${PALETTE.beige}, inset 0 -1px 1.5px rgba(255,255,255,0.15)`],
     ].forEach(([p,v]) => this.renderer2.setStyle(eye,p,v));
-    // Petit point BLANC dans l'œil pour reflet
     const eyeShine = this.renderer2.createElement('span');
     [
-      ['position','absolute'],['right','16.5px'],['top','21.5px'],
-      ['width','2.4px'],['height','2.4px'],['borderRadius','50%'],
+      ['position','absolute'],['right','13.5px'],['top','17.5px'],
+      ['width','1.8px'],['height','1.8px'],['borderRadius','50%'],
       ['background',PALETTE.white],
     ].forEach(([p,v]) => this.renderer2.setStyle(eyeShine,p,v));
     this.renderer2.appendChild(head, eye);
     this.renderer2.appendChild(head, eyeShine);
 
-    // ─ Museau + bouche : "X" ou museau lapin minimaliste (2 traits croisés noirs)
+    // ─ Museau + bouche : "X" lapin
     const muzzle = this.renderer2.createElement('span');
     [
-      ['position','absolute'],['left','18px'],['bottom','12px'],
-      ['width','16px'],['height','12px'],
+      ['position','absolute'],['left','14px'],['bottom','10px'],
+      ['width','12px'],['height','9px'],
       ['display','inline-flex'],['alignItems','center'],['justifyContent','center'],
     ].forEach(([p,v]) => this.renderer2.setStyle(muzzle,p,v));
-    // 2 traits croisés en X (spans avec rotate + bg noir)
     const X1 = this.renderer2.createElement('span');
     [
       ['position','absolute'],['top','50%'],['left','50%'],
-      ['width','12px'],['height','2px'],['borderRadius','2px'],
+      ['width','9px'],['height','1.8px'],['borderRadius','2px'],
       ['background',PALETTE.noir],
       ['transform','translate(-50%,-50%) rotate(40deg)'],
     ].forEach(([p,v]) => this.renderer2.setStyle(X1,p,v));
     const X2 = this.renderer2.createElement('span');
     [
       ['position','absolute'],['top','50%'],['left','50%'],
-      ['width','12px'],['height','2px'],['borderRadius','2px'],
+      ['width','9px'],['height','1.8px'],['borderRadius','2px'],
       ['background',PALETTE.noir],
       ['transform','translate(-50%,-50%) rotate(-40deg)'],
     ].forEach(([p,v]) => this.renderer2.setStyle(X2,p,v));
@@ -1014,12 +1011,12 @@ export class ChatbotComponent implements AfterViewChecked, OnInit, OnDestroy {
     this.renderer2.appendChild(logoWrap, head);
     this.renderer2.appendChild(trigger, logoWrap);
 
-    // ─ Online dot vert dans le coin bas-droite
+    // ─ Online dot vert
     const dot = this.renderer2.createElement('span');
     [
-      ['position','absolute'],['bottom','-2px'],['right','-2px'],['width','16px'],['height','16px'],
-      ['borderRadius','50%'],['background',PALETTE.green],['border',`2.5px solid ${PALETTE.noir}`],
-      ['boxShadow',`0 0 0 3px rgba(16,185,129,0.3), 0 0 14px ${PALETTE.green}`],
+      ['position','absolute'],['bottom','-2px'],['right','-2px'],['width','14px'],['height','14px'],
+      ['borderRadius','50%'],['background',PALETTE.green],['border',`2px solid ${PALETTE.noir}`],
+      ['boxShadow',`0 0 0 2.5px rgba(16,185,129,0.3), 0 0 12px ${PALETTE.green}`],
       ['pointerEvents','none'],['zIndex','1'],
     ].forEach(([p,v]) => this.renderer2.setStyle(dot,p,v));
     this.renderer2.appendChild(trigger, dot);
@@ -1034,7 +1031,7 @@ export class ChatbotComponent implements AfterViewChecked, OnInit, OnDestroy {
     const badge = this.renderer2.createElement('div');
     const bst = (p:string,v:string) => this.renderer2.setStyle(badge,p,v);
     [
-      ['position','fixed'],['right','100px'],['bottom','52px'],
+      ['position','fixed'],['right','88px'],['bottom','44px'],
       ['background',PALETTE.beige],['color',PALETTE.noir],
       ['border',`2px solid ${PALETTE.noir}`],['borderRadius','18px'],
       ['padding','10px 18px'],
@@ -1110,7 +1107,7 @@ export class ChatbotComponent implements AfterViewChecked, OnInit, OnDestroy {
     this.renderer2.setAttribute(panel, 'aria-modal', 'true');
     const pst = (p:string,v:string) => this.renderer2.setStyle(panel,p,v);
     [
-      ['position','fixed'],['right','32px'],['bottom','126px'],
+      ['position','fixed'],['right','32px'],['bottom','108px'],
       ['width','min(430px, calc(100vw - 64px))'],['maxWidth','calc(100vw - 64px)'],
       ['height','min(640px, calc(100vh - 160px))'],['minHeight','520px'],
       ['background','#ffffff'],['border',`2.5px solid ${PALETTE.noir}`],
