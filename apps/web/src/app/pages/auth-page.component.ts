@@ -14,7 +14,16 @@ import { ToastService } from '../services/toast.service';
       <!-- BRAND & SECURITY PANEL -->
       <aside class="brand-panel">
         <a class="logo" routerLink="/">
-          <span class="logo__mark"><span class="pulse"></span></span>
+          <span class="logo__mark">
+            <span class="pulse-burundi">
+              <svg viewBox="0 0 100 120" aria-hidden="true">
+                <path d="M50,3 C60,10 70,16 75,22 C82,28 88,30 90,40 C92,48 90,56 88,62 C89,70 88,78 82,86 C75,95 68,105 50,117 C32,105 25,95 18,86 C12,78 11,70 12,62 C10,56 8,48 10,40 C12,30 18,28 25,22 C30,16 40,10 50,3Z" fill="var(--c-bronze)" stroke="rgba(17,17,17,0.18)" stroke-width="1.2"/>
+                <g transform="translate(36 55)"><path d="M0,18 L0,8 L14,-2 L28,8 L28,18Z" fill="#fff" opacity=".98"/><rect x="10" y="10" width="8" height="8" fill="var(--c-bronze)" opacity=".9"/></g>
+                <g class="sparkle-blink" transform="translate(20 48)"><path d="M0,-5 L1.5,-1.5 L5,0 L1.5,1.5 L0,5 L-1.5,1.5 L-5,0 L-1.5,-1.5Z" fill="#fff"/></g>
+              </svg>
+            </span>
+            <span class="logo__mark-txt"><b>Burundi</b><small>2026</small></span>
+          </span>
           InzuConnect
         </a>
         <div class="brand-panel__body">
