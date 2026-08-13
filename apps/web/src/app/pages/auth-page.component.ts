@@ -16,13 +16,16 @@ import { ToastService } from '../services/toast.service';
         <a class="logo" routerLink="/">
           <span class="logo__mark">
             <span class="pulse-burundi">
-              <svg viewBox="0 0 100 120" aria-hidden="true">
-                <path d="M50,3 C60,10 70,16 75,22 C82,28 88,30 90,40 C92,48 90,56 88,62 C89,70 88,78 82,86 C75,95 68,105 50,117 C32,105 25,95 18,86 C12,78 11,70 12,62 C10,56 8,48 10,40 C12,30 18,28 25,22 C30,16 40,10 50,3Z" fill="var(--c-bronze)" stroke="rgba(17,17,17,0.18)" stroke-width="1.2"/>
-                <g transform="translate(36 55)"><path d="M0,18 L0,8 L14,-2 L28,8 L28,18Z" fill="#fff" opacity=".98"/><rect x="10" y="10" width="8" height="8" fill="var(--c-bronze)" opacity=".9"/></g>
-                <g class="sparkle-blink" transform="translate(20 48)"><path d="M0,-5 L1.5,-1.5 L5,0 L1.5,1.5 L0,5 L-1.5,1.5 L-5,0 L-1.5,-1.5Z" fill="#fff"/></g>
+              <svg viewBox="0 0 155 165" aria-hidden="true">
+                <g transform="translate(10 10) scale(1.05)">
+                  <path fill="var(--c-bronze)" stroke="rgba(17,17,17,0.15)" stroke-width="0.8" d="M 116,14 L 114,14 L 110,17 L 104,16 L 100,21 L 96,21 L 91,16 L 87,15 L 86,16 L 87,24 L 85,27 L 85,35 L 81,41 L 79,42 L 75,41 L 73,44 L 68,44 L 67,43 L 61,45 L 57,44 L 49,45 L 47,43 L 47,38 L 45,34 L 38,33 L 36,31 L 30,31 L 29,32 L 29,39 L 26,42 L 26,44 L 28,44 L 37,56 L 40,57 L 42,60 L 40,78 L 48,79 L 46,77 L 51,75 L 52,73 L 56,76 L 55,77 L 58,78 L 56,79 L 56,84 L 55,85 L 51,83 L 49,85 L 49,97 L 47,102 L 65,140 L 68,142 L 70,146 L 74,146 L 79,140 L 82,141 L 93,134 L 93,131 L 103,120 L 103,116 L 109,108 L 109,106 L 114,104 L 114,99 L 117,95 L 117,92 L 121,88 L 128,85 L 131,82 L 129,80 L 131,76 L 136,73 L 137,74 L 141,72 L 142,66 L 141,62 L 139,60 L 141,58 L 141,56 L 139,57 L 131,56 L 126,51 L 121,54 L 115,48 L 117,41 L 122,36 L 117,37 L 116,34 L 119,31 L 123,21 L 123,19 L 120,18 Z"/>
+                  <path fill="#FFFFFF" d="M 49,74 L 50,77 L 54,76 L 52,80 L 55,82 L 51,82 L 51,86 L 48,83 L 46,86 L 46,82 L 42,82 L 45,80 L 43,77 L 47,78 Z" class="sparkle-blink"/>
+                  <path fill="#FFFFFF" d="M 71,80 L 71,81 L 72,81 L 84,70 L 85,70 L 96,81 L 98,81 L 98,80 L 94,77 L 94,70 L 91,70 L 91,72 L 90,73 L 86,69 L 83,69 L 73,79 Z"/>
+                  <path fill="#FFFFFF" d="M 85,73 L 84,73 L 75,82 L 75,93 L 81,93 L 81,87 L 82,86 L 87,86 L 88,87 L 88,93 L 93,93 L 94,92 L 94,82 Z"/>
+                </g>
               </svg>
             </span>
-            <span class="logo__mark-txt"><b>Burundi</b><small>2026</small></span>
+            <span class="logo__mark-txt"><b>BURUNDI</b></span>
           </span>
           InzuConnect
         </a>
